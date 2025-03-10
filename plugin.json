@@ -43,7 +43,7 @@
     "description": "1x3 and 1x2 mult",
     "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-bus-mult",
     "manualUrl": "https://www.moffenzeefmodular.com/s/bus-mult-quickstart-91417-B.pdf",
-    "tags": ["mult", "utility"]
+    "tags": ["utility"]
    },
    {
     "slug": "Count",
