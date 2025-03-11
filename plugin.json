@@ -123,7 +123,7 @@
     "description": "Dynamic mute module",
     "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-simplify",
     "manualUrl": "https://www.moffenzeefmodular.com/s/MOF-SIMPLIFY-QUICKSTART-v10-892024.pdf",
-    "tags": ["sequencer", "clock modulator", "mute", "hardware clone"]
+    "tags": ["sequencer", "clock modulator", "hardware clone"]
    }
   ]
 }
