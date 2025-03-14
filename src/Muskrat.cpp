@@ -37,20 +37,21 @@ struct Muskrat : Module {
  // Constructor
  Muskrat() {
 	config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-	configParam(TAIL_PARAM, 0.f, 1.f, 0.5f, "Tail");
-	configParam(RANGE_PARAM, 0.f, 2.f, 1.f, "Range");
-	configParam(SCRATCH_PARAM, 0.f, 1.f, 0.5f, "Scratch");
-	configParam(DIG_PARAM, 0.f, 1.f, 0.5f, "Dig");
-	configParam(CHEW_PARAM, 0.f, 1.f, 0.5f, "Chew");
+	configParam(TAIL_PARAM, 0.f, 1.f, 0.5f, "Decay Time", " %", 0.f, 100.f);
+	configSwitch(RANGE_PARAM, 0.f, 2.f, 1.f, "Decay Time Range", {"Fast", "Medium", "Slow"});
+	configParam(SCRATCH_PARAM, 0.f, 1.f, 0.5f, "Scratch", " %", 0.f, 100.f);
+	configParam(DIG_PARAM, 0.f, 1.f, 0.5f, "Dig", " %", 0.f, 100.f);
+	configParam(CHEW_PARAM, 0.f, 1.f, 0.5f, "Chew", " %", 0.f, 100.f);
+
 	configInput(BANG_INPUT, "Bang");
 	configInput(SCRATCH_CV_INPUT, "Scratch CV");
 	configInput(DIG_CV_INPUT, "Dig CV");
 	configInput(CHEW_CV_INPUT, "Chew CV");
-	configParam(RATSWITCH_PARAM, 0.f, 1.f, 0.f, "Ratswitch");
+	configSwitch(RATSWITCH_PARAM, 0.f, 1.f, 0.f, "Ratswitch", {"Off", "On"});
 	configInput(MUSKRAT_INPUT, "Ratswitch CV");
 	configOutput(AUDIO_OUTPUT, "Muskrat");
-  configParam(SELECT_PARAM, 0.f, 1.f, 0.f, "Algorithm");
 
+  configSwitch(SELECT_PARAM, 1.f, 4.f, 1.f, "Algorithm", {"Muskrat", "FM", "PD", "Granular"}); 
 }
 
 const static int WAVETABLE_SIZE = 238;
@@ -1272,9 +1273,8 @@ if (pulseTriggered) {
 float granularOutput = (((outputSampleGranular * 5.f) + 2.5f) * 5.0f) * envelopeValue; 
 granularOutput = clamp(granularOutput, -5.0f, 5.0f);
 
+/*
 float selectPot = params[SELECT_PARAM].getValue();
-
-
 if(selectPot < 0.43){
 ratSelect = 1;
 }
@@ -1287,7 +1287,9 @@ ratSelect = 3;
 if (selectPot > 0.66){
 ratSelect = 4; 
 }
+*/
 
+ratSelect = params[SELECT_PARAM].getValue(); 
 
 switch (ratSelect){
 case 1: // Muskrat
@@ -1326,17 +1328,17 @@ struct MuskratWidget : ModuleWidget {
         addParam(createParamCentered<CKSSThree>(mm2px(Vec(24.513, 20.315)), module, Muskrat::RANGE_PARAM));
         addParam(createParamCentered<CKSS>(mm2px(Vec(24.478, 108.396)), module, Muskrat::RATSWITCH_PARAM));
 
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.603, 19.421)), module, Muskrat::TAIL_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.334, 41.886)), module, Muskrat::SCRATCH_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.346, 64.212)), module, Muskrat::DIG_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.321, 86.273)), module, Muskrat::CHEW_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 19.421)), module, Muskrat::TAIL_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 41.886)), module, Muskrat::SCRATCH_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 64.212)), module, Muskrat::DIG_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 86.273)), module, Muskrat::CHEW_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(62, 50)), module, Muskrat::SELECT_PARAM));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.549, 19.244)), module, Muskrat::BANG_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.545, 41.872)), module, Muskrat::SCRATCH_CV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.548, 64.291)), module, Muskrat::DIG_CV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.467, 86.24)), module, Muskrat::CHEW_CV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.572, 108.196)), module, Muskrat::MUSKRAT_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 19.244)), module, Muskrat::BANG_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 41.872)), module, Muskrat::SCRATCH_CV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 64.291)), module, Muskrat::DIG_CV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 86.24)), module, Muskrat::CHEW_CV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 108.196)), module, Muskrat::MUSKRAT_INPUT));
 
         addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(38.325, 108.226)), module, Muskrat::AUDIO_OUTPUT));
 
