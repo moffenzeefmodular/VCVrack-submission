@@ -55,9 +55,9 @@ struct DialUp : Module {
     // Constructor for DialUp module
     DialUp() {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-        configParam(TAIL_PARAM, 0.f, 1.f, 0.f, "Tail");
-        configParam(RANGE_PARAM, 0.f, 2.f, 0.f, "Range");
-        configParam(MODEM_PARAM, 0.f, 1.f, 0.5f, "Modem");
+        configParam(TAIL_PARAM, 0.f, 1.f, 0.f, "Decay Time", " %", 0.f, 100.f);
+        configSwitch(RANGE_PARAM, 0.f, 2.f, 0.f, "Decay Range", {"Fast", "Medium", "Slow"});
+        configParam(MODEM_PARAM, 0.f, 1.f, 0.5f, "Modem", " %", 0.f, 100.f);
         configInput(BANG_INPUT, "Bang");
         configInput(MODEM_CV_INPUT, "Modem CV");
         configOutput(DIAL_UP_OUTPUT, "Dial-Up");
