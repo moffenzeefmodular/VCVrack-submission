@@ -34,12 +34,12 @@ struct Deviant : Module {
 
     Deviant() {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-        configParam(TOP_1__PARAM, 0.f, 1.f, 1.f, "Top 1");
-        configParam(TOP_2_PARAM, 0.f, 1.f, 1.f, "Top 2");
-        configParam(BOTTOM_1_PARAM, 0.f, 1.f, 0.f, "Bottom 1");
-        configParam(BOTTOM_2_PARAM, 0.f, 1.f, 0.f, "Bottom 2");
-        configParam(SMOOTH_1_PARAM, 0.f, 1.f, 0.f, "Smooth 1");
-        configParam(SMOOTH_2_PARAM, 0.f, 1.f, 0.f, "Smooth 2");
+        configParam(TOP_1__PARAM, -5.f, 5.f, 5.f, "Top 1", " v");
+        configParam(TOP_2_PARAM, -5.f, 5.f, 5.f, "Top 2", " v");
+        configParam(BOTTOM_1_PARAM, -5.f, 5.f, -5.f, "Bottom 1", " v");
+        configParam(BOTTOM_2_PARAM, -5.f, 5.f, -5.f, "Bottom 2", " v");
+        configParam(SMOOTH_1_PARAM, 0.f, 1.f, 0.f, "Slew Amount", " %", 0.f, 100.f);
+        configParam(SMOOTH_2_PARAM, 0.f, 1.f, 0.f, "Slew Amount", " %", 0.f, 100.f);
         configInput(BANG_1_INPUT, "Bang! 1");
         configInput(CH__1_TOP_INPUT, "Top 1 CV");
         configInput(CH__1_BOTTOM_INPUT, "Bottom 1 CV");
@@ -91,8 +91,6 @@ struct Deviant : Module {
             float bottomValue = params[BOTTOM_1_PARAM].getValue();
             float topCV = inputs[CH__1_TOP_INPUT].getVoltage();
             float bottomCV = inputs[CH__1_BOTTOM_INPUT].getVoltage();
-            topValue = -5.f + (topValue * 10.f);  // topValue will range from -5V to +5V
-            bottomValue = -5.f + (bottomValue * 10.f);  // bottomValue will range from -5V to +5V
             topValue += topCV;
             bottomValue += bottomCV;
             if (bottomValue >= topValue) {
@@ -108,8 +106,6 @@ struct Deviant : Module {
             float bottomValue = params[BOTTOM_2_PARAM].getValue();
             float topCV = inputs[CH__2_TOP_INPUT].getVoltage();
             float bottomCV = inputs[CH__2_BOTTOM_INPUT].getVoltage();
-            topValue = -5.f + (topValue * 10.f);  // topValue will range from -5V to +5V
-            bottomValue = -5.f + (bottomValue * 10.f);  // bottomValue will range from -5V to +5V
             topValue += topCV;
             bottomValue += bottomCV;
             if (bottomValue >= topValue) {
