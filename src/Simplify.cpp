@@ -23,7 +23,8 @@ struct Simplify : Module {
 
 	Simplify() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(SELECT_PARAM, 0.f, 1.f, 0.f, "Select");
+		configParam(SELECT_PARAM, 1.f, 137.f, 0.f, "Pattern"); // Figure out how to truncate decimals from display 
+		paramQuantities[SELECT_PARAM]->snapEnabled = true; 
 		configInput(BANG_INPUT, "Bang!");
 		configInput(RESET_INPUT, "Reset");
 		configInput(SELECT_CV_INPUT, "Select CV");
@@ -190,7 +191,7 @@ int seqOut = 0;
         // CH 1 CV
         float cvInput = inputs[SELECT_CV_INPUT].getVoltage();  // Read CV input
         float normalizedCV = (cvInput + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-        float knob1Param = params[SELECT_PARAM].getValue();  // Original knob value
+        float knob1Param = params[SELECT_PARAM].getValue() / 137.f;  // Original knob value
         float knob1Value = knob1Param + (normalizedCV - 0.5f);  // Apply the CV input as an offset
         knob1Value = clamp(knob1Value, 0.0f, 1.0f);
 
