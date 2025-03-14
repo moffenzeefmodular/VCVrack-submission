@@ -6437,12 +6437,17 @@ GMO() {
 				sample = wavetable8[(int)wavetableIndex]; 
 				break;
 		}
-        
+
+		if (wavetableIndex >= tailIndex){
+		outputSignal = 0; 
+		}
+		else{
 		outputSignal = (float)sample / 128.0f;
 		finalOutput = outputSignal * 20.0f;
 		finalOutput = clamp(finalOutput, -5.0f, 5.0f);
 		outputs[GMO_OUTPUT].setVoltage(finalOutput);
 		lights[LED_LIGHT].setBrightness(finalOutput * 0.2);
+		}
 }
 	};
 	
