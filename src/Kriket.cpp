@@ -85,10 +85,10 @@ struct Kriket : Module {
 
     Kriket() {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-        configParam(PITCH1_PARAM, 0.f, 1.f, 0.f, "Pitch 1");
-        configParam(PITCH2_PARAM, 0.f, 1.f, 0.f, "Pitch 2");
-        configParam(PITCH3_PARAM, 0.f, 1.f, 0.f, "Pitch 3");
-        configParam(PITCH4_PARAM, 0.f, 1.f, 0.f, "Pitch 4");
+        configParam(PITCH1_PARAM, 0.f, 1.f, 0.f, "Pitch 1", " hz", 5.f, 1000.f);
+        configParam(PITCH2_PARAM, 0.f, 1.f, 0.f, "Pitch 2", " hz", 5.f, 1000.f);
+        configParam(PITCH3_PARAM, 0.f, 1.f, 0.f, "Pitch 3", " hz", 5.f, 1000.f);
+        configParam(PITCH4_PARAM, 0.f, 1.f, 0.f, "Pitch 4", " hz", 5.f, 1000.f);
         configInput(BANG1_INPUT, "Bang 1");
         configInput(BANG2_INPUT, "Bang 2");
         configInput(BANG3_INPUT, "Bang 3");
