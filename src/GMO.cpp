@@ -6307,7 +6307,7 @@ const int8_t wavetable8[WAVETABLE_SIZE] = {-1,
 
 GMO() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(SPECIMEN_PARAM, 1.f, 8.f, 0.f, "Sample Select");
+		configParam(SPECIMEN_PARAM, 1.f, 8.f, 1.f, "Sample Select");
 		paramQuantities[SPECIMEN_PARAM]->snapEnabled = true; 
 
 		configParam(SPEED_PARAM, 0.f, 1.f, 0.5f, "Pitch", " %", 0.f, 100.f);
@@ -6327,12 +6327,15 @@ GMO() {
     float wavetableIndex = 0.0f;
     float outputSignal = 0.0f;
 	int8_t sample;  
+	int headIndex = 0;
+	int tailIndex = 0; 
+	float finalOutput = 0;
 
 	bool previousBangState = false; 
 
 	void process(const ProcessArgs &args) override {
 		const int GAP = 200; // Define the gap between HEAD and TAIL (can be adjusted)
-	    
+	
 		//Speed
 		float cvInput = inputs[SPEED_CV_INPUT].getVoltage();
 		float normalizedCV = (cvInput + 5.0f) / 10.0f;
@@ -6340,7 +6343,7 @@ GMO() {
 		float knob1Value = knob1Param + (normalizedCV - 0.5f);
 		float controlValue = clamp(knob1Value, 0.0f, 1.0f);
 		speed = (controlValue * 3.f) + 0.05f;
-	    
+	
 		//Specimen
 		float cvInput2 = inputs[SPECIMEN_CV_INPUT].getVoltage();
 		float normalizedCV2 = (cvInput2 + 5.0f) / 10.0f;
@@ -6348,77 +6351,101 @@ GMO() {
 		float knob2Value = knob2Param + (normalizedCV2 - 0.5f);
 		float controlValue2 = clamp(knob2Value, 0.0f, 1.0f);
 		int sampleSelect = (controlValue2 * 7) + 1;
-        
+	
 		//Head
 		float cvInput3 = inputs[HEAD_CV_INPUT].getVoltage();
 		float normalizedCV3 = (cvInput3 + 5.0f) / 10.0f;
 		float knob3Param = params[HEAD_PARAM].getValue();
 		float knob3Value = knob3Param + (normalizedCV3 - 0.5f);
 		float controlValue3 = clamp(knob3Value, 0.0f, 1.0f);
-		int headIndex = (int)(controlValue3 * WAVETABLE_SIZE);
-
+	
 		//Tail
 		float cvInput4 = inputs[TAIL_CV_INPUT].getVoltage();
 		float normalizedCV4 = (cvInput4 + 5.0f) / 10.0f;
 		float knob4Param = params[TAIL_PARAM].getValue();
 		float knob4Value = knob4Param + (normalizedCV4 - 0.5f);
 		float controlValue4 = clamp(knob4Value, 0.0f, 1.0f);
-		int tailIndex = (int)(controlValue4 * WAVETABLE_SIZE);
-
-		// Don't let knobs cross 
-		if (tailIndex <= headIndex + GAP) {
-			tailIndex = headIndex + GAP;
-		}
-		if (headIndex >= tailIndex) {
-			headIndex = tailIndex - GAP;
-		}
-	    
+	
 		// LOOP SWITCH
 		bool switchState = params[LOOP_PARAM].getValue() > 0.5f;
 		bool gateState = inputs[LOOP_CV_INPUT].getVoltage() > 0.5f;
-        
+	
 		// One shot states
-		bool bangState = inputs[BANG_INPUT].getVoltage() < 0.5f;  
-
+		bool bangState = inputs[BANG_INPUT].getVoltage() < 0.5f;
+	
 		if(switchState || gateState){ // LOOPING MODE
-		if (wavetableIndex >= WAVETABLE_SIZE) {
+			headIndex = (int)(controlValue3 * WAVETABLE_SIZE);
+			tailIndex = (int)(controlValue4 * WAVETABLE_SIZE);
+			// Don't let knobs cross 
+			if (tailIndex <= headIndex + GAP) {
+				tailIndex = headIndex + GAP;
+			}
+			if (headIndex >= tailIndex) {
+				headIndex = tailIndex - GAP;
+			}
+	
+			if (wavetableIndex >= WAVETABLE_SIZE) {
 				wavetableIndex -= WAVETABLE_SIZE;
 			}
 			wavetableIndex = clamp(wavetableIndex, (float)headIndex, (float)tailIndex);
 			if (wavetableIndex >= tailIndex) {
 				wavetableIndex = (float)headIndex;  // Reset to HEAD index when TAIL is reached
-				}		
 			}
-		else{	
-		if (bangState < previousBangState) { 
-		wavetableIndex = headIndex; 
+			}
+		else {        
+			if (bangState < previousBangState) { 
+				headIndex = (int)(controlValue3 * WAVETABLE_SIZE);
+				tailIndex = (int)(controlValue4 * WAVETABLE_SIZE);
+				// Don't let knobs cross 
+				if (tailIndex <= headIndex + GAP) {
+					tailIndex = headIndex + GAP;
+				}
+				if (headIndex >= tailIndex) {
+					headIndex = tailIndex - GAP;
+				}
+				wavetableIndex = headIndex; 
+			}
+			previousBangState = bangState;
 		}
-		previousBangState = bangState; 
-	    } 
 
 		wavetableIndex = clamp(wavetableIndex, (float)headIndex, (float)tailIndex);
 		wavetableIndex += speed * args.sampleTime * WAVETABLE_SIZE;
-		
-		
-switch(sampleSelect) {
-			case 1: sample = wavetable[(int)wavetableIndex]; break;
-			case 2: sample = wavetable2[(int)wavetableIndex]; break;
-			case 3: sample = wavetable3[(int)wavetableIndex]; break;
-			case 4: sample = wavetable4[(int)wavetableIndex]; break;
-			case 5: sample = wavetable5[(int)wavetableIndex]; break;
-			case 6: sample = wavetable6[(int)wavetableIndex]; break;
-			case 7: sample = wavetable7[(int)wavetableIndex]; break;
-			case 8: sample = wavetable8[(int)wavetableIndex]; break;
+	
+		switch(sampleSelect) {
+			case 1: 
+				sample = wavetable[(int)wavetableIndex]; 
+				break;
+			case 2: 
+				sample = wavetable2[(int)wavetableIndex]; 
+				break;
+			case 3: 
+				sample = wavetable3[(int)wavetableIndex]; 
+				break;
+			case 4: 
+				sample = wavetable4[(int)wavetableIndex]; 
+				break;
+			case 5: 
+				sample = wavetable5[(int)wavetableIndex]; 
+				break;
+			case 6: 
+				sample = wavetable6[(int)wavetableIndex]; 
+				break;
+			case 7: 
+				sample = wavetable7[(int)wavetableIndex]; 
+				break;
+			case 8: 
+				sample = wavetable8[(int)wavetableIndex]; 
+				break;
 		}
-	
+        
 		outputSignal = (float)sample / 128.0f;
-		float finalOutput = outputSignal * 20.0f;
+		finalOutput = outputSignal * 20.0f;
 		finalOutput = clamp(finalOutput, -5.0f, 5.0f);
-	
 		outputs[GMO_OUTPUT].setVoltage(finalOutput);
 		lights[LED_LIGHT].setBrightness(finalOutput * 0.2);
-	}
-};	
+}
+	};
+	
 struct GMOWidget : ModuleWidget {
 	GMOWidget(GMO* module) {
 		setModule(module);
