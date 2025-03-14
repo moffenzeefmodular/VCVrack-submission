@@ -34,11 +34,11 @@ struct Bobcat : Module {
 
 	Bobcat() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(TAIL_1__PARAM, 0.f, 1.f, 0.f, "Tail 1");
-		configParam(HISS_1__PARAM, 0.f, 1.f, 0.f, "Hiss 1");
-		configParam(SNARL_PARAM, 0.f, 1.f, 0.f, "Snarl");
-		configParam(TAIL_2_PARAM, 0.f, 1.f, 0.f, "Tail 2");
-		configParam(HISS_2__PARAM, 0.f, 1.f, 0.f, "Hiss 2");
+		configParam(TAIL_1__PARAM, 0.f, 1.f, 0.f, "Decay Time 1", " %", 0.f, 100.f);
+		configParam(HISS_1__PARAM, 0.f, 1.f, 0.f, "Pitch 1", " %", 0.f, 100.f);
+		configSwitch(SNARL_PARAM, 0.f, 1.f, 0.f, "Decay Time Range", {"Short", "Long"});
+		configParam(TAIL_2_PARAM, 0.f, 1.f, 0.f, "Decay Time 2", " %", 0.f, 100.f);
+		configParam(HISS_2__PARAM, 0.f, 1.f, 0.f, "Pitch 2", " %", 0.f, 100.f);
 		configInput(BANG_1_INPUT, "Bang! 1");
 		configInput(TAIL_1_CV_INPUT, "Tail 1 CV");
 		configInput(HISS_1_CV_INPUT, "Hiss 1 CV");
