@@ -6307,11 +6307,13 @@ const int8_t wavetable8[WAVETABLE_SIZE] = {-1,
 
 GMO() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(SPECIMEN_PARAM, 0.f, 1.f, 0.f, "Specimen");
-		configParam(SPEED_PARAM, 0.f, 1.f, 0.5f, "Speed");
-		configParam(LOOP_PARAM, 0.f, 1.f, 0.f, "Loop");
-		configParam(HEAD_PARAM, 0.f, 1.f, 0.f, "Head");
-		configParam(TAIL_PARAM, 0.f, 1.f, 1.f, "Tail");
+		configParam(SPECIMEN_PARAM, 1.f, 8.f, 0.f, "Sample Select");
+		paramQuantities[SPECIMEN_PARAM]->snapEnabled = true; 
+
+		configParam(SPEED_PARAM, 0.f, 1.f, 0.5f, "Pitch", " %", 0.f, 100.f);
+		configSwitch(LOOP_PARAM, 0.f, 1.f, 0.f, "Loop", {"Off", "On"});
+		configParam(HEAD_PARAM, 0.f, 1.f, 0.f, "Start Time", " %", 0.f, 100.f);
+		configParam(TAIL_PARAM, 0.f, 1.f, 1.f, "End Time", " %", 0.f, 100.f);
 		configInput(BANG_INPUT, "Bang!");
 		configInput(SPECIMEN_CV_INPUT, "Specimen CV");
 		configInput(SPEED_CV_INPUT, "Speed CV");
@@ -6342,7 +6344,7 @@ GMO() {
 		//Specimen
 		float cvInput2 = inputs[SPECIMEN_CV_INPUT].getVoltage();
 		float normalizedCV2 = (cvInput2 + 5.0f) / 10.0f;
-		float knob2Param = params[SPECIMEN_PARAM].getValue();
+		float knob2Param = params[SPECIMEN_PARAM].getValue() / 8.f;
 		float knob2Value = knob2Param + (normalizedCV2 - 0.5f);
 		float controlValue2 = clamp(knob2Value, 0.0f, 1.0f);
 		int sampleSelect = (controlValue2 * 7) + 1;
