@@ -53,22 +53,29 @@ struct Mito : Module {
 
 	Mito() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(KNOB1_PARAM, 0.f, 1.f, 1.f, "Division 1");
-		configParam(KNOB2_PARAM, 0.f, 1.f, 1.f, "Division 2");
-		configParam(KNOB3_PARAM, 0.f, 1.f, 1.f, "Division 3");
-		configParam(KNOB4_PARAM, 0.f, 1.f, 1.f, "Division 6");
-		configParam(KNOB5_PARAM, 0.f, 1.f, 1.f, "Division 4");
-		configParam(KNOB6_PARAM, 0.f, 1.f, 1.f, "Division 5");
+		configParam(KNOB1_PARAM, 16.f, 1.f, 1.f, "Division 1");
+		configParam(KNOB2_PARAM, 16.f, 1.f, 1.f, "Division 2");
+		configParam(KNOB3_PARAM, 16.f, 1.f, 1.f, "Division 3");
+		configParam(KNOB5_PARAM, 16.f, 1.f, 1.f, "Division 5");
+		configParam(KNOB4_PARAM, 16.f, 1.f, 1.f, "Division 4");
+		configParam(KNOB6_PARAM, 16.f, 1.f, 1.f, "Division 6");
 
-		configParam(MUTE1_PARAM, 0.f, 1.f, 1.f, "Mute 1");
-		configParam(MUTE2_PARAM, 0.f, 1.f, 1.f, "Mute 2");
-		configParam(MUTE3_PARAM, 0.f, 1.f, 1.f, "Mute 3");
-		configParam(MUTE4_PARAM, 0.f, 1.f, 1.f, "Mute 4");
-		configParam(MUTE5_PARAM, 0.f, 1.f, 1.f, "Mute 5");
-		configParam(MUTE6_PARAM, 0.f, 1.f, 1.f, "Mute 6");
+		paramQuantities[KNOB1_PARAM]->snapEnabled = true; 
+		paramQuantities[KNOB2_PARAM]->snapEnabled = true; 
+		paramQuantities[KNOB3_PARAM]->snapEnabled = true; 
+		paramQuantities[KNOB4_PARAM]->snapEnabled = true; 
+		paramQuantities[KNOB5_PARAM]->snapEnabled = true; 
+		paramQuantities[KNOB6_PARAM]->snapEnabled = true; 
 
-		configParam(SWING_PARAM, 0.f, 1.f, 0., "Swing amount");
-		configParam(WIDTH_PARAM, 0.f, 1.f, 0.5f, "Width");
+		configSwitch(MUTE1_PARAM, 0.f, 1.f, 1.f, "Mute 1", {"Mute", "Unmute"});
+		configSwitch(MUTE2_PARAM, 0.f, 1.f, 1.f, "Mute 2", {"Mute", "Unmute"});
+		configSwitch(MUTE3_PARAM, 0.f, 1.f, 1.f, "Mute 3", {"Mute", "Unmute"});
+		configSwitch(MUTE4_PARAM, 0.f, 1.f, 1.f, "Mute 4", {"Mute", "Unmute"});
+		configSwitch(MUTE5_PARAM, 0.f, 1.f, 1.f, "Mute 5", {"Mute", "Unmute"});
+		configSwitch(MUTE6_PARAM, 0.f, 1.f, 1.f, "Mute 6", {"Mute", "Unmute"});
+
+		configParam(SWING_PARAM, 0.f, 1.f, 0., "Swing amount", " %", 0.f, 100.f);
+		configParam(WIDTH_PARAM, 0.f, 1.f, 0.5f, "Width", " %", 5.f, 5.f);
 
 		configInput(BANG_INPUT, "Bang!");
 		configInput(RESET_INPUT, "Reset");
@@ -183,7 +190,7 @@ struct Mito : Module {
         // CH 1 CV
         cvInput = inputs[CH1_CVINPUT].getVoltage();  // Read CV input
         normalizedCV = (cvInput + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-        knob1Param = params[KNOB1_PARAM].getValue();  // Original knob value
+        knob1Param = 1.f - (params[KNOB1_PARAM].getValue() / 16.f);  // Original knob value
         knob1Value = knob1Param + (normalizedCV - 0.5f);  // Apply the CV input as an offset
         knob1Value = clamp(knob1Value, 0.0f, 1.0f);
         divisionAmount = 1 + (1.0 - knob1Value) * 15;  // Update division based on knob and CV input
@@ -191,7 +198,7 @@ struct Mito : Module {
 		// CH 2 CV
 		cvInput2 = inputs[CH2_CVINPUT].getVoltage();  // Read CV input
 		normalizedCV2 = (cvInput2 + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-		knob2Param = params[KNOB2_PARAM].getValue();  // Original knob value
+		knob2Param = 1.f - (params[KNOB2_PARAM].getValue() / 16.f);  // Original knob value
 		knob2Value = knob2Param + (normalizedCV2 - 0.5f);  // Apply the CV input as an offset
 		knob2Value = clamp(knob2Value, 0.0f, 1.0f);
 		divisionAmount2 = 1 + (1.0 - knob2Value) * 15;  // Update division based on knob and CV input
@@ -199,7 +206,7 @@ struct Mito : Module {
 		// CH 3 CV
 		cvInput3 = inputs[CH3_CVINPUT].getVoltage();  // Read CV input
 		normalizedCV3 = (cvInput3 + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-		knob3Param = params[KNOB3_PARAM].getValue();  // Original knob value
+		knob3Param = 1.f - (params[KNOB3_PARAM].getValue() / 16.f);  // Original knob value
 		knob3Value = knob3Param + (normalizedCV3 - 0.5f);  // Apply the CV input as an offset
 		knob3Value = clamp(knob3Value, 0.0f, 1.0f);
 		divisionAmount3 = 1 + (1.0 - knob3Value) * 15;  // Update division based on knob and CV input
@@ -207,7 +214,7 @@ struct Mito : Module {
        // CH 4 CV
 	   cvInput4 = inputs[CH4_CVINPUT].getVoltage();  // Read CV input
 	   normalizedCV4 = (cvInput4 + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-	   knob4Param = params[KNOB4_PARAM].getValue();  // Original knob value
+	   knob4Param = 1.f - (params[KNOB4_PARAM].getValue() / 16.f);  // Original knob value
 	   knob4Value = knob4Param + (normalizedCV4 - 0.5f);  // Apply the CV input as an offset
 	   knob4Value = clamp(knob4Value, 0.0f, 1.0f);
 	   divisionAmount4 = 1 + (1.0 - knob4Value) * 15;  // Update division based on knob and CV input
@@ -215,7 +222,7 @@ struct Mito : Module {
 	    // CH 5 CV
 		cvInput5 = inputs[CH5_CVINPUT].getVoltage();  // Read CV input
 		normalizedCV5 = (cvInput5 + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-		knob5Param = params[KNOB5_PARAM].getValue();  // Original knob value
+		knob5Param = 1.f - (params[KNOB5_PARAM].getValue() / 16.f);  // Original knob value
 		knob5Value = knob5Param + (normalizedCV5 - 0.5f);  // Apply the CV input as an offset
 		knob5Value = clamp(knob5Value, 0.0f, 1.0f);
 		divisionAmount5 = 1 + (1.0 - knob5Value) * 15;  // Update division based on knob and CV input
@@ -223,12 +230,12 @@ struct Mito : Module {
 		// CH 6 CV
 		cvInput6 = inputs[CH6_CVINPUT].getVoltage();  // Read CV input
 		normalizedCV6 = (cvInput6 + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-		knob6Param = params[KNOB6_PARAM].getValue();  // Original knob value
+		knob6Param = 1.f - (params[KNOB6_PARAM].getValue() / 16.f);  // Original knob value
 		knob6Value = knob6Param + (normalizedCV6 - 0.5f);  // Apply the CV input as an offset
 		knob6Value = clamp(knob6Value, 0.0f, 1.0f);
 		divisionAmount6 = 1 + (1.0 - knob6Value) * 15;  // Update division based on knob and CV input
 
-				// Pulsewidth CV and knob scale
+		// Pulsewidth CV and knob scale
 		pulseWidthParam = params[WIDTH_PARAM].getValue() * 0.2f + 0.05f;
 		widthCvInput = inputs[WIDTH_CVINPUT].getVoltage();  // Read CV input for WIDTH
 		normalizedWidthCV = (widthCvInput + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
