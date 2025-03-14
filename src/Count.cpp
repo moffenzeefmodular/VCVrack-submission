@@ -63,14 +63,15 @@ struct ClockModule : Module {
 
     ClockModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(COARSE_PARAM, 0.f, 1.f, 0.5f, "Coarse Speed");
-        configParam(FINE_PARAM, -1.f, 1.f, 0.f, "Fine Speed");
-        configParam(PULSEWIDTH_PARAM, 0.f, 1.f, 0.5f, "Pulse Width");
-        configParam(START_STOP_PARAM, 0.f, 1.f, 1.f, "Start/Stop");
-        configParam(UPBEAT_DOWNBEAT_PARAM, 0.f, 1.f, 0.f, "Upbeat/Downbeat");
-        configParam(LEFT_RIGHT_PARAM, 0.f, 1.f, 0.f, "Left/Right");
-        configParam(TOP_BOTTOM_PARAM, 0.f, 1.f, 0.f, "Top/Bottom");
-        configParam(RANGE_PARAM, 0.f, 1.f, 1.f, "Range Switch");
+        configParam(COARSE_PARAM, 0.f, 1.f, 0.5f, "Coarse Speed", " ms", 5.f, 500.f); // 500 - 2500
+        configParam(FINE_PARAM, -1.f, 1.f, 0.f, "Fine Speed", " ms", 0.f, 5.f); // 
+        configParam(PULSEWIDTH_PARAM, 0.f, 1.f, 0.5f, "Pulse Width", " %", 10.f, 5.f); // Get values 
+        configSwitch(START_STOP_PARAM, 0.f, 1.f, 1.f, "Start/Stop", {"Stop", "Start"});
+        configSwitch(UPBEAT_DOWNBEAT_PARAM, 0.f, 1.f, 0.f, "Upbeat/Downbeat", {"Downbeat", "Upbeat"});
+        configSwitch(LEFT_RIGHT_PARAM, 0.f, 1.f, 0.f, "Left/Right", {"Left", "Right"});
+        configSwitch(TOP_BOTTOM_PARAM, 0.f, 1.f, 0.f, "Top/Bottom", {"Bottom", "Top"});
+        configSwitch(RANGE_PARAM, 0.f, 1.f, 1.f, "Range", {"Slow", "Fast"});
+
         configInput(TIME_INPUT, "Time");
         configInput(WIDTH_INPUT, "Width");
         configOutput(DIVIDED_1_OUTPUT, "Divided 1");
