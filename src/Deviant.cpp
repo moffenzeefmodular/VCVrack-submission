@@ -38,8 +38,8 @@ struct Deviant : Module {
         configParam(TOP_2_PARAM, -5.f, 5.f, 5.f, "Top 2", " v");
         configParam(BOTTOM_1_PARAM, -5.f, 5.f, -5.f, "Bottom 1", " v");
         configParam(BOTTOM_2_PARAM, -5.f, 5.f, -5.f, "Bottom 2", " v");
-        configParam(SMOOTH_1_PARAM, 0.f, 1.f, 0.f, "Slew Amount", " %", 0.f, 100.f);
-        configParam(SMOOTH_2_PARAM, 0.f, 1.f, 0.f, "Slew Amount", " %", 0.f, 100.f);
+        configParam(SMOOTH_1_PARAM, 0.f, 1.f, 0.f, "Slew Amount 1", " %", 0.f, 100.f);
+        configParam(SMOOTH_2_PARAM, 0.f, 1.f, 0.f, "Slew Amount 2", " %", 0.f, 100.f);
         configInput(BANG_1_INPUT, "Bang! 1");
         configInput(CH__1_TOP_INPUT, "Top 1 CV");
         configInput(CH__1_BOTTOM_INPUT, "Bottom 1 CV");
