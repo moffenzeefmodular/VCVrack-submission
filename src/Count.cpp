@@ -79,7 +79,7 @@ struct ClockModule : Module {
         configOutput(DIVIDED_3_OUTPUT, "Divided 3");
         configOutput(DIVIDED_4_OUTPUT, "Divided 4");
         configOutput(START_OUTPUT, "Start Pulse");
-        configOutput(MAIN_OUTPUT, "Count");
+        configOutput(MAIN_OUTPUT, "Main");
     }
     void process(const ProcessArgs& args) override {
         // Get values from the knobs and controls (no changes here)
