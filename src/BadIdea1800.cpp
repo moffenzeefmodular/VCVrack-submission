@@ -17,9 +17,8 @@ struct BadIdea1800 : Module {
 		NUM_7_INPUT,
 		NUM_8_INPUT,
 		NUM_9_INPUT,
-		NUM_10_INPUT,
-		ASTERISK_INPUT,
 		ZERO_INPUT,
+		ASTERISK_INPUT,
 		POUND_INPUT,
 		INPUTS_LEN
 	};
@@ -179,7 +178,7 @@ struct BadIdea1800Widget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.541, 66.899)), module, BadIdea1800::NUM_7_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.575, 66.881)), module, BadIdea1800::NUM_8_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(52.553, 66.92)), module, BadIdea1800::NUM_9_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.576, 88.861)), module, BadIdea1800::NUM_10_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.576, 88.861)), module, BadIdea1800::ZERO_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.52, 88.824)), module, BadIdea1800::ASTERISK_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(52.555, 88.86)), module, BadIdea1800::POUND_INPUT));
 
