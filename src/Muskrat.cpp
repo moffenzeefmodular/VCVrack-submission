@@ -43,12 +43,12 @@ struct Muskrat : Module {
 	configParam(DIG_PARAM, 0.f, 1.f, 0.5f, "Dig", " %", 0.f, 100.f);
 	configParam(CHEW_PARAM, 0.f, 1.f, 0.5f, "Chew", " %", 0.f, 100.f);
 
-	configInput(BANG_INPUT, "Bang");
+	configInput(BANG_INPUT, "Bang!");
 	configInput(SCRATCH_CV_INPUT, "Scratch CV");
 	configInput(DIG_CV_INPUT, "Dig CV");
 	configInput(CHEW_CV_INPUT, "Chew CV");
 	configSwitch(RATSWITCH_PARAM, 0.f, 1.f, 0.f, "Ratswitch", {"Off", "On"});
-	configInput(MUSKRAT_INPUT, "Ratswitch CV");
+	configInput(MUSKRAT_INPUT, "Ratswitch Gate");
 	configOutput(AUDIO_OUTPUT, "Muskrat");
 
   configSwitch(SELECT_PARAM, 1.f, 4.f, 1.f, "Algorithm", {"Muskrat", "FM", "PD", "Granular"}); 
