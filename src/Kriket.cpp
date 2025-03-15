@@ -89,11 +89,11 @@ struct Kriket : Module {
         configParam(PITCH2_PARAM, 0.f, 1.f, 0.f, "Pitch 2", " hz", 5.f, 1000.f);
         configParam(PITCH3_PARAM, 0.f, 1.f, 0.f, "Pitch 3", " hz", 5.f, 1000.f);
         configParam(PITCH4_PARAM, 0.f, 1.f, 0.f, "Pitch 4", " hz", 5.f, 1000.f);
-        configInput(BANG1_INPUT, "Bang 1");
-        configInput(BANG2_INPUT, "Bang 2");
-        configInput(BANG3_INPUT, "Bang 3");
-        configInput(BANG4_INPUT, "Bang 4");
-        configInput(CVIN_INPUT, "CV");
+        configInput(BANG1_INPUT, "Bang! 1");
+        configInput(BANG2_INPUT, "Bang! 2");
+        configInput(BANG3_INPUT, "Bang! 3");
+        configInput(BANG4_INPUT, "Bang! 4");
+        configInput(CVIN_INPUT, "Kriket CV");
         configOutput(OUT_OUTPUT, "Kriket");
     }
 
