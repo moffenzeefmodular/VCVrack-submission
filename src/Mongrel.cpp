@@ -55,7 +55,7 @@ struct Mongrel : Module {
 		configInput(TAIL_CV_INPUT, "Tail CV");
 		configInput(YIP_CV_INPUT, "Yip CV");
 		configInput(GROWL_CV_INPUT, "Growl CV");
-		configInput(SNARL_CV_INPUT, "Snarl CV");
+		configInput(SNARL_CV_INPUT, "Snarl Gate");
 		configInput(YAP_CV_INPUT, "Yap CV");
 		configOutput(MONGREL_OUTPUT, "Mongrel");
 	}
