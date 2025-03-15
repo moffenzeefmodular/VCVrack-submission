@@ -6332,7 +6332,7 @@ GMO() {
 	float finalOutput = 0;
 
 	bool previousBangState = false; 
-
+   
 	void process(const ProcessArgs &args) override {
 		const int GAP = 200; // Define the gap between HEAD and TAIL (can be adjusted)
 	
@@ -6437,17 +6437,30 @@ GMO() {
 				sample = wavetable8[(int)wavetableIndex]; 
 				break;
 		}
-
-		if (wavetableIndex >= tailIndex){
-		outputSignal = 0; 
-		}
-		else{
+	
+		// Convert sample and boost 
 		outputSignal = (float)sample / 128.0f;
-		finalOutput = outputSignal * 20.0f;
+		float boost = outputSignal * 20.0f; // Boost sample up to audible level 
+
+		// Highpass 
+		static float previousInput = 0.0f;
+		static float previousOutput = 0.0f;	
+		float RC = 1.0f / (2.0f * M_PI * 200.f); // Last number is cutoff freq
+		float alpha = RC / (RC + args.sampleTime);
+		float finalOutput = alpha * (previousOutput + boost - previousInput);
+	
+		// Update previous input and output for next iteration
+		previousInput = boost;
+		previousOutput = finalOutput;
+	
+	if (wavetableIndex >= tailIndex) {
+		outputSignal = 0;
+	}
+	 else {
 		finalOutput = clamp(finalOutput, -5.0f, 5.0f);
 		outputs[GMO_OUTPUT].setVoltage(finalOutput);
 		lights[LED_LIGHT].setBrightness(finalOutput * 0.2);
-		}
+	}
 }
 	};
 	
