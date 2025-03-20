@@ -20,6 +20,11 @@ int ch3 = 12;
 int ch4 = 16;
 int masterDivide = 1; 
 
+float oneShotTimer = 0.0f;
+bool prevStartStop = false;
+bool pulseSent = false;
+bool resetFlag = false;
+
 struct ClockModule : Module {
     // Parameters from the provided Count module
     enum ParamIds {
@@ -90,14 +95,6 @@ struct ClockModule : Module {
         bool topBottom = params[TOP_BOTTOM_PARAM].getValue() > 0.5f;
         bool leftRight = params[LEFT_RIGHT_PARAM].getValue() > 0.5f;
         bool upbeatDownbeat = params[UPBEAT_DOWNBEAT_PARAM].getValue() > 0.5f;  // Track the upbeat/downbeat state
-    
-        // Previous state of start/stop (no changes here)
-        static bool prevStartStop = false;
-        static float oneShotTimer = 0.0f;
-        static bool pulseSent = false;
-    
-        // Flag to track if masterCount should be reset
-        static bool resetFlag = false;
     
         // Get the coarse frequency knob value
         float coarseFrequencyKnob = params[COARSE_PARAM].getValue();
