@@ -36,6 +36,11 @@ struct Mongrel : Module {
 	const float MIN_FREQUENCY = 20.0f;
 	const float MAX_FREQUENCY = 300.0f;
 
+    bool pulseTriggered = false;
+    float envelopeValue = 0.0f;
+
+	bool triggerStates1[2] = {false, false};  // triggerStates[0] = last state, triggerStates[1] = current state
+
 	float sineWave(float phase) {
 		return sinf(phase * 2.0f * M_PI);  // 2π for a full wave
 	}
@@ -94,18 +99,16 @@ void process(const ProcessArgs& args) override {
     float knob4Value = knob4Param + (normalizedCV4 - 0.5f);
     float tailValue = clamp(knob4Value, 0.0f, 1.0f);
 
-    static bool lastBangState = false;
-    bool currentBangState = inputs[BANG_CV_INPUT].getVoltage() > 0.5f;
-    bool bangRisingEdge = !lastBangState && currentBangState;
-    lastBangState = currentBangState;
+    		// Check if the trigger input is high
+			bool currentTriggerState1 = inputs[BANG_CV_INPUT].getVoltage() > 0.5f;
+			bool bangRisingEdge1 = !triggerStates1[0] && currentTriggerState1;
+			triggerStates1[0] = triggerStates1[1];
+			triggerStates1[1] = currentTriggerState1;
 
     float decayTime = 5.0f + (tailValue * 295.0f);
     float decayAlpha = exp(-1.0f / (args.sampleRate * (decayTime / 1000.0f)));
 
-    static bool pulseTriggered = false;
-    static float envelopeValue = 0.0f;
-
-    if (bangRisingEdge) {
+    if (bangRisingEdge1) {
         pulseTriggered = true;
         envelopeValue = 1.0f;
     }
