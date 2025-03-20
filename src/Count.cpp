@@ -1,30 +1,5 @@
 #include "plugin.hpp"
 
-// Variables for controlling the LED blink and output
-float clockTimer = 0.0f;  // Timer to control the blink
-float clockDelay = 1000.0f;  // Delay between blinks (in milliseconds)
-float pulseWidth = 0.5f;  // Duration of the on/off time (0 to 1)
-     
-bool gateHigh = false;    // Gate state (high or low)
-bool gate2High = false;    // Gate state (high or low)
-bool gate3High = false;    // Gate state (high or low)
-bool gate4High = false;    // Gate state (high or low)
-bool gate5High = false;    // Gate state (high or low)
-
-bool pulseActive = false; // To control one-shot pulse activation
-float pulseTimer = 0.0f;  // Timer for the one-shot pulse duration
-int masterCount = 1; 
-int ch1 = 4; 
-int ch2 = 8;
-int ch3 = 12;
-int ch4 = 16;
-int masterDivide = 1; 
-
-float oneShotTimer = 0.0f;
-bool prevStartStop = false;
-bool pulseSent = false;
-bool resetFlag = false;
-
 struct ClockModule : Module {
     // Parameters from the provided Count module
     enum ParamIds {
@@ -86,6 +61,32 @@ struct ClockModule : Module {
         configOutput(START_OUTPUT, "Start Pulse");
         configOutput(MAIN_OUTPUT, "Main");
     }
+
+    // Variables for controlling the LED blink and output
+float clockTimer = 0.0f;  // Timer to control the blink
+float clockDelay = 1000.0f;  // Delay between blinks (in milliseconds)
+float pulseWidth = 0.5f;  // Duration of the on/off time (0 to 1)
+     
+bool gateHigh = false;    // Gate state (high or low)
+bool gate2High = false;    // Gate state (high or low)
+bool gate3High = false;    // Gate state (high or low)
+bool gate4High = false;    // Gate state (high or low)
+bool gate5High = false;    // Gate state (high or low)
+
+bool pulseActive = false; // To control one-shot pulse activation
+float pulseTimer = 0.0f;  // Timer for the one-shot pulse duration
+int masterCount = 1; 
+int ch1 = 4; 
+int ch2 = 8;
+int ch3 = 12;
+int ch4 = 16;
+int masterDivide = 1; 
+
+float oneShotTimer = 0.0f;
+bool prevStartStop = false;
+bool pulseSent = false;
+bool resetFlag = false;
+
     void process(const ProcessArgs& args) override {
         // Get values from the knobs and controls (no changes here)
         float fineTuneParam = params[FINE_PARAM].getValue();
