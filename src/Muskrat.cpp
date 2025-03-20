@@ -1141,7 +1141,7 @@ void process (const ProcessArgs &args) override {
         sixteen_wav, seventeen_wav, eighteen_wav, nineteen_wav, twenty_wav,
         twentyOne_wav, twentyTwo_wav, twentyThree_wav, twentyFour_wav
       };
-    int index = static_cast<int>(controlValue2 * 23);
+    int index = (controlValue2 * 23);
     if (index >= 0 && index < 24) {
         // Normalize the selected wave and assign to wavetables
         for (int j = 0; j < WAVETABLE_SIZE; j++) {
@@ -1156,14 +1156,14 @@ void process (const ProcessArgs &args) override {
 			msgEleven_wav, msgTwelve_wav, msgThirteen_wav, msgFourteen_wav,
 			msgFifteen_wav, msgSixteen_wav
 		  };
-    int indexGranular = static_cast<int>(controlValue2 * 15);
+    int indexGranular = (controlValue2 * 15);
     float phaseGranularIncrement = frequency / args.sampleRate;
 
 // OG
 float phaseIncrement = frequency / args.sampleRate;
 phase += phaseIncrement;
 phase = fmod(phase, WAVETABLE_SIZE);
-int phaseIndex = static_cast<int>(phase);
+int phaseIndex = (phase);
 float outputSample = wavetables[phaseIndex];
 float foldedSample = outputSample;
 if (foldedSample > foldThreshold) {
@@ -1231,7 +1231,7 @@ if (indexGranular >= 0 && indexGranular < 16) {
 		wavetablesGranular[j] = (float)(wavetablesDataGranular[indexGranular][j] - 318) / 318.0f;
 	}
 }
-int phaseGranularIndex = static_cast<int>(phaseGranular);
+int phaseGranularIndex = (phaseGranular);
 float outputSampleGranular = wavetablesGranular[phaseGranularIndex];
 
 // PD 
