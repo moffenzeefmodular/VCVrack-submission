@@ -27,6 +27,9 @@ struct BadIdea9 : Module {
 		float mainOscPhase = 0.0f;
 		float syncOscPhase = 0.0f;
 	
+		float lastCvInput = 0.0f;
+		float prevOutput = 0.0f;
+		
 		// Constructor
 	BadIdea9() {
 			config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -38,8 +41,6 @@ struct BadIdea9 : Module {
 		}
 
 		void process(const ProcessArgs& args) override {
-			static float lastCvInput = 0.0f;
-			static float prevOutput = 0.0f;
 			
 			float rate = 50.0f;
 			
