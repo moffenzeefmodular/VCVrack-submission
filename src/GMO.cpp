@@ -6317,7 +6317,7 @@ GMO() {
 		configInput(BANG_INPUT, "Bang! Gate");
 		configInput(SPECIMEN_CV_INPUT, "Specimen CV");
 		configInput(SPEED_CV_INPUT, "Speed CV");
-		configInput(LOOP_CV_INPUT, "Loop CV");
+		configInput(LOOP_CV_INPUT, "Loop Gate");
 		configInput(HEAD_CV_INPUT, "Head CV");
 		configInput(TAIL_CV_INPUT, "Tail CV");
 		configOutput(GMO_OUTPUT, "GMO Audio");
