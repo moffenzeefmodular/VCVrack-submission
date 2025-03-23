@@ -40,14 +40,14 @@ struct Deviant : Module {
         configParam(BOTTOM_2_PARAM, -5.f, 5.f, -5.f, "Bottom 2", " v");
         configParam(SMOOTH_1_PARAM, 0.f, 1.f, 0.f, "Slew Amount 1", " %", 0.f, 100.f);
         configParam(SMOOTH_2_PARAM, 0.f, 1.f, 0.f, "Slew Amount 2", " %", 0.f, 100.f);
-        configInput(BANG_1_INPUT, "Bang! 1");
+        configInput(BANG_1_INPUT, "Bang! 1 Gate");
         configInput(CH__1_TOP_INPUT, "Top 1 CV");
         configInput(CH__1_BOTTOM_INPUT, "Bottom 1 CV");
-        configInput(BANG_2_INPUT, "Bang! 2");
+        configInput(BANG_2_INPUT, "Bang! 2 Gate");
         configInput(CH__2_TOP_INPUT, "Top 2 CV");
         configInput(CH__2_BOTTOM_INPUT, "Bottom 2 CV");
-        configOutput(CH__1_OUTPUT, "Deviant 1");
-        configOutput(CH__2_OUTPUT, "Deviant 2");
+        configOutput(CH__1_OUTPUT, "Deviant 1 CV");
+        configOutput(CH__2_OUTPUT, "Deviant 2 CV");
     }
 
     float lastBang1Input = 0.0f;
