@@ -6465,16 +6465,18 @@ GMO() {
 		// Update previous input and output for next iteration
 		previousInput = boost;
 		previousOutput = finalOutput;
+		finalOutput = clamp(finalOutput, -5.0f, 5.0f);
+
 
 		if(isLooping || isBanged == true){
-		finalOutput = clamp(finalOutput, -5.0f, 5.0f);
-		}
-		else{
-		finalOutput = 0; 
-		}
-	
 		outputs[GMO_OUTPUT].setVoltage(finalOutput);
 		lights[LED_LIGHT].setBrightness(((finalOutput + 5.0f) * 0.1f) - 0.5f);
+		}
+		else{
+			outputs[GMO_OUTPUT].setVoltage(0);
+			lights[LED_LIGHT].setBrightness(0);
+		}
+	
 	
 }
 	};
