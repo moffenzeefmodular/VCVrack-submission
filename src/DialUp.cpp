@@ -58,9 +58,9 @@ struct DialUp : Module {
         configParam(TAIL_PARAM, 0.f, 1.f, 0.f, "Decay Time", " %", 0.f, 100.f);
         configSwitch(RANGE_PARAM, 0.f, 2.f, 0.f, "Decay Range", {"Fast", "Medium", "Slow"});
         configParam(MODEM_PARAM, 0.f, 1.f, 0.5f, "Modem", " %", 0.f, 100.f);
-        configInput(BANG_INPUT, "Bang");
+        configInput(BANG_INPUT, "Bang Gate");
         configInput(MODEM_CV_INPUT, "Modem CV");
-        configOutput(DIAL_UP_OUTPUT, "Dial-Up");
+        configOutput(DIAL_UP_OUTPUT, "Dial-Up Audio");
     }
 
     // Process function (audio generation logic)
@@ -166,7 +166,7 @@ struct DialUp : Module {
 
         // Map final output to LED light (0.0 to 1.0 range for LED)
         float ledBrightness = envelopeValue;  // Map -5V to +5V range to 0-1
-        lights[LED_LIGHT].setBrightness(ledBrightness);  // Set LED brightness
+        lights[LED_LIGHT].setBrightnessSmooth(ledBrightness, args.sampleTime);  // Set LED brightness
     }
 };
 
