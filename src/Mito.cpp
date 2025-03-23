@@ -77,8 +77,8 @@ struct Mito : Module {
 		configParam(SWING_PARAM, 0.f, 1.f, 0., "Swing amount", " %", 0.f, 100.f);
 		configParam(WIDTH_PARAM, 0.f, 1.f, 0.5f, "Width", " %", 5.f, 5.f);
 
-		configInput(BANG_INPUT, "Bang!");
-		configInput(RESET_INPUT, "Reset");
+		configInput(BANG_INPUT, "Bang! Gate");
+		configInput(RESET_INPUT, "Reset Gate");
 
 		configInput(CH1_CVINPUT, "Division 1 CV");
 		configInput(CH2_CVINPUT, "Division 2 CV");
@@ -90,12 +90,12 @@ struct Mito : Module {
 		configInput(SWING_CVINPUT, "Swing CV");
 		configInput(WIDTH_CVINPUT, "Width CV");
 
-		configOutput(CH1_OUTPUT, "1");
-		configOutput(CH2_OUTPUT, "2");
-		configOutput(CH3_OUTPUT, "3");
-		configOutput(CH4_OUTPUT, "4");
-		configOutput(CH5_OUTPUT, "5");
-		configOutput(CH6_OUTPUT, "6");
+		configOutput(CH1_OUTPUT, "Gate 1");
+		configOutput(CH2_OUTPUT, "Gate 2");
+		configOutput(CH3_OUTPUT, "Gate 3");
+		configOutput(CH4_OUTPUT, "Gate 4");
+		configOutput(CH5_OUTPUT, "Gate 5");
+		configOutput(CH6_OUTPUT, "Gate 6");
 	}
 
 	bool prevBangState = 0; 
@@ -184,6 +184,12 @@ struct Mito : Module {
 	bool mute5 = true; 
 	bool mute6 = true; 
 
+	bool trig1 = false;
+	bool trig2 = false;
+	bool trig3 = false;
+	bool trig4 = false;
+	bool trig5 = false;
+	bool trig6 = false;
 
 	void process(const ProcessArgs& args) override {
 
@@ -313,18 +319,18 @@ struct Mito : Module {
 	    // Out channel 1 
 		mute1 = params[MUTE1_PARAM].getValue() > 0.5f; // Mute is active if value is > 0.5
 		if (!mute1) {
-			outputs[CH1_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
-			lights[LED1_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
+		trig1 = false;
+		outputs[CH1_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
 		} else {
 			if (sinceClock < (pw + swing) && sinceClock > swing) {
 				if (masterCount % divisionAmount == 0) {
-					outputs[CH1_OUTPUT].setVoltage(5.0f);  // Turn on CH1 output voltage
-					lights[LED1_LIGHT].setBrightness(5.0f); // Turn on the LED for CH1
+					trig1 = true;
+					outputs[CH1_OUTPUT].setVoltage(5.0f);  // Mute CH1 (output off)
 				}
 			} else {
 				if (sinceOut > ((pw * divisionAmount) + swing)) {
-					outputs[CH1_OUTPUT].setVoltage(0.0f);  // Turn CH1 output off
-					lights[LED1_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
+					trig1 = false;
+					outputs[CH1_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
 				}
 			}
 		}
@@ -332,18 +338,18 @@ struct Mito : Module {
 			    // Out channel 2
 				mute2 = params[MUTE2_PARAM].getValue() > 0.5f; // Mute is active if value is > 0.5
 				if (!mute2) {
-					outputs[CH2_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
-					lights[LED2_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
+				trig2 = false;
+				outputs[CH2_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
 				} else {
 					if (sinceClock2 < (pw + swing) && sinceClock2 > swing) {
 						if (masterCount % divisionAmount2 == 0) {
-							outputs[CH2_OUTPUT].setVoltage(5.0f);  // Turn on CH1 output voltage
-							lights[LED2_LIGHT].setBrightness(5.0f); // Turn on the LED for CH1
+							trig2 = true;
+							outputs[CH2_OUTPUT].setVoltage(5.0f);  // Mute CH1 (output off)
 						}
 					} else {
 						if (sinceOut2 > ((pw * divisionAmount2) + swing)) {
-							outputs[CH2_OUTPUT].setVoltage(0.0f);  // Turn CH1 output off
-							lights[LED2_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
+							trig2 = false; 
+							outputs[CH2_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
 						}
 					}
 				}
@@ -351,36 +357,36 @@ struct Mito : Module {
 			    // Out channel 3
 				mute3 = params[MUTE3_PARAM].getValue() > 0.5f; // Mute is active if value is > 0.5
 				if (!mute3) {
+					trig3 = false;
 					outputs[CH3_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
-					lights[LED3_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 				} else {
 					if (sinceClock3 < (pw + swing) && sinceClock3 > swing) {
 						if (masterCount % divisionAmount3 == 0) {
+							trig3 = true;
 							outputs[CH3_OUTPUT].setVoltage(5.0f);  // Turn on CH1 output voltage
-							lights[LED3_LIGHT].setBrightness(5.0f); // Turn on the LED for CH1
 						}
 					} else {
 						if (sinceOut3 > ((pw * divisionAmount3) + swing)) {
+							trig3 = false;
 							outputs[CH3_OUTPUT].setVoltage(0.0f);  // Turn CH1 output off
-							lights[LED3_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 						}
 					}
 				}
 					    // Out channel 4
 						mute4 = params[MUTE4_PARAM].getValue() > 0.5f; // Mute is active if value is > 0.5
 						if (!mute4) {
+							trig4 = false;
 							outputs[CH4_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
-							lights[LED4_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 						} else {
 							if (sinceClock4 < (pw + swing) && sinceClock4 > swing) {
 								if (masterCount % divisionAmount4 == 0) {
+									trig4 = true;
 									outputs[CH4_OUTPUT].setVoltage(5.0f);  // Turn on CH1 output voltage
-									lights[LED4_LIGHT].setBrightness(5.0f); // Turn on the LED for CH1
 								}
 							} else {
 								if (sinceOut4 > ((pw * divisionAmount4) + swing)) {
+									trig4 = false; 
 									outputs[CH4_OUTPUT].setVoltage(0.0f);  // Turn CH1 output off
-									lights[LED4_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 								}
 							}
 						}
@@ -388,18 +394,18 @@ struct Mito : Module {
 						   // Out channel 5
 						   mute5 = params[MUTE5_PARAM].getValue() > 0.5f; // Mute is active if value is > 0.5
 						   if (!mute5) {
+							trig5 = false;
 							   outputs[CH5_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
-							   lights[LED5_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 						   } else {
 							   if (sinceClock5 < (pw + swing) && sinceClock5 > swing) {
 								   if (masterCount % divisionAmount5 == 0) {
+									trig5 = true;
 									   outputs[CH5_OUTPUT].setVoltage(5.0f);  // Turn on CH1 output voltage
-									   lights[LED5_LIGHT].setBrightness(5.0f); // Turn on the LED for CH1
 								   }
 							   } else {
 								   if (sinceOut5 > ((pw * divisionAmount5) + swing)) {
+									trig5 = false;
 									   outputs[CH5_OUTPUT].setVoltage(0.0f);  // Turn CH1 output off
-									   lights[LED5_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 								   }
 							   }
 						   }
@@ -407,21 +413,28 @@ struct Mito : Module {
 						     // Out channel 6
 							 mute6 = params[MUTE6_PARAM].getValue() > 0.5f; // Mute is active if value is > 0.5
 							 if (!mute6) {
+								trig6 = false;
 								 outputs[CH6_OUTPUT].setVoltage(0.0f);  // Mute CH1 (output off)
-								 lights[LED6_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 							 } else {
 								 if (sinceClock6 < (pw + swing) && sinceClock6 > swing) {
 									 if (masterCount % divisionAmount6 == 0) {
+										trig6 = true;
 										 outputs[CH6_OUTPUT].setVoltage(5.0f);  // Turn on CH1 output voltage
-										 lights[LED6_LIGHT].setBrightness(5.0f); // Turn on the LED for CH1
 									 }
 								 } else {
 									 if (sinceOut6 > ((pw * divisionAmount6) + swing)) {
+										trig6 = false; 
 										 outputs[CH6_OUTPUT].setVoltage(0.0f);  // Turn CH1 output off
-										 lights[LED6_LIGHT].setBrightness(0.0f); // Turn off the LED for CH1
 									 }
 								 }
 							 }
+
+							 lights[LED1_LIGHT].setBrightnessSmooth(trig1, args.sampleTime); // Turn on the LED for CH1
+							 lights[LED2_LIGHT].setBrightnessSmooth(trig2, args.sampleTime); // Turn on the LED for CH1
+							 lights[LED3_LIGHT].setBrightnessSmooth(trig3, args.sampleTime); // Turn on the LED for CH1
+							 lights[LED4_LIGHT].setBrightnessSmooth(trig4, args.sampleTime); // Turn on the LED for CH1
+							 lights[LED5_LIGHT].setBrightnessSmooth(trig5, args.sampleTime); // Turn on the LED for CH1
+							 lights[LED6_LIGHT].setBrightnessSmooth(trig6, args.sampleTime); // Turn on the LED for CH1
 	}
 };
 	
