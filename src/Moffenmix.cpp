@@ -68,12 +68,12 @@ struct Moffenmix : Module {
 		configSwitch(MUTE_4_PARAM, 0.f, 1.f, 1.f, "Mute 4", {"Mute", "Unmute"});
 	
 		// Inputs and Outputs
-		configInput(CH_1_INPUT, "Ch. 1");
-		configInput(CH_2_INPUT, "Ch. 2");
-		configInput(CH_3_INPUT, "Ch. 3");
-		configInput(CH_4_INPUT, "Ch. 4");
-		configInput(LINK_INPUT, "Link");
-		configOutput(MIX_OUTPUT, "Mix");
+		configInput(CH_1_INPUT, "Ch.1 Audio");
+		configInput(CH_2_INPUT, "Ch.2 Audio");
+		configInput(CH_3_INPUT, "Ch.3 Audio");
+		configInput(CH_4_INPUT, "Ch.4 Audio");
+		configInput(LINK_INPUT, "Link Audio");
+		configOutput(MIX_OUTPUT, "Mix Audio");
 	}
 	
 	void process(const ProcessArgs& args) override {
@@ -102,7 +102,10 @@ struct Moffenmix : Module {
 		linkInput = applyVolume(linkInput, 0); // No range/gain for link input
 
 		// Update the LEDs based on the channel output (indicating audio level)
-		updateLEDs(output1, output2, output3, output4);
+		lights[LED_1_LIGHT].setBrightnessSmooth((fabs(output1) / 5.0f), args.sampleTime); // Normalize to 5V max
+		lights[LED_2_LIGHT].setBrightnessSmooth((fabs(output2) / 5.0f), args.sampleTime);  // Normalize to 5V max
+		lights[LED_3_LIGHT].setBrightnessSmooth((fabs(output3) / 5.0f), args.sampleTime);  // Normalize to 5V max
+		lights[LED_4_LIGHT].setBrightnessSmooth((fabs(output4) / 5.0f), args.sampleTime);  // Normalize to 5V max
 
 		// Combine all channels (after volume attenuation) and include the Link input at unity gain
 		float mixedSignal = output1 + output2 + output3 + output4 + linkInput;
@@ -179,14 +182,6 @@ struct Moffenmix : Module {
 		return signal;
 	}
 
-	// Function to update the LEDs based on audio levels
-	void updateLEDs(float output1, float output2, float output3, float output4) {
-		// Map the output level to the LED light intensity (0.0f to 1.0f)
-		lights[LED_1_LIGHT].setBrightness(fabs(output1) / 5.0f); // Normalize to 5V max
-		lights[LED_2_LIGHT].setBrightness(fabs(output2) / 5.0f); // Normalize to 5V max
-		lights[LED_3_LIGHT].setBrightness(fabs(output3) / 5.0f); // Normalize to 5V max
-		lights[LED_4_LIGHT].setBrightness(fabs(output4) / 5.0f); // Normalize to 5V max
-	}
 };
 
 struct MoffenmixWidget : ModuleWidget {
