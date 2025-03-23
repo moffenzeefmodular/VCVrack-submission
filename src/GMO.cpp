@@ -6314,13 +6314,13 @@ GMO() {
 		configSwitch(LOOP_PARAM, 0.f, 1.f, 0.f, "Loop", {"Off", "On"});
 		configParam(HEAD_PARAM, 0.f, 1.f, 0.f, "Start Time", " %", 0.f, 100.f);
 		configParam(TAIL_PARAM, 0.f, 1.f, 1.f, "End Time", " %", 0.f, 100.f);
-		configInput(BANG_INPUT, "Bang!");
+		configInput(BANG_INPUT, "Bang! Gate");
 		configInput(SPECIMEN_CV_INPUT, "Specimen CV");
 		configInput(SPEED_CV_INPUT, "Speed CV");
 		configInput(LOOP_CV_INPUT, "Loop CV");
 		configInput(HEAD_CV_INPUT, "Head CV");
 		configInput(TAIL_CV_INPUT, "Tail CV");
-		configOutput(GMO_OUTPUT, "GMO");
+		configOutput(GMO_OUTPUT, "GMO Audio");
     }
 
     float speed = 1.0f;  // Default speed value
@@ -6335,6 +6335,10 @@ GMO() {
 
 	float previousInput = 0.0f;
 	float previousOutput = 0.0f;
+
+	bool isPlaying = false; 
+	bool isLooping = false; 
+	bool isBanged = false; 
    
 	void process(const ProcessArgs &args) override {
 		const int GAP = 200; // Define the gap between HEAD and TAIL (can be adjusted)
@@ -6377,6 +6381,7 @@ GMO() {
 		bool bangState = inputs[BANG_INPUT].getVoltage() < 0.5f;
 	
 		if(switchState || gateState){ // LOOPING MODE
+			isLooping = true; 
 			headIndex = (int)(controlValue3 * WAVETABLE_SIZE);
 			tailIndex = (int)(controlValue4 * WAVETABLE_SIZE);
 			// Don't let knobs cross 
@@ -6395,8 +6400,12 @@ GMO() {
 				wavetableIndex = (float)headIndex;  // Reset to HEAD index when TAIL is reached
 			}
 			}
-		else {        
+			else{
+			isLooping = false; 
+			}
+			
 			if (bangState < previousBangState) { 
+				isBanged = true;
 				headIndex = (int)(controlValue3 * WAVETABLE_SIZE);
 				tailIndex = (int)(controlValue4 * WAVETABLE_SIZE);
 				// Don't let knobs cross 
@@ -6407,9 +6416,9 @@ GMO() {
 					headIndex = tailIndex - GAP;
 				}
 				wavetableIndex = headIndex; 
-			}
-			previousBangState = bangState;
-		}
+			} 
+
+			previousBangState = bangState;		
 
 		wavetableIndex = clamp(wavetableIndex, (float)headIndex, (float)tailIndex);
 		wavetableIndex += speed * args.sampleTime * WAVETABLE_SIZE;
@@ -6440,8 +6449,11 @@ GMO() {
 				sample = wavetable8[(int)wavetableIndex]; 
 				break;
 		}
+
+		if (wavetableIndex >= tailIndex) {
+			isBanged = false;
+		}
 	
-		// Convert sample and boost 
 		outputSignal = (float)sample / 128.0f;
 		float boost = outputSignal * 20.0f; // Boost sample up to audible level 
 
@@ -6453,15 +6465,17 @@ GMO() {
 		// Update previous input and output for next iteration
 		previousInput = boost;
 		previousOutput = finalOutput;
-	
-	if (wavetableIndex >= tailIndex) {
-		outputSignal = 0;
-	}
-	 else {
+
+		if(isLooping || isBanged == true){
 		finalOutput = clamp(finalOutput, -5.0f, 5.0f);
+		}
+		else{
+		finalOutput = 0; 
+		}
+	
 		outputs[GMO_OUTPUT].setVoltage(finalOutput);
-		lights[LED_LIGHT].setBrightness(finalOutput * 0.2);
-	}
+		lights[LED_LIGHT].setBrightness(((finalOutput + 5.0f) * 0.1f) - 0.5f);
+	
 }
 	};
 	
