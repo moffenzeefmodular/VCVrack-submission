@@ -188,7 +188,6 @@ int seqOut = 0;
 
 bool trig1 = false; 
 
-
 	void process(const ProcessArgs& args) override {
         // CH 1 CV
         float cvInput = inputs[SELECT_CV_INPUT].getVoltage();  // Read CV input
