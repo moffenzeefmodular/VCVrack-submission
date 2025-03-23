@@ -39,13 +39,13 @@ struct Bobcat : Module {
 		configSwitch(SNARL_PARAM, 0.f, 1.f, 0.f, "Decay Time Range", {"Short", "Long"});
 		configParam(TAIL_2_PARAM, 0.f, 1.f, 0.f, "Decay Time 2", " %", 0.f, 100.f);
 		configParam(HISS_2__PARAM, 0.f, 1.f, 0.f, "Pitch 2", " %", 0.f, 100.f);
-		configInput(BANG_1_INPUT, "Bang! 1");
+		configInput(BANG_1_INPUT, "Bang! 1 Gate");
 		configInput(TAIL_1_CV_INPUT, "Tail 1 CV");
 		configInput(HISS_1_CV_INPUT, "Hiss 1 CV");
-		configInput(BANG_2_INPUT, "Bang! 2");
+		configInput(BANG_2_INPUT, "Bang! 2 Gate");
 		configInput(TAIL_2_CV_INPUT, "Tail 2 CV");
 		configInput(HISS_2_CV_INPUT, "Hiss 2 CV");
-		configOutput(BOBCAT_OUTPUT, "Bobcat");
+		configOutput(BOBCAT_OUTPUT, "Bobcat Audio");
 	}
     
 
@@ -291,7 +291,7 @@ struct Bobcat : Module {
         outputs[BOBCAT_OUTPUT].setVoltage(finalOutput);
 
 		float ledBrightness = (envelopeValue1 + envelopeValue2);  // Map -5V to +5V range to 0-1
-		lights[LED_LIGHT].setBrightness(ledBrightness);  // Set LED brightness	
+		lights[LED_LIGHT].setBrightnessSmooth(ledBrightness, args.sampleTime);  // Set LED brightness	
     }
 };
 
