@@ -56,13 +56,13 @@ struct Mongrel : Module {
 		configSwitch(SNARL__PARAM, 0.f, 1.f, 0.f, "Waveshape", {"Triangle", "Square"}); // Waveshape
 		configParam(GROWL_PARAM, 0.f, 1.f, 0.f, "Ringmod", " %", 0.f, 100.f ); // Ring mod 
 		configParam(YAP_PARAM, 0.f, 1.f, 0.f, "Yap", " hz", 15.f, 20.f); // Freq 2 find real vaule 
-		configInput(BANG_CV_INPUT, "Bang!");
+		configInput(BANG_CV_INPUT, "Bang! Gate");
 		configInput(TAIL_CV_INPUT, "Tail CV");
 		configInput(YIP_CV_INPUT, "Yip CV");
 		configInput(GROWL_CV_INPUT, "Growl CV");
 		configInput(SNARL_CV_INPUT, "Snarl Gate");
 		configInput(YAP_CV_INPUT, "Yap CV");
-		configOutput(MONGREL_OUTPUT, "Mongrel");
+		configOutput(MONGREL_OUTPUT, "Mongrel Audio");
 	}
 
 
@@ -154,7 +154,7 @@ void process(const ProcessArgs& args) override {
     outputs[MONGREL_OUTPUT].setVoltage(modulatedSignal);
 
     float ledBrightness = envelopeValue;
-    lights[LED_LIGHT].setBrightness(ledBrightness);
+    lights[LED_LIGHT].setBrightnessSmooth(ledBrightness, args.sampleTime);
 }
 };
 
