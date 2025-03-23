@@ -45,19 +45,19 @@ struct BadIdea1800 : Module {
 
 	BadIdea1800() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configInput(NUM_1_INPUT, "1");
-		configInput(NUM_2_INPUT, "2");
-		configInput(NUM_3_INPUT, "3");
-		configInput(NUM_4_INPUT, "4");
-		configInput(NUM_5_INPUT, "5");
-		configInput(NUM_6_INPUT, "6");
-		configInput(NUM_7_INPUT, "7");
-		configInput(NUM_8_INPUT, "8");
-		configInput(NUM_9_INPUT, "9");
-		configInput(ASTERISK_INPUT, "*");
-		configInput(ZERO_INPUT, "0");
-		configInput(POUND_INPUT, "#");
-		configOutput(BADIDEA_OUTPUT, "Bad Idea 1800-Call-Yer-Mum");
+		configInput(NUM_1_INPUT, "1 Gate");
+		configInput(NUM_2_INPUT, "2 Gate");
+		configInput(NUM_3_INPUT, "3 Gate");
+		configInput(NUM_4_INPUT, "4 Gate");
+		configInput(NUM_5_INPUT, "5 Gate");
+		configInput(NUM_6_INPUT, "6 Gate");
+		configInput(NUM_7_INPUT, "7 Gate");
+		configInput(NUM_8_INPUT, "8 Gate");
+		configInput(NUM_9_INPUT, "9 Gate");
+		configInput(ASTERISK_INPUT, "* Gate");
+		configInput(ZERO_INPUT, "0 Gate");
+		configInput(POUND_INPUT, "# Gate");
+		configOutput(BADIDEA_OUTPUT, "Bad Idea 1800-Call-Yer-Mum Audio");
 	}
 
 	// Sample rate variable (to handle time-based calculations)
@@ -137,10 +137,10 @@ void process(const ProcessArgs& args) override {
         // If the input is above 0.5V, scale the output accordingly
         if (inputVoltage > 0.5f) {
             oscillatorOutput *= inputVoltage * 2.5f;  // Scale by input voltage (max amplitude of 5V)
-            lights[ledIndex].setBrightness(1.0f);  // Turn on the corresponding LED
+            lights[ledIndex].setBrightnessSmooth(1.0f, args.sampleTime);  // Turn on the corresponding LED
         } else {
             oscillatorOutput = 0.0f;  // Zero output when input is low
-            lights[ledIndex].setBrightness(0.0f);  // Turn off the corresponding LED
+            lights[ledIndex].setBrightnessSmooth(0.0f);  // Turn off the corresponding LED
         }
   
         // Scale the oscillator output by 1/48 before adding it to the total sum
