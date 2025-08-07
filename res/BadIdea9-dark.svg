@@ -9671,9 +9671,9 @@
        id="g2"
        clip-path="url(#clipPath3)"
        transform="translate(-176.33238,-44.831523)"
-       style="display:inline;opacity:1;filter:url(#filter3);fill:#1a1a1a"><path
+       style="display:inline;opacity:1;filter:url(#filter3);fill:#000000"><path
          d="M 103.505,32.355 H 46.812 v 364.252 h 56.693 z"
-         style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
          transform="matrix(1.4535272,0,0,-1.3818191,-8.9640876,582.59395)"
          clip-path="url(#clipPath1)"
          id="path2" /></g><path
