@@ -1316,14 +1316,17 @@ lights[LED_LIGHT].setBrightnessSmooth(ledBrightness, args.sampleTime);  // Set L
 struct MuskratWidget : ModuleWidget {
 	MuskratWidget(Muskrat* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/Muskrat.svg")));
+	  setPanel(createPanel(
+		asset::plugin(pluginInstance, "res/Muskrat.svg"),
+		asset::plugin(pluginInstance, "res/Muskrat-dark.svg")
+		));
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 6 * RACK_GRID_WIDTH, 0)));
+		    addChild(createWidget<ScrewSilver>(Vec(box.size.x - 6 * RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 6 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 3 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 3 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		    addChild(createWidget<ScrewSilver>(Vec(box.size.x - 3 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<CKSSThree>(mm2px(Vec(24.513, 20.315)), module, Muskrat::RANGE_PARAM));
         addParam(createParamCentered<CKSS>(mm2px(Vec(24.478, 108.396)), module, Muskrat::RATSWITCH_PARAM));
@@ -1332,7 +1335,7 @@ struct MuskratWidget : ModuleWidget {
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 41.886)), module, Muskrat::SCRATCH_PARAM));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 64.212)), module, Muskrat::DIG_PARAM));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 86.273)), module, Muskrat::CHEW_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(62, 50)), module, Muskrat::SELECT_PARAM));
+		    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(62, 50)), module, Muskrat::SELECT_PARAM));
 
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 19.244)), module, Muskrat::BANG_INPUT));
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 41.872)), module, Muskrat::SCRATCH_CV_INPUT));
