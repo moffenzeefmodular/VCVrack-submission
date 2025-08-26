@@ -2,7 +2,6 @@
 By Ross Fish Feb 2025 
 [Moffenzeef Website](https://moffenzeefmodular.com)
 
-### Changelog 
 ## v2.0.0
 - Initial Release 
 
