@@ -9,7 +9,7 @@
 
 ## 2.0.2 
 -Removed DC offset from GMO
--Fixed Kriket output scaling and clamped to +/-5v
+-Fixed Kriket output scaling and clamped to 10vpp
 -Updated all jack labels to show their data type (CV, Gate, Audio)
 -Improved LED behavior for all modules
 
