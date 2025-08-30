@@ -56,9 +56,62 @@ struct Swarm : Module {
         configOutput(FOUROUT_OUTPUT, "Ch. 4");
     }
 
+       float clockTimer = 0.0f;
+    float pulseWidth = 0.5f;
+    bool gateHigh = false;
+    bool mainOutputHigh = false;
+
     void process(const ProcessArgs& args) override {
+        float pulseWidthParam = params[WIDTH_PARAM].getValue();
+        float coarseFrequencyKnob = params[TIMECOARSE_PARAM].getValue();
+        float timeRangeSwitch = params[RANGESWITCH_PARAM].getValue();
+        float timeInputVoltage = inputs[TIMECVIN_INPUT].getVoltage();
+        float widthInputVoltage = inputs[WIDTHCVIN_INPUT].getVoltage();
+        float normalizedTimeCV = (timeInputVoltage / 10.0f) * 10.0f;
+        float normalizedWidthCV = (widthInputVoltage / 10.0f) * 10.0f;
+        float summedTime = normalizedTimeCV + (coarseFrequencyKnob * 10.0f) - 5.0f;
+        summedTime = clamp(summedTime, -5.0f, 5.0f);
+
+        float periodMs;
+        if (timeRangeSwitch < 0.5f) {
+            periodMs = 500.0f + (summedTime * (150.0f - 500.0f));  // Slow range from 500ms to 150ms
+            periodMs = clamp(periodMs, 150.0f, 500.0f);
+        } else {
+            periodMs = 150.0f - (summedTime * (150.0f - 15.0f));  // Fast range from 150ms to 15ms
+            periodMs = clamp(periodMs, 15.0f, 150.0f);
+        }
+
+        float fineAdjust = params[TIMEFINE_PARAM].getValue();
+        periodMs = clamp(periodMs - fineAdjust, 15.0f, 500.0f);
+
+        float samplesPerMs = args.sampleRate * 0.001f;
+        float periodSamples = periodMs * samplesPerMs;
+
+        float normalizedPulseWidthCV = (normalizedWidthCV / 10.0f) * 10.0f;
+        pulseWidth = pulseWidthParam * 0.5f + normalizedPulseWidthCV * 0.5f;
+        pulseWidth = clamp(pulseWidth, 0.05f, 0.5f);
+        float pulseWidthSamples = periodSamples * pulseWidth;
+
+        clockTimer += args.sampleTime * args.sampleRate;
+
+        if (clockTimer >= periodSamples) {
+            clockTimer -= periodSamples;
+            gateHigh = !gateHigh;
+        }
+
+        if (gateHigh) {
+            if (clockTimer < pulseWidthSamples) {
+                mainOutputHigh = true;
+            } else {
+                mainOutputHigh = false;
+            }
+        }
+
+        outputs[CLOCKOUT_OUTPUT].setVoltage(mainOutputHigh ? 5.0f : 0.0f);
+        lights[CLOCKLED_LIGHT].setBrightnessSmooth(mainOutputHigh, args.sampleTime);
     }
 };
+
 
 struct SwarmWidget : ModuleWidget {
     SwarmWidget(Swarm* module) {
