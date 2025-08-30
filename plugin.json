@@ -207,6 +207,18 @@
         "Hardware clone",
         "blank"
       ]
+    },
+    {
+      "slug": "Swarm",
+      "name": "Swarm",
+      "description": "Asynchronous gate generator",
+      "tags": [
+        "clock",
+        "random",
+        "sequencer",
+        "oscillator",
+        "utility"
+      ]
     }
   ]
 }

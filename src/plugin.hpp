@@ -23,6 +23,7 @@ extern Model* modelMuskrat;
 extern Model* modelSimplify;
 extern Model* model_2hpBlank;
 extern Model* model_14hpBlank;
+extern Model* modelSwarm;
 
 struct CKSSHorizontal : app::SvgSwitch {
 	CKSSHorizontal() {
