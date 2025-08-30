@@ -1,7 +1,7 @@
 {
   "slug": "Moffenzeef",
   "name": "Moffenzeef",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "license": "GPL-3.0+",
   "brand": "Moffenzeef",
   "author": "Ross Fish",
@@ -189,6 +189,8 @@
     {
       "slug": "2hpBlank",
       "name": "2hpBlank",
+      "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-blank-panel",
+      "manualUrl": "https://www.moffenzeefmodular.com/store1/blankpanels",
       "description": "2hp blank panel",
       "tags": [
         "Hardware clone",
@@ -198,6 +200,8 @@
     {
       "slug": "14hpBlank",
       "name": "14hpBlank",
+      "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-14hp-blank",
+      "manualUrl": "https://www.moffenzeefmodular.com/store1/blankpanels",
       "description": "14hp blank panel",
       "tags": [
         "Hardware clone",
