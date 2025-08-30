@@ -56,7 +56,7 @@ struct Swarm : Module {
         configOutput(FOUROUT_OUTPUT, "Ch. 4");
     }
 
-       float clockTimer = 0.0f;
+    float clockTimer = 0.0f;
     float pulseWidth = 0.5f;
     bool gateHigh = false;
     bool mainOutputHigh = false;
