@@ -22,5 +22,6 @@ By Ross Fish Feb 2025
 ## v2.0.4
 - Dark panels integrated for all modules
 
-## v2.0.5
-- 2hp + 14hp blank panels added
+## v2.1.0 (Dev)
+- 2hp + 14hp blank panels added (complete)
+- Added Swarm module (development in progress)
