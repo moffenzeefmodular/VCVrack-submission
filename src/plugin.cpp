@@ -22,6 +22,8 @@ void init(Plugin* p) {
 	p->addModel(modelMongrel);
 	p->addModel(modelMuskrat);
 	p->addModel(modelSimplify);
+	p->addModel(model_2hpBlank);
+	p->addModel(model_14hpBlank);
 	// Any other plugin initialization may go here.
 	// As an alternative, consider lazy-loading assets and lookup tables when your module is created to reduce startup times of Rack.
 }
