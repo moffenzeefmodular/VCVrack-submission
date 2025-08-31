@@ -46,6 +46,8 @@ struct INTENSIFIES : Module {
 	float modulatorSignal = 1.f; 
     float carrierPhase2 = 0.f;
     float modulatorPhase2 = 0.f;
+	float synthHPOut = 0.f;
+	float synthHPInLast = 0.f;
 
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -78,103 +80,121 @@ struct INTENSIFIES : Module {
 	}
 
 	void process(const ProcessArgs& args) override {
-    float carrierKnob = params[CARRIER_PARAM].getValue();
-    float carrierCV = inputs[CARRIERCV_INPUT].isConnected() ? inputs[CARRIERCV_INPUT].getVoltage() / 10.f : 0.f;
-    float carrierControl = clamp(carrierKnob + carrierCV, 0.f, 1.f);
-    int carrierRange = static_cast<int>(params[CARRIERRANGE_PARAM].getValue());
+		float carrierKnob = params[CARRIER_PARAM].getValue();
+		float carrierCV = inputs[CARRIERCV_INPUT].isConnected() ? inputs[CARRIERCV_INPUT].getVoltage() / 10.f : 0.f;
+		float carrierControl = clamp(carrierKnob + carrierCV, 0.f, 1.f);
+		int carrierRange = static_cast<int>(params[CARRIERRANGE_PARAM].getValue());
 
-    float carrierBaseFreq = 0.f;
-    switch (carrierRange) {
-        case 0: carrierBaseFreq = 1.f; break;
-        case 1: carrierBaseFreq = 10.f; break;
-        default: carrierBaseFreq = 100.f; break;
-    }
-    float carrierFreq = carrierBaseFreq * std::pow(100.f, carrierControl);
-    carrierFreq = clamp(carrierFreq, 0.f, 100000.f);
+		float carrierBaseFreq = 0.f;
+		switch (carrierRange) {
+			case 0: carrierBaseFreq = 1.f; break;
+			case 1: carrierBaseFreq = 10.f; break;
+			default: carrierBaseFreq = 100.f; break;
+		}
+		float carrierFreq = carrierBaseFreq * std::pow(100.f, carrierControl);
+		carrierFreq = clamp(carrierFreq, 0.f, 100000.f);
 
-    float engageCV = inputs[ENGAGECV_INPUT].isConnected() ? inputs[ENGAGECV_INPUT].getVoltage() : 0.f;
-    bool modEnabled = (params[MODULATORENGAGE_PARAM].getValue() > 0.5f) || (engageCV > 1.f);
+		float engageCV = inputs[ENGAGECV_INPUT].isConnected() ? inputs[ENGAGECV_INPUT].getVoltage() : 0.f;
+		bool modEnabled = (params[MODULATORENGAGE_PARAM].getValue() > 0.5f) || (engageCV > 1.f);
 
-    float modKnob = params[MODULATOR_PARAM].getValue();
-    float modCV = inputs[MODULATORCV_INPUT].isConnected() ? inputs[MODULATORCV_INPUT].getVoltage() / 10.f : 0.f;
-    float modControl = clamp(modKnob + modCV, 0.f, 1.f);
-    int modRange = static_cast<int>(params[MODULATORRANGE_PARAM].getValue());
+		float modKnob = params[MODULATOR_PARAM].getValue();
+		float modCV = inputs[MODULATORCV_INPUT].isConnected() ? inputs[MODULATORCV_INPUT].getVoltage() / 10.f : 0.f;
+		float modControl = clamp(modKnob + modCV, 0.f, 1.f);
+		int modRange = static_cast<int>(params[MODULATORRANGE_PARAM].getValue());
 
-    float modBaseFreq = 0.f;
-    switch (modRange) {
-        case 0: modBaseFreq = 50.f; break;
-        case 1: modBaseFreq = 100.f; break;
-        default: modBaseFreq = 500.f; break;
-    }
-    float modFreq = (modBaseFreq * modControl) + 1.f;
-    modFreq = clamp(modFreq, 0.f, 500.f);
+		float minFreq = 0.01f;
+		float maxFreq = 500.f;
+		switch (modRange) {
+			case 0: maxFreq = 5.f; break;
+			case 1: maxFreq = 50.f; break;
+			case 2: maxFreq = 500.f; break;
+		}
+		float modFreq = minFreq + modControl * (maxFreq - minFreq);
+		modFreq = clamp(modFreq, minFreq, maxFreq);
 
-    modulatorPhase += modFreq * args.sampleTime;
-    if (modulatorPhase >= 1.0f) modulatorPhase -= 1.0f;
+		modulatorPhase += modFreq * args.sampleTime;
+		if (modulatorPhase >= 1.0f) modulatorPhase -= 1.0f;
 
-    bool modulatorHigh = (modulatorPhase < 0.5f);
-    bool sampleNow = (!modEnabled || modulatorHigh);
+		bool modulatorHigh = (modulatorPhase < 0.5f);
+		bool sampleNow = (!modEnabled || modulatorHigh);
 
-    float bypassCV = inputs[BYPASSCV_INPUT].isConnected() ? inputs[BYPASSCV_INPUT].getVoltage() : 0.f;
-    bool bypassActive = (params[FXBYPASS_PARAM].getValue() > 0.5f) || (bypassCV > 1.f);
+		float bypassCV = inputs[BYPASSCV_INPUT].isConnected() ? inputs[BYPASSCV_INPUT].getVoltage() : 0.f;
+		bool bypassActive = (params[FXBYPASS_PARAM].getValue() > 0.5f) || (bypassCV > 1.f);
 
-    float inputSample = inputs[AUDIOIN_INPUT].getVoltage();
+		float inputSample = inputs[AUDIOIN_INPUT].getVoltage();
 
-    float fxOutput = 0.f;
+		float fxOutput = 0.f;
 
-    if (bypassActive) {
-        fxOutput = inputSample;
-    } else {
-        if (sampleNow) {
-            clockPhase += carrierFreq * args.sampleTime;
-            if (clockPhase >= 1.0f) {
-                clockPhase -= 1.0f;
-                heldSample = inputSample;
-            }
-        }
-        fxOutput = sampleNow ? heldSample : 0.f;
+		if (bypassActive) {
+			fxOutput = inputSample;
+		} else {
+			if (sampleNow) {
+				clockPhase += carrierFreq * args.sampleTime;
+				if (clockPhase >= 1.0f) {
+					clockPhase -= 1.0f;
+					heldSample = inputSample;
+				}
+			}
+			fxOutput = sampleNow ? heldSample : 0.f;
 
-        float gainKnob = params[GAIN_PARAM].getValue();
-        float gainCV = inputs[GAINCV_INPUT].isConnected() ? inputs[GAINCV_INPUT].getVoltage() / 10.f : 0.f;
-        float gainControl = clamp(gainKnob + gainCV, 0.f, 1.f);
-        bool highGainRange = (params[GAINRANGE_PARAM].getValue() > 0.5f);
-        float maxGain = highGainRange ? 200.f : 20.f;
-		float gain = 1.f + gainControl * (maxGain - 1.f);
-        fxOutput *= gain;
-        fxOutput = clamp(fxOutput, -5.f, 5.f);
+			float fxVolKnob = params[FXVOLUME_PARAM].getValue();
+			float fxVolCV = inputs[FXVOLUMECV_INPUT].isConnected() ? inputs[FXVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
+			float fxVolume = clamp(fxVolKnob + fxVolCV, 0.f, 1.f);
 
-        float fxVolKnob = params[FXVOLUME_PARAM].getValue();
-        float fxVolCV = inputs[FXVOLUMECV_INPUT].isConnected() ? inputs[FXVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
-        float fxVolume = clamp(fxVolKnob + fxVolCV, 0.f, 1.f);
-        fxOutput *= fxVolume;
-    }
+			fxOutput *= fxVolume;
+		}
 
-    outputs[FXOUT_OUTPUT].setVoltage(fxOutput);
+		float gainKnob = params[GAIN_PARAM].getValue();
+		float gainCV = inputs[GAINCV_INPUT].isConnected() ? inputs[GAINCV_INPUT].getVoltage() / 10.f : 0.f;
+		float gainControl = clamp(gainKnob + gainCV, 0.f, 1.f);
 
-    carrierPhase2 += carrierFreq * args.sampleTime;
-    if (carrierPhase2 >= 1.f) carrierPhase2 -= 1.f;
-    bool carrierHigh2 = (carrierPhase2 < 0.5f);
+		float gainRange = params[GAINRANGE_PARAM].getValue() > 0.5f ? 200.f : 20.f;
+		float gainAmount = 1.f + gainControl * (gainRange - 1.f);
 
-    modulatorPhase2 += modFreq * args.sampleTime;
-    if (modulatorPhase2 >= 1.f) modulatorPhase2 -= 1.f;
-    bool modulatorHigh2 = (modulatorPhase2 < 0.5f);
+		lights[GAINLED_LIGHT].setSmoothBrightness(gainControl, args.sampleTime);
 
-    bool combinedHigh = carrierHigh2 || modulatorHigh2;
+		fxOutput *= gainAmount;
 
-    float synthOutput = combinedHigh ? 5.f : -5.f;
+		if (fxOutput > 5.f) fxOutput = 5.f;
+		if (fxOutput < -5.f) fxOutput = -5.f;
 
-    float synthVolKnob = params[SYNTHVOLUME_PARAM].getValue();
-    float synthVolCV = inputs[SYNTHVOLUMECV_INPUT].isConnected() ? inputs[SYNTHVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
-    float synthVol = clamp(synthVolKnob + synthVolCV, 0.f, 1.f);
-    synthOutput *= synthVol;
-    synthOutput = clamp(synthOutput, -5.f, 5.f);
+		outputs[FXOUT_OUTPUT].setVoltage(clamp(fxOutput, -5.f, 5.f));
 
-    outputs[SYNTHOUT_OUTPUT].setVoltage(synthOutput);
+		carrierPhase2 += carrierFreq * args.sampleTime;
+		if (carrierPhase2 >= 1.f) carrierPhase2 -= 1.f;
+		bool carrierHigh2 = (carrierPhase2 < 0.5f);
 
-lights[GAINLED_LIGHT].setSmoothBrightness(fabs(fxOutput) / 5.f, args.sampleTime);
-lights[MODULATORLED_LIGHT].setSmoothBrightness(modulatorHigh ? 1.f : 0.f, args.sampleTime);
-lights[MAINOUTLED_LIGHT].setSmoothBrightness(fabs(fxOutput) / 5.f, args.sampleTime);
-}
+		modulatorPhase2 += modFreq * args.sampleTime;
+		if (modulatorPhase2 >= 1.f) modulatorPhase2 -= 1.f;
+		bool modulatorHigh2 = (modulatorPhase2 < 0.5f);
+
+		bool combinedHigh = carrierHigh2 || modulatorHigh2;
+
+		float synthOutput = combinedHigh ? 5.f : -5.f;
+
+		float synthVolKnob = params[SYNTHVOLUME_PARAM].getValue();
+		float synthVolCV = inputs[SYNTHVOLUMECV_INPUT].isConnected() ? inputs[SYNTHVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
+		float synthVol = clamp(synthVolKnob + synthVolCV, 0.f, 1.f);
+
+		synthOutput *= synthVol;
+		synthOutput = clamp(synthOutput, -5.f, 5.f);
+
+		float cutoff = 20.f;
+		float sampleRate = args.sampleRate;
+		float dt = 1.f / sampleRate;
+		float RC = 1.f / (2.f * M_PI * cutoff);
+		float alpha = RC / (RC + dt);
+
+		synthHPOut = alpha * (synthHPOut + synthOutput - synthHPInLast);
+		synthHPInLast = synthOutput;
+
+		outputs[SYNTHOUT_OUTPUT].setVoltage(synthHPOut);
+
+		lights[MODULATORLED_LIGHT].setSmoothBrightness(modulatorHigh ? modulatorPhase * 2.f : (1.f - modulatorPhase) * 2.f, args.sampleTime);
+
+		float mainOutLevel = std::max(std::abs(fxOutput), std::abs(synthHPOut)) / 5.f;
+		lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);
+	}
 }; 
 
 
