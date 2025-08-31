@@ -3,59 +3,59 @@
 
 struct INTENSIFIES : Module {
 	enum ParamId {
-		PATH1_PARAM,
-		PATH1_5_PARAM,
-		PATH1_5_7_5_PARAM,
-		PATH1_5_7_PARAM,
-		PATH1_5_29_PARAM,
-		PATH1_4_PARAM,
-		PATH1_5_4_PARAM,
-		PATH1_5_25_PARAM,
-		PATH1_5_5_PARAM,
-		PATH1_5_83_PARAM,
+		CARRIER_PARAM,
+		FXBYPASS_PARAM,
+		CARRIERRANGE_PARAM,
+		FXVOLUME_PARAM,
+		GAIN_PARAM,
+		MODULATORENGAGE_PARAM,
+		GAINRANGE_PARAM,
+		MODULATOR_PARAM,
+		MODULATORRANGE_PARAM,
+		SYNTHVOLUME_PARAM,
 		PARAMS_LEN
 	};
 	enum InputId {
-		PATH1_8_0_9_INPUT,
-		PATH1_5_8_INPUT,
-		PATH1_8_0_9_7_INPUT,
-		PATH1_8_0_INPUT,
-		PATH1_8_INPUT,
-		PATH1_8_5_INPUT,
+		CARRIERCV_INPUT,
+		FXVOLUMECV_INPUT,
+		GAINCV_INPUT,
+		MODULATORCV_INPUT,
+		AUDIOIN_INPUT,
+		SYNTHVOLUMECV_INPUT,
 		INPUTS_LEN
 	};
 	enum OutputId {
-		PATH1_8_9_OUTPUT,
-		PATH1_8_9_6_OUTPUT,
+		FXOUT_OUTPUT,
+		SYNTHOUT_OUTPUT,
 		OUTPUTS_LEN
 	};
 	enum LightId {
-		PATH1_5_2_LIGHT,
-		PATH1_5_84_LIGHT,
-		PATH1_5_87_LIGHT,
+		MAINOUTLED_LIGHT,
+		GAINLED_LIGHT,
+		MODULATORLED_LIGHT,
 		LIGHTS_LEN
 	};
 
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(PATH1_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_7_5_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_7_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_29_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_4_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_4_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_25_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_5_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PATH1_5_83_PARAM, 0.f, 1.f, 0.f, "");
-		configInput(PATH1_8_0_9_INPUT, "");
-		configInput(PATH1_5_8_INPUT, "");
-		configInput(PATH1_8_0_9_7_INPUT, "");
-		configInput(PATH1_8_0_INPUT, "");
-		configInput(PATH1_8_INPUT, "");
-		configInput(PATH1_8_5_INPUT, "");
-		configOutput(PATH1_8_9_OUTPUT, "");
-		configOutput(PATH1_8_9_6_OUTPUT, "");
+		configParam(CARRIER_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(FXBYPASS_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(CARRIERRANGE_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(FXVOLUME_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(MODULATORENGAGE_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(GAINRANGE_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(MODULATOR_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(MODULATORRANGE_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(SYNTHVOLUME_PARAM, 0.f, 1.f, 0.f, "");
+		configInput(CARRIERCV_INPUT, "");
+		configInput(FXVOLUMECV_INPUT, "");
+		configInput(GAINCV_INPUT, "");
+		configInput(MODULATORCV_INPUT, "");
+		configInput(AUDIOIN_INPUT, "");
+		configInput(SYNTHVOLUMECV_INPUT, "");
+		configOutput(FXOUT_OUTPUT, "");
+		configOutput(SYNTHOUT_OUTPUT, "");
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -73,30 +73,30 @@ struct INTENSIFIESWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(18.44, 34.222)), module, INTENSIFIES::PATH1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(48.122, 35.871)), module, INTENSIFIES::PATH1_5_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(79.661, 35.678)), module, INTENSIFIES::PATH1_5_7_5_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(107.163, 50.988)), module, INTENSIFIES::PATH1_5_7_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::PATH1_5_29_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.99, 62.038)), module, INTENSIFIES::PATH1_4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(87.182, 77.145)), module, INTENSIFIES::PATH1_5_4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(34.278, 93.051)), module, INTENSIFIES::PATH1_5_25_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(65.92, 94.064)), module, INTENSIFIES::PATH1_5_5_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(98.918, 97.521)), module, INTENSIFIES::PATH1_5_83_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(18.44, 34.222)), module, INTENSIFIES::CARRIER_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(75.02, 33.684)), module, INTENSIFIES::FXBYPASS_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(48.122, 35.871)), module, INTENSIFIES::CARRIERRANGE_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(107.163, 50.988)), module, INTENSIFIES::FXVOLUME_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::GAIN_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.99, 62.038)), module, INTENSIFIES::MODULATORENGAGE_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(87.182, 77.145)), module, INTENSIFIES::GAINRANGE_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(34.278, 93.051)), module, INTENSIFIES::MODULATOR_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(65.92, 94.064)), module, INTENSIFIES::MODULATORRANGE_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(98.918, 97.521)), module, INTENSIFIES::SYNTHVOLUME_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(26.707, 11.585)), module, INTENSIFIES::PATH1_8_0_9_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(97.418, 26.501)), module, INTENSIFIES::PATH1_5_8_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(63.064, 35.057)), module, INTENSIFIES::PATH1_8_0_9_7_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(53.375, 76.187)), module, INTENSIFIES::PATH1_8_0_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(110.044, 76.084)), module, INTENSIFIES::PATH1_8_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(80.75, 101.603)), module, INTENSIFIES::PATH1_8_5_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(26.707, 11.585)), module, INTENSIFIES::CARRIERCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(97.418, 26.501)), module, INTENSIFIES::FXVOLUMECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(63.064, 35.057)), module, INTENSIFIES::GAINCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(53.375, 76.187)), module, INTENSIFIES::MODULATORCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(110.044, 76.084)), module, INTENSIFIES::AUDIOIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(80.75, 101.603)), module, INTENSIFIES::SYNTHVOLUMECV_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::PATH1_8_9_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.251, 104.885)), module, INTENSIFIES::PATH1_8_9_6_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::FXOUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.251, 104.885)), module, INTENSIFIES::SYNTHOUT_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(109.201, 35.91)), module, INTENSIFIES::PATH1_5_2_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(87.126, 48.785)), module, INTENSIFIES::PATH1_5_84_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(21.257, 70.01)), module, INTENSIFIES::PATH1_5_87_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(109.201, 35.91)), module, INTENSIFIES::MAINOUTLED_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(87.126, 48.785)), module, INTENSIFIES::GAINLED_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(21.257, 70.01)), module, INTENSIFIES::MODULATORLED_LIGHT));
 	}
 };
 
