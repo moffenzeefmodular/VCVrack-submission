@@ -1,7 +1,5 @@
 #include "plugin.hpp"
 
-
-// === CHIRP CLASS CONVERSION (FROM ARDUINO) === //
 class Chirp {
 private:
     float sinceStepSamples = 0.0f;
@@ -100,7 +98,7 @@ struct Swarm : Module {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
         configParam(TIMECOARSE_PARAM, 0.f, 1.f, 0.5f, "Coarse Speed", "%", 0.f, 100.f);
         configSwitch(RANGESWITCH_PARAM, 0.f, 1.f, 0.f, "Range", {"Slow", "Fast"});
-        configParam(TIMEFINE_PARAM, -20.f, 20.f, 0.f, "Fine Speed Adjust", "ms");
+        configParam(TIMEFINE_PARAM, -1.f, 1.f, 0.f, "Fine Speed Adjust", "%", 0.f, 100.f);
         configParam(WIDTH_PARAM, 0.f, 1.f, 0.5f, "Width", "%", 10.f, 5.f);
         configSwitch(LOOPONE_PARAM, 0.f, 1.f, 0.f, "Loop Ch. 1", {"Off", "On"});
         configSwitch(LOOPTWO_PARAM, 0.f, 1.f, 0.f, "Loop Ch. 2", {"Off", "On"});
@@ -116,7 +114,6 @@ struct Swarm : Module {
         configOutput(FOUROUT_OUTPUT, "Ch. 4");
     }
 
-    
     float clockTimer = 0.0f;
     float pulseWidth = 0.5f;
     bool mainOutputHigh = false;
@@ -124,66 +121,78 @@ struct Swarm : Module {
     Chirp chirps[4];
     bool chirpsInitialized = false;
 
+    float vcoPhase = 0.0f;
+    float vcoFreq = 100.0f;
+
     void process(const ProcessArgs& args) override {
-        // === Parameter Reading and Normalization ===
-        float pulseWidthParam = params[WIDTH_PARAM].getValue();
-        float coarseKnob = params[TIMECOARSE_PARAM].getValue();
-        float fineAdjust = params[TIMEFINE_PARAM].getValue();
-        float rangeSwitch = params[RANGESWITCH_PARAM].getValue();
+    float pulseWidthParam = params[WIDTH_PARAM].getValue();
+    float coarseKnob = params[TIMECOARSE_PARAM].getValue();
+    float fineAdjust = params[TIMEFINE_PARAM].getValue();
+    float rangeSwitch = params[RANGESWITCH_PARAM].getValue();
 
-        float timeCV = inputs[TIMECVIN_INPUT].getVoltage();
-        float widthCV = inputs[WIDTHCVIN_INPUT].getVoltage();
+    float timeCV = clamp(inputs[TIMECVIN_INPUT].getVoltage(), -5.f, 5.f);
+    float widthCV = clamp(inputs[WIDTHCVIN_INPUT].getVoltage(), -5.f, 5.f);
 
-        float timeCVNorm = clamp(timeCV, -5.f, 5.f);
-        float widthCVNorm = clamp(widthCV, -5.f, 5.f);
+    float coarseScaled = (coarseKnob * 10.0f) - 5.0f;
+    float fineScaled = fineAdjust * 5.0f;
+    float summedTime = clamp(coarseScaled + fineScaled + timeCV, -5.f, 5.f);
 
-        float summedTime = coarseKnob * 10.0f + timeCVNorm;
-        summedTime = clamp(summedTime, -5.f, 5.f);
+    float periodMs;
+    if (rangeSwitch < 0.5f) {
+        periodMs = rescale(summedTime, -5.f, 5.f, 500.f, 150.f);
+        periodMs = clamp(periodMs, 150.f, 500.f);
+    } else {
+        periodMs = rescale(summedTime, -5.f, 5.f, 150.f, 15.f);
+        periodMs = clamp(periodMs, 15.f, 150.f);
+    }
 
-        float periodMs;
-        if (rangeSwitch < 0.5f) {
-            periodMs = 500.0f + (summedTime * (150.0f - 500.0f)); // Slow range
-            periodMs = clamp(periodMs, 150.0f, 500.0f);
-        } else {
-            periodMs = 150.0f - (summedTime * (150.0f - 15.0f)); // Fast range
-            periodMs = clamp(periodMs, 15.0f, 150.0f);
-        }
+    float samplesPerMs = args.sampleRate * 0.001f;
+    float periodSamples = periodMs * samplesPerMs;
 
-        periodMs = clamp(periodMs - fineAdjust, 15.0f, 500.0f);
+    pulseWidth = clamp(pulseWidthParam + widthCV * 0.1f, 0.05f, 0.5f);
+    float pulseSamples = periodSamples * pulseWidth;
 
-        float samplesPerMs = args.sampleRate * 0.001f;
-        float periodSamples = periodMs * samplesPerMs;
+    clockTimer += args.sampleTime * args.sampleRate;
+    if (clockTimer >= periodSamples) {
+        clockTimer -= periodSamples;
+    }
 
-        pulseWidth = clamp(pulseWidthParam + widthCVNorm * 0.1f, 0.05f, 0.5f);
-        float pulseSamples = periodSamples * pulseWidth;
+    mainOutputHigh = (clockTimer < pulseSamples);
+    outputs[CLOCKOUT_OUTPUT].setVoltage(mainOutputHigh ? 5.f : 0.f);
+    lights[CLOCKLED_LIGHT].setBrightnessSmooth(mainOutputHigh, args.sampleTime);
 
-        // === Main Clock Logic ===
-        clockTimer += args.sampleTime * args.sampleRate;
-        if (clockTimer >= periodSamples) {
-            clockTimer -= periodSamples;
-        }
-
-        mainOutputHigh = (clockTimer < pulseSamples);
-        outputs[CLOCKOUT_OUTPUT].setVoltage(mainOutputHigh ? 5.f : 0.f);
-        lights[CLOCKLED_LIGHT].setBrightnessSmooth(mainOutputHigh, args.sampleTime);
-
-        // === Chirp Integration ===
-        if (!chirpsInitialized) {
-            chirps[0].timeRatio = 1.3f;
-            chirps[1].timeRatio = 3.7f;
-            chirps[2].timeRatio = 5.5f;
-            chirps[3].timeRatio = 7.9f;
-            chirpsInitialized = true;
-        }
+    if (!chirpsInitialized) {
+        chirps[0].timeRatio = 1.3f;
+        chirps[1].timeRatio = 3.7f;
+        chirps[2].timeRatio = 5.5f;
+        chirps[3].timeRatio = 7.9f;
+        chirpsInitialized = true;
+    }
 
     for (int i = 0; i < 4; i++) {
-    chirps[i].freeze = (params[LOOPONE_PARAM + i].getValue() > 0.5f) ? 1 : 0;
+        chirps[i].freeze = (params[LOOPONE_PARAM + i].getValue() > 0.5f) ? 1 : 0;
 
-    int gate = chirps[i].update(periodMs, pulseWidth, args.sampleRate);
-    outputs[ONEOUT_OUTPUT + i].setVoltage(gate ? 5.f : 0.f);
-    lights[ONELED_LIGHT + i].setBrightnessSmooth(gate, args.sampleTime);
-}
+        int gate = chirps[i].update(periodMs, pulseWidth, args.sampleRate);
+        outputs[ONEOUT_OUTPUT + i].setVoltage(gate ? 5.f : 0.f);
+        lights[ONELED_LIGHT + i].setBrightnessSmooth(gate, args.sampleTime);
     }
+
+    if (rangeSwitch < 0.5f) {
+        vcoFreq = rescale(summedTime, -5.f, 5.f, 40.f, 200.f);
+        vcoFreq = clamp(vcoFreq, 40.f, 200.f);
+    } else {
+        vcoFreq = rescale(summedTime, -5.f, 5.f, 1000.f, 15000.f);
+        vcoFreq = clamp(vcoFreq, 1000.f, 15000.f);
+    }
+
+    vcoPhase += vcoFreq * args.sampleTime;
+    if (vcoPhase >= 1.f)
+        vcoPhase -= 1.f;
+
+    float vcoOut = (vcoPhase < 0.5f) ? 5.f : -5.f;
+    outputs[VCOOUT_OUTPUT].setVoltage(vcoOut);
+    lights[VCOLED_LIGHT].setBrightness(5.f);
+}
 };
 
 struct SwarmWidget : ModuleWidget {
