@@ -1,5 +1,65 @@
 #include "plugin.hpp"
 
+
+// === CHIRP CLASS CONVERSION (FROM ARDUINO) === //
+class Chirp {
+private:
+    float sinceStepSamples = 0.0f;
+    int currentStep = 0;
+    int seqLength = 16;
+    int gates[64];
+    int lastFreeze = 0;
+    int currentFreeze = 0;
+
+public:
+    float timeRatio = 1.0f;
+    int freeze = 0;
+
+    Chirp() {
+        for (int i = 0; i < 64; i++) {
+            gates[i] = rand() % 2;
+        }
+    }
+
+    void reset() {
+        sinceStepSamples = 0.0f;
+        currentStep = 0;
+    }
+
+    int update(float basePeriodMs, float width, float sampleRate) {
+        const float msPerSample = 1.0f / (sampleRate * 0.001f);
+        const float stepDurationMs = basePeriodMs * timeRatio;
+        const float stepDurationSamples = stepDurationMs / msPerSample;
+
+        lastFreeze = currentFreeze;
+        currentFreeze = freeze;
+
+        if (currentFreeze > lastFreeze) {
+            seqLength = (rand() % 64) + 1;
+        }
+
+        if (sinceStepSamples >= stepDurationSamples) {
+            sinceStepSamples -= stepDurationSamples;
+            currentStep++;
+            if (currentStep >= seqLength)
+                currentStep = 0;
+
+            if (freeze == 0) {
+                const int density = 20; // % chance
+                gates[rand() % seqLength] = (rand() % 100 <= density);
+            }
+        }
+
+        sinceStepSamples += 1.0f;
+
+        if ((sinceStepSamples < (stepDurationSamples * width)) && gates[currentStep] == 1) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+};
+
 struct Swarm : Module {
     enum ParamId {
         TIMECOARSE_PARAM,
@@ -18,21 +78,21 @@ struct Swarm : Module {
         INPUTS_LEN
     };
     enum OutputId {
-        VCOOUT_OUTPUT,
         ONEOUT_OUTPUT,
         TWOOUT_OUTPUT,
-        CLOCKOUT_OUTPUT,
         THREEOUT_OUTPUT,
         FOUROUT_OUTPUT,
+        CLOCKOUT_OUTPUT,
+        VCOOUT_OUTPUT,
         OUTPUTS_LEN
     };
     enum LightId {
-        VCOLED_LIGHT,
         ONELED_LIGHT,
         TWOLED_LIGHT,
-        CLOCKLED_LIGHT,
         THREELED_LIGHT,
         FOURLED_LIGHT,
+        CLOCKLED_LIGHT,
+        VCOLED_LIGHT,
         LIGHTS_LEN
     };
 
@@ -56,62 +116,75 @@ struct Swarm : Module {
         configOutput(FOUROUT_OUTPUT, "Ch. 4");
     }
 
+    
     float clockTimer = 0.0f;
     float pulseWidth = 0.5f;
-    bool gateHigh = false;
     bool mainOutputHigh = false;
 
+    Chirp chirps[4];
+    bool chirpsInitialized = false;
+
     void process(const ProcessArgs& args) override {
+        // === Parameter Reading and Normalization ===
         float pulseWidthParam = params[WIDTH_PARAM].getValue();
-        float coarseFrequencyKnob = params[TIMECOARSE_PARAM].getValue();
-        float timeRangeSwitch = params[RANGESWITCH_PARAM].getValue();
-        float timeInputVoltage = inputs[TIMECVIN_INPUT].getVoltage();
-        float widthInputVoltage = inputs[WIDTHCVIN_INPUT].getVoltage();
-        float normalizedTimeCV = (timeInputVoltage / 10.0f) * 10.0f;
-        float normalizedWidthCV = (widthInputVoltage / 10.0f) * 10.0f;
-        float summedTime = normalizedTimeCV + (coarseFrequencyKnob * 10.0f) - 5.0f;
-        summedTime = clamp(summedTime, -5.0f, 5.0f);
+        float coarseKnob = params[TIMECOARSE_PARAM].getValue();
+        float fineAdjust = params[TIMEFINE_PARAM].getValue();
+        float rangeSwitch = params[RANGESWITCH_PARAM].getValue();
+
+        float timeCV = inputs[TIMECVIN_INPUT].getVoltage();
+        float widthCV = inputs[WIDTHCVIN_INPUT].getVoltage();
+
+        float timeCVNorm = clamp(timeCV, -5.f, 5.f);
+        float widthCVNorm = clamp(widthCV, -5.f, 5.f);
+
+        float summedTime = coarseKnob * 10.0f + timeCVNorm;
+        summedTime = clamp(summedTime, -5.f, 5.f);
 
         float periodMs;
-        if (timeRangeSwitch < 0.5f) {
-            periodMs = 500.0f + (summedTime * (150.0f - 500.0f));  // Slow range from 500ms to 150ms
+        if (rangeSwitch < 0.5f) {
+            periodMs = 500.0f + (summedTime * (150.0f - 500.0f)); // Slow range
             periodMs = clamp(periodMs, 150.0f, 500.0f);
         } else {
-            periodMs = 150.0f - (summedTime * (150.0f - 15.0f));  // Fast range from 150ms to 15ms
+            periodMs = 150.0f - (summedTime * (150.0f - 15.0f)); // Fast range
             periodMs = clamp(periodMs, 15.0f, 150.0f);
         }
 
-        float fineAdjust = params[TIMEFINE_PARAM].getValue();
         periodMs = clamp(periodMs - fineAdjust, 15.0f, 500.0f);
 
         float samplesPerMs = args.sampleRate * 0.001f;
         float periodSamples = periodMs * samplesPerMs;
 
-        float normalizedPulseWidthCV = (normalizedWidthCV / 10.0f) * 10.0f;
-        pulseWidth = pulseWidthParam * 0.5f + normalizedPulseWidthCV * 0.5f;
-        pulseWidth = clamp(pulseWidth, 0.05f, 0.5f);
-        float pulseWidthSamples = periodSamples * pulseWidth;
+        pulseWidth = clamp(pulseWidthParam + widthCVNorm * 0.1f, 0.05f, 0.5f);
+        float pulseSamples = periodSamples * pulseWidth;
 
+        // === Main Clock Logic ===
         clockTimer += args.sampleTime * args.sampleRate;
-
         if (clockTimer >= periodSamples) {
             clockTimer -= periodSamples;
-            gateHigh = !gateHigh;
         }
 
-        if (gateHigh) {
-            if (clockTimer < pulseWidthSamples) {
-                mainOutputHigh = true;
-            } else {
-                mainOutputHigh = false;
-            }
-        }
-
-        outputs[CLOCKOUT_OUTPUT].setVoltage(mainOutputHigh ? 5.0f : 0.0f);
+        mainOutputHigh = (clockTimer < pulseSamples);
+        outputs[CLOCKOUT_OUTPUT].setVoltage(mainOutputHigh ? 5.f : 0.f);
         lights[CLOCKLED_LIGHT].setBrightnessSmooth(mainOutputHigh, args.sampleTime);
+
+        // === Chirp Integration ===
+        if (!chirpsInitialized) {
+            chirps[0].timeRatio = 1.3f;
+            chirps[1].timeRatio = 3.7f;
+            chirps[2].timeRatio = 5.5f;
+            chirps[3].timeRatio = 7.9f;
+            chirpsInitialized = true;
+        }
+
+    for (int i = 0; i < 4; i++) {
+    chirps[i].freeze = (params[LOOPONE_PARAM + i].getValue() > 0.5f) ? 1 : 0;
+
+    int gate = chirps[i].update(periodMs, pulseWidth, args.sampleRate);
+    outputs[ONEOUT_OUTPUT + i].setVoltage(gate ? 5.f : 0.f);
+    lights[ONELED_LIGHT + i].setBrightnessSmooth(gate, args.sampleTime);
+}
     }
 };
-
 
 struct SwarmWidget : ModuleWidget {
     SwarmWidget(Swarm* module) {
