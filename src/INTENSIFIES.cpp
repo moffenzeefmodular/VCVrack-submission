@@ -207,7 +207,7 @@ struct INTENSIFIES : Module {
     synthHPOut = alpha * (synthHPOut + synthOutput - synthHPInLast);
     synthHPInLast = synthOutput;
 
-    outputs[SYNTHOUT_OUTPUT].setVoltage(synthHPOut);
+	outputs[SYNTHOUT_OUTPUT].setVoltage(clamp(synthHPOut, -5.f, 5.f));
 
     lights[MODULATORLED_LIGHT].setBrightnessSmooth((modulatorHigh ? 0.0f : 1.0f), args.sampleTime);
 
