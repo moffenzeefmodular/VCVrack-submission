@@ -113,19 +113,35 @@ struct INTENSIFIES : Module {
     if (modulatorPhase >= 1.0f) modulatorPhase -= 1.0f;
 
     bool modulatorHigh = (modulatorPhase < 0.5f);
-
     bool sampleNow = (!modEnabled || modulatorHigh);
 
-    if (sampleNow) {
-        clockPhase += carrierFreq * args.sampleTime;
-        if (clockPhase >= 1.0f) {
-            clockPhase -= 1.0f;
-            heldSample = inputs[AUDIOIN_INPUT].getVoltage();
+    float bypassCV = inputs[BYPASSCV_INPUT].isConnected() ? inputs[BYPASSCV_INPUT].getVoltage() : 0.f;
+    bool bypassActive = (params[FXBYPASS_PARAM].getValue() > 0.5f) || (bypassCV > 1.f);
+
+    float inputSample = inputs[AUDIOIN_INPUT].getVoltage();
+
+    float fxOutput = 0.f;
+
+    if (bypassActive) {
+        fxOutput = inputSample;
+    } else {
+        if (sampleNow) {
+            clockPhase += carrierFreq * args.sampleTime;
+            if (clockPhase >= 1.0f) {
+                clockPhase -= 1.0f;
+                heldSample = inputSample;
+            }
         }
+        fxOutput = sampleNow ? heldSample : 0.f;
+
+        float fxVolKnob = params[FXVOLUME_PARAM].getValue();
+        float fxVolCV = inputs[FXVOLUMECV_INPUT].isConnected() ? inputs[FXVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
+        float fxVolume = clamp(fxVolKnob + fxVolCV, 0.f, 1.f);
+
+        fxOutput *= fxVolume;
     }
 
-    float outputSample = sampleNow ? heldSample : 0.f;
-    outputs[FXOUT_OUTPUT].setVoltage(clamp(outputSample, -5.f, 5.f));
+    outputs[FXOUT_OUTPUT].setVoltage(clamp(fxOutput, -5.f, 5.f));
 
     carrierPhase2 += carrierFreq * args.sampleTime;
     if (carrierPhase2 >= 1.f) carrierPhase2 -= 1.f;
@@ -144,7 +160,6 @@ struct INTENSIFIES : Module {
     float synthVol = clamp(synthVolKnob + synthVolCV, 0.f, 1.f);
 
     synthOutput *= synthVol;
-
     synthOutput = clamp(synthOutput, -5.f, 5.f);
 
     outputs[SYNTHOUT_OUTPUT].setVoltage(synthOutput);
