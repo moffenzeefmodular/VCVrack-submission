@@ -2,6 +2,21 @@
 
 
 struct INTENSIFIES : Module {
+
+    // Intensifies panels
+int panelStyle = 0;
+
+json_t* dataToJson() override {
+	json_t* rootJ = Module::dataToJson();
+	json_object_set_new(rootJ, "panelStyle", json_integer(panelStyle));
+	return rootJ;
+}
+
+void dataFromJson(json_t* rootJ) override {
+	json_t* panelStyleJ = json_object_get(rootJ, "panelStyle");
+	if (panelStyleJ)
+		panelStyle = json_integer_value(panelStyleJ);
+}
 	enum ParamId {
 		CARRIERRANGE_PARAM,
 		FXBYPASS_PARAM,
@@ -222,32 +237,37 @@ struct INTENSIFIES : Module {
 };
 
 struct INTENSIFIESWidget : ModuleWidget {
+	SVGPanel* panel = nullptr;
+
 	INTENSIFIESWidget(INTENSIFIES* module) {
 		setModule(module);
-	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/INTENSIFIES.svg"),
-		asset::plugin(pluginInstance, "res/INTENSIFIES-dark.svg")
-		));
-        
+
+		// Load default panel first
+		panel = createPanel(asset::plugin(pluginInstance, "res/INTENSIFIES.svg"));
+		setPanel(panel);
+
+		// Update panel based on saved style
+		updatePanelStyle(module ? module->panelStyle : 0);
+
+		// Screws
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
+		// Params
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(22.855, 39.741)), module, INTENSIFIES::CARRIER_PARAM));
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(35.823, 87.83)), module, INTENSIFIES::MODULATOR_PARAM));
-
 		addParam(createParamCentered<_2Pos>(mm2px(Vec(38.99, 62.038)), module, INTENSIFIES::MODULATORENGAGE_PARAM));
 		addParam(createParamCentered<_2Pos>(mm2px(Vec(82.287, 35.832)), module, INTENSIFIES::FXBYPASS_PARAM));
 		addParam(createParamCentered<_2Pos>(mm2px(Vec(87.182, 77.145)), module, INTENSIFIES::GAINRANGE_PARAM));
-
 		addParam(createParamCentered<_3Pos>(mm2px(Vec(48.122, 35.871)), module, INTENSIFIES::CARRIERRANGE_PARAM));
 		addParam(createParamCentered<_3Pos>(mm2px(Vec(65.957, 93.144)), module, INTENSIFIES::MODULATORRANGE_PARAM));
-
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(107.163, 50.988)), module, INTENSIFIES::FXVOLUME_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::GAIN_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(98.918, 97.521)), module, INTENSIFIES::SYNTHVOLUME_PARAM));
 
+		// Inputs
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(26.707, 11.585)), module, INTENSIFIES::CARRIERCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(97.418, 26.501)), module, INTENSIFIES::FXVOLUMECV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(63.064, 35.057)), module, INTENSIFIES::GAINCV_INPUT));
@@ -257,14 +277,65 @@ struct INTENSIFIESWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(107.078, 76.864)), module, INTENSIFIES::AUDIOIN_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(80.75, 101.603)), module, INTENSIFIES::SYNTHVOLUMECV_INPUT));
 
+		// Outputs
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::FXOUT_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.251, 104.885)), module, INTENSIFIES::SYNTHOUT_OUTPUT));
 
+		// Lights
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(109.201, 35.91)), module, INTENSIFIES::MAINOUTLED_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(79.581, 52.375)), module, INTENSIFIES::GAINLED_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(21.257, 70.01)), module, INTENSIFIES::MODULATORLED_LIGHT));
 	}
+
+	void updatePanelStyle(int style) {
+		std::string panelPaths[] = {
+			"res/INTENSIFIES.svg",
+			"res/INTENSIFIES-dark.svg",
+			"res/INTENSIFIES-white.svg",
+			"res/INTENSIFIES-peepeeyellow.svg"
+		};
+
+		style = clamp(style, 0, 3);
+		panel->setBackground(SVG::load(asset::plugin(pluginInstance, panelPaths[style])));
+	}
+
+	void appendContextMenu(Menu* menu) override {
+	INTENSIFIES* module = dynamic_cast<INTENSIFIES*>(this->module);
+	assert(module);
+
+	MenuLabel* label = new MenuLabel;
+	label->text = "Panel Style";
+	menu->addChild(label);
+
+	struct PanelStyleItem : MenuItem {
+		INTENSIFIES* module;
+		INTENSIFIESWidget* widget;
+		int style;
+
+		void onAction(const event::Action& e) override {
+			module->panelStyle = style;
+			widget->updatePanelStyle(style);
+		}
+
+		void step() override {
+			rightText = (module->panelStyle == style) ? "✔" : "";
+			MenuItem::step();
+		}
+	};
+
+	const char* labels[] = { "Original", "Dark", "White", "PeePee Yellow" };
+
+	for (int i = 0; i < 4; i++) {
+		PanelStyleItem* item = new PanelStyleItem;
+		item->text = labels[i];
+		item->style = i;
+		item->module = module;
+		item->widget = this;
+		menu->addChild(item);
+	}
+}
 };
+
 
 
 Model* modelINTENSIFIES = createModel<INTENSIFIES, INTENSIFIESWidget>("INTENSIFIES");
