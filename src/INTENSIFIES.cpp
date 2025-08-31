@@ -98,7 +98,13 @@ struct INTENSIFIES : Module {
     carrierFreq = clamp(carrierFreq, 0.f, 100000.f);
 
     float engageCV = inputs[ENGAGECV_INPUT].isConnected() ? inputs[ENGAGECV_INPUT].getVoltage() : 0.f;
-    bool modEnabled = (params[MODULATORENGAGE_PARAM].getValue() > 0.5f) || (engageCV > 1.f);
+    bool modEnabled;
+    if (engageCV > 1.f)
+        modEnabled = true;
+    else if (engageCV < -1.f)
+        modEnabled = false;
+    else
+        modEnabled = (params[MODULATORENGAGE_PARAM].getValue() > 0.5f);
 
     float modKnob = params[MODULATOR_PARAM].getValue();
     float modCV = inputs[MODULATORCV_INPUT].isConnected() ? inputs[MODULATORCV_INPUT].getVoltage() / 10.f : 0.f;
@@ -122,7 +128,13 @@ struct INTENSIFIES : Module {
     bool sampleNow = (!modEnabled || modulatorHigh);
 
     float bypassCV = inputs[BYPASSCV_INPUT].isConnected() ? inputs[BYPASSCV_INPUT].getVoltage() : 0.f;
-    bool bypassActive = (params[FXBYPASS_PARAM].getValue() > 0.5f) || (bypassCV > 1.f);
+    bool bypassActive;
+    if (bypassCV > 1.f)
+        bypassActive = true;
+    else if (bypassCV < -1.f)
+        bypassActive = false;
+    else
+        bypassActive = (params[FXBYPASS_PARAM].getValue() > 0.5f);
 
     float inputSample = inputs[AUDIOIN_INPUT].getVoltage();
 
