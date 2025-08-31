@@ -48,6 +48,8 @@ struct INTENSIFIES : Module {
     float modulatorPhase2 = 0.f;
 	float synthHPOut = 0.f;
 	float synthHPInLast = 0.f;
+	float fxHPOut = 0.f;
+	float fxHPInLast = 0.f;
 
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -158,6 +160,17 @@ struct INTENSIFIES : Module {
 		if (fxOutput > 5.f) fxOutput = 5.f;
 		if (fxOutput < -5.f) fxOutput = -5.f;
 
+		float cutoff = 20.f;
+		float sampleRate = args.sampleRate;
+		float dt = 1.f / sampleRate;
+		float RC = 1.f / (2.f * M_PI * cutoff);
+		float alpha = RC / (RC + dt);
+
+		fxHPOut = alpha * (fxHPOut + fxOutput - fxHPInLast);
+		fxHPInLast = fxOutput;
+
+		fxOutput = fxHPOut;
+
 		outputs[FXOUT_OUTPUT].setVoltage(clamp(fxOutput, -5.f, 5.f));
 
 		carrierPhase2 += carrierFreq * args.sampleTime;
@@ -179,12 +192,6 @@ struct INTENSIFIES : Module {
 		synthOutput *= synthVol;
 		synthOutput = clamp(synthOutput, -5.f, 5.f);
 
-		float cutoff = 20.f;
-		float sampleRate = args.sampleRate;
-		float dt = 1.f / sampleRate;
-		float RC = 1.f / (2.f * M_PI * cutoff);
-		float alpha = RC / (RC + dt);
-
 		synthHPOut = alpha * (synthHPOut + synthOutput - synthHPInLast);
 		synthHPInLast = synthOutput;
 
@@ -196,6 +203,7 @@ struct INTENSIFIES : Module {
 		lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);
 	}
 }; 
+
 
 
 struct INTENSIFIESWidget : ModuleWidget {
