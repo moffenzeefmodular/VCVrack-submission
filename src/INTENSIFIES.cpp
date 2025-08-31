@@ -3,8 +3,8 @@
 
 struct INTENSIFIES : Module {
 	enum ParamId {
-		FXBYPASS_PARAM,
 		CARRIERRANGE_PARAM,
+		FXBYPASS_PARAM,
 		CARRIER_PARAM,
 		FXVOLUME_PARAM,
 		GAIN_PARAM,
@@ -38,8 +38,8 @@ struct INTENSIFIES : Module {
 
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(FXBYPASS_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(CARRIERRANGE_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(FXBYPASS_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(CARRIER_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(FXVOLUME_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "");
@@ -73,32 +73,32 @@ struct INTENSIFIESWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
+		addParam(createParamCentered<_3Pos>(mm2px(Vec(48.122, 35.871)), module, INTENSIFIES::CARRIERRANGE_PARAM));
+		addParam(createParamCentered<_3Pos>(mm2px(Vec(65.957, 93.144)), module, INTENSIFIES::MODULATORRANGE_PARAM));
+
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(87.182, 77.145)), module, INTENSIFIES::GAINRANGE_PARAM));
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(82.287, 35.832)), module, INTENSIFIES::FXBYPASS_PARAM));
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(38.99, 62.038)), module, INTENSIFIES::MODULATORENGAGE_PARAM));
+
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(22.855, 39.741)), module, INTENSIFIES::CARRIER_PARAM));
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(35.823, 87.83)), module, INTENSIFIES::MODULATOR_PARAM));
-		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::GAIN_PARAM));
+
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(107.163, 50.988)), module, INTENSIFIES::FXVOLUME_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(98.918, 97.521)), module, INTENSIFIES::SYNTHVOLUME_PARAM));
-
-
-		addParam(createParamCentered<_2Pos>(mm2px(Vec(75.02, 33.684)), module, INTENSIFIES::FXBYPASS_PARAM));
-		addParam(createParamCentered<_2Pos>(mm2px(Vec(38.99, 62.038)), module, INTENSIFIES::MODULATORENGAGE_PARAM));
-		addParam(createParamCentered<_2Pos>(mm2px(Vec(87.182, 77.145)), module, INTENSIFIES::GAINRANGE_PARAM));
-
-		addParam(createParamCentered<_3Pos>(mm2px(Vec(48.122, 35.871)), module, INTENSIFIES::CARRIERRANGE_PARAM));
-		addParam(createParamCentered<_3Pos>(mm2px(Vec(65.92, 94.064)), module, INTENSIFIES::MODULATORRANGE_PARAM));
+		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::GAIN_PARAM));
 
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(26.707, 11.585)), module, INTENSIFIES::CARRIERCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(97.418, 26.501)), module, INTENSIFIES::FXVOLUMECV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(63.064, 35.057)), module, INTENSIFIES::GAINCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(53.375, 76.187)), module, INTENSIFIES::MODULATORCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(110.044, 76.084)), module, INTENSIFIES::AUDIOIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(105, 76.084)), module, INTENSIFIES::AUDIOIN_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(80.75, 101.603)), module, INTENSIFIES::SYNTHVOLUMECV_INPUT));
 
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::FXOUT_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.251, 104.885)), module, INTENSIFIES::SYNTHOUT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(109.201, 35.91)), module, INTENSIFIES::MAINOUTLED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(87.126, 48.785)), module, INTENSIFIES::GAINLED_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(79.581, 52.375)), module, INTENSIFIES::GAINLED_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(21.257, 70.01)), module, INTENSIFIES::MODULATORLED_LIGHT));
 	}
 };
