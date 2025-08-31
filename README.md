@@ -22,9 +22,8 @@ By Ross Fish Feb 2025
 ## v2.0.4
 - Dark panels integrated for all modules
 
-## v2.1.0 (Dev)
-- 2hp + 14hp blank panels added 
+## v2.1.0 
+- Added 2hp blank panel
+- Added 14hp blank panel
 - Added Swarm module 
-- Added [INTENSIFIES] (not started)
-- Added Stargazer Oscillator core (not started) 
-- Added The Runner (not started)
+- Added [INTENSIFIES] module
