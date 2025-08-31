@@ -57,7 +57,7 @@ struct INTENSIFIES : Module {
 		configParam(CARRIER_PARAM, 0.f, 1.f, 1.f, "Carrier Frequency", "%", 0.f, 100.f);
 		configParam(MODULATOR_PARAM, 0.f, 1.f, 1.f, "Modulator Frequency", "%", 0.f, 100.f);
 
-		configParam(SYNTHVOLUME_PARAM, 0.f, 1.f, 1.f, "Synth Volume", "%", 0.f, 100.f);
+		configParam(SYNTHVOLUME_PARAM, 0.f, 1.f, 0.5f, "Synth Volume", "%", 0.f, 100.f);
 		configParam(FXVOLUME_PARAM, 0.f, 1.f, 1.f, "FX Volume", "%", 0.f, 100.f);
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "%", 0.f, 100.f);
 
