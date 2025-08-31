@@ -152,6 +152,8 @@ struct INTENSIFIES : Module {
         if (fxOutput > 5.f) fxOutput = 5.f;
         if (fxOutput < -5.f) fxOutput = -5.f;
 
+		lights[GAINLED_LIGHT].setBrightnessSmooth(clamp(fabsf(fxOutput) / 5.f, 0.f, 1.f), args.sampleTime);
+
         float fxVolKnob = params[FXVOLUME_PARAM].getValue();
         float fxVolCV = inputs[FXVOLUMECV_INPUT].isConnected() ? inputs[FXVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
         float fxVolume = clamp(fxVolKnob + fxVolCV, 0.f, 1.f);
@@ -193,15 +195,14 @@ struct INTENSIFIES : Module {
 
     lights[MODULATORLED_LIGHT].setBrightnessSmooth((modulatorHigh ? 0.0f : 1.0f), args.sampleTime);
 
-
-if (!bypassActive) {
-    mainOutLevel = std::max(fxOutput, 0.f) / 5.f;
-} else {
-    mainOutLevel = 0.f;  
-}
-mainOutLevel = clamp(mainOutLevel, 0.f, 1.f);
-lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);    lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);
-}
+	if (!bypassActive) {
+	    mainOutLevel = std::max(fxOutput, 0.f) / 5.f;
+	} else {
+	    mainOutLevel = 0.f;  
+	}
+	mainOutLevel = clamp(mainOutLevel, 0.f, 1.f);
+	lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);    lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);
+	}
 };
 
 struct INTENSIFIESWidget : ModuleWidget {
