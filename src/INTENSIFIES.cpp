@@ -54,7 +54,7 @@ struct INTENSIFIES : Module {
 
 		configParam(SYNTHVOLUME_PARAM, 0.f, 1.f, 1.f, "Synth Volume", "%", 0.f, 100.f);
 		configParam(FXVOLUME_PARAM, 0.f, 1.f, 1.f, "FX Volume", "%", 0.f, 100.f);
-		configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "Gain", "%", 0.f, 100.f);
+		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "%", 0.f, 100.f);
 
 		configSwitch(CARRIERRANGE_PARAM, 0.f, 2.f, 2.f, "Carrier Frequency Range", {"Low", "Medium", "High"});
 		configSwitch(MODULATORRANGE_PARAM, 0.f, 2.f, 2.f, "Modulator Frequency Range", {"Low", "Medium", "High"});
@@ -134,14 +134,22 @@ struct INTENSIFIES : Module {
         }
         fxOutput = sampleNow ? heldSample : 0.f;
 
+        float gainKnob = params[GAIN_PARAM].getValue();
+        float gainCV = inputs[GAINCV_INPUT].isConnected() ? inputs[GAINCV_INPUT].getVoltage() / 10.f : 0.f;
+        float gainControl = clamp(gainKnob + gainCV, 0.f, 1.f);
+        bool highGainRange = (params[GAINRANGE_PARAM].getValue() > 0.5f);
+        float maxGain = highGainRange ? 200.f : 20.f;
+		float gain = 1.f + gainControl * (maxGain - 1.f);
+        fxOutput *= gain;
+        fxOutput = clamp(fxOutput, -5.f, 5.f);
+
         float fxVolKnob = params[FXVOLUME_PARAM].getValue();
         float fxVolCV = inputs[FXVOLUMECV_INPUT].isConnected() ? inputs[FXVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
         float fxVolume = clamp(fxVolKnob + fxVolCV, 0.f, 1.f);
-
         fxOutput *= fxVolume;
     }
 
-    outputs[FXOUT_OUTPUT].setVoltage(clamp(fxOutput, -5.f, 5.f));
+    outputs[FXOUT_OUTPUT].setVoltage(fxOutput);
 
     carrierPhase2 += carrierFreq * args.sampleTime;
     if (carrierPhase2 >= 1.f) carrierPhase2 -= 1.f;
@@ -158,13 +166,14 @@ struct INTENSIFIES : Module {
     float synthVolKnob = params[SYNTHVOLUME_PARAM].getValue();
     float synthVolCV = inputs[SYNTHVOLUMECV_INPUT].isConnected() ? inputs[SYNTHVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
     float synthVol = clamp(synthVolKnob + synthVolCV, 0.f, 1.f);
-
     synthOutput *= synthVol;
     synthOutput = clamp(synthOutput, -5.f, 5.f);
 
     outputs[SYNTHOUT_OUTPUT].setVoltage(synthOutput);
+
+    lights[GAINLED_LIGHT].setSmoothBrightness(fabs(fxOutput) / 5.f, args.sampleTime);
 }
-};
+}; 
 
 
 struct INTENSIFIESWidget : ModuleWidget {
