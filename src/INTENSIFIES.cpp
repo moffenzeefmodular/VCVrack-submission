@@ -106,7 +106,7 @@ struct INTENSIFIES : Module {
         case 1: modBaseFreq = 100.f; break;
         default: modBaseFreq = 500.f; break;
     }
-    float modFreq = modBaseFreq * modControl;
+    float modFreq = (modBaseFreq * modControl) + 1.f;
     modFreq = clamp(modFreq, 0.f, 500.f);
 
     modulatorPhase += modFreq * args.sampleTime;
@@ -171,7 +171,9 @@ struct INTENSIFIES : Module {
 
     outputs[SYNTHOUT_OUTPUT].setVoltage(synthOutput);
 
-    lights[GAINLED_LIGHT].setSmoothBrightness(fabs(fxOutput) / 5.f, args.sampleTime);
+lights[GAINLED_LIGHT].setSmoothBrightness(fabs(fxOutput) / 5.f, args.sampleTime);
+lights[MODULATORLED_LIGHT].setSmoothBrightness(modulatorHigh ? 1.f : 0.f, args.sampleTime);
+lights[MAINOUTLED_LIGHT].setSmoothBrightness(fabs(fxOutput) / 5.f, args.sampleTime);
 }
 }; 
 
