@@ -36,6 +36,13 @@ struct INTENSIFIES : Module {
 		LIGHTS_LEN
 	};
 
+	float clockPhase = 0.f;
+	bool clockState = false;
+	float heldSample = 0.f;
+	float baseFreq = 0.f;
+	float modulatorPhase = 0.f;
+float modulatorSignal = 1.f;
+
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(CARRIER_PARAM, 0.f, 1.f, 1.f, "Carrier Frequency", "%", 0.f, 100.f);
@@ -58,13 +65,62 @@ struct INTENSIFIES : Module {
 		configInput(MODULATORCV_INPUT, "Modulator CV");
 		configInput(AUDIOIN_INPUT, "Audio");
 		configInput(SYNTHVOLUMECV_INPUT, "Synth Volume CV");
-		
+
 		configOutput(FXOUT_OUTPUT, "FX");
 		configOutput(SYNTHOUT_OUTPUT, "Synth");
 	}
 
 	void process(const ProcessArgs& args) override {
+	// Carrier control
+	float carrierKnob = params[CARRIER_PARAM].getValue();
+	float carrierCV = inputs[CARRIERCV_INPUT].isConnected() ? inputs[CARRIERCV_INPUT].getVoltage() / 10.f : 0.f;
+	float carrierControl = clamp(carrierKnob + carrierCV, 0.f, 1.f);
+	int carrierRange = static_cast<int>(params[CARRIERRANGE_PARAM].getValue());
+
+	float carrierBaseFreq = 0.f;
+	switch (carrierRange) {
+		case 0: carrierBaseFreq = 1.f; break;
+		case 1: carrierBaseFreq = 10.f; break;
+		default: carrierBaseFreq = 100.f; break;
 	}
+	float carrierFreq = carrierBaseFreq * std::pow(100.f, carrierControl);
+	carrierFreq = clamp(carrierFreq, 0.f, 100000.f);
+
+	// Modulator control
+	bool modEnabled = params[MODULATORENGAGE_PARAM].getValue() > 0.5f;
+	float modKnob = params[MODULATOR_PARAM].getValue();
+	float modCV = inputs[MODULATORCV_INPUT].isConnected() ? inputs[MODULATORCV_INPUT].getVoltage() / 10.f : 0.f;
+	float modControl = clamp(modKnob + modCV, 0.f, 1.f);
+	int modRange = static_cast<int>(params[MODULATORRANGE_PARAM].getValue());
+
+	float modBaseFreq = 0.f;
+	switch (modRange) {
+		case 0: modBaseFreq = 50.f; break;
+		case 1: modBaseFreq = 100.f; break;
+		default: modBaseFreq = 500.f; break;
+	}
+	float modFreq = modBaseFreq * modControl;  // Linear scaling with modControl, or adjust to taste
+	modFreq = clamp(modFreq, 0.f, 500.f);
+
+	// Advance modulator
+	modulatorPhase += modFreq * args.sampleTime;
+	if (modulatorPhase >= 1.0f) modulatorPhase -= 1.0f;
+
+	bool modulatorHigh = (modulatorPhase < 0.5f);
+
+	bool sampleNow = (!modEnabled || modulatorHigh);
+
+	if (sampleNow) {
+		clockPhase += carrierFreq * args.sampleTime;
+		if (clockPhase >= 1.0f) {
+			clockPhase -= 1.0f;
+			heldSample = inputs[AUDIOIN_INPUT].getVoltage();
+		}
+	}
+
+	float outputSample = sampleNow ? heldSample : 0.f;
+	outputs[FXOUT_OUTPUT].setVoltage(clamp(outputSample, -5.f, 5.f));
+}
 };
 
 
