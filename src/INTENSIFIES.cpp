@@ -50,6 +50,7 @@ struct INTENSIFIES : Module {
 	float synthHPInLast = 0.f;
 	float fxHPOut = 0.f;
 	float fxHPInLast = 0.f;
+	float mainOutLevel = 0.f;
 
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -192,8 +193,14 @@ struct INTENSIFIES : Module {
 
     lights[MODULATORLED_LIGHT].setBrightnessSmooth((modulatorHigh ? 0.0f : 1.0f), args.sampleTime);
 
-    float mainOutLevel = std::max(std::abs(fxOutput), std::abs(synthHPOut)) / 5.f;
-    lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);
+
+if (!bypassActive) {
+    mainOutLevel = std::max(fxOutput, 0.f) / 5.f;
+} else {
+    mainOutLevel = 0.f;  
+}
+mainOutLevel = clamp(mainOutLevel, 0.f, 1.f);
+lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);    lights[MAINOUTLED_LIGHT].setSmoothBrightness(mainOutLevel, args.sampleTime);
 }
 };
 
