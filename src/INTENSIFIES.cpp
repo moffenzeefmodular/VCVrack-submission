@@ -3,9 +3,9 @@
 
 struct INTENSIFIES : Module {
 	enum ParamId {
-		CARRIER_PARAM,
 		FXBYPASS_PARAM,
 		CARRIERRANGE_PARAM,
+		CARRIER_PARAM,
 		FXVOLUME_PARAM,
 		GAIN_PARAM,
 		MODULATORENGAGE_PARAM,
@@ -38,9 +38,9 @@ struct INTENSIFIES : Module {
 
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(CARRIER_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(FXBYPASS_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(CARRIERRANGE_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(CARRIER_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(FXVOLUME_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(MODULATORENGAGE_PARAM, 0.f, 1.f, 0.f, "");
@@ -73,16 +73,19 @@ struct INTENSIFIESWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(18.44, 34.222)), module, INTENSIFIES::CARRIER_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(75.02, 33.684)), module, INTENSIFIES::FXBYPASS_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(48.122, 35.871)), module, INTENSIFIES::CARRIERRANGE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(107.163, 50.988)), module, INTENSIFIES::FXVOLUME_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::GAIN_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.99, 62.038)), module, INTENSIFIES::MODULATORENGAGE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(87.182, 77.145)), module, INTENSIFIES::GAINRANGE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(34.278, 93.051)), module, INTENSIFIES::MODULATOR_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(65.92, 94.064)), module, INTENSIFIES::MODULATORRANGE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(98.918, 97.521)), module, INTENSIFIES::SYNTHVOLUME_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(22.855, 39.741)), module, INTENSIFIES::CARRIER_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(35.823, 87.83)), module, INTENSIFIES::MODULATOR_PARAM));
+		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::GAIN_PARAM));
+		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(107.163, 50.988)), module, INTENSIFIES::FXVOLUME_PARAM));
+		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(98.918, 97.521)), module, INTENSIFIES::SYNTHVOLUME_PARAM));
+
+
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(75.02, 33.684)), module, INTENSIFIES::FXBYPASS_PARAM));
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(38.99, 62.038)), module, INTENSIFIES::MODULATORENGAGE_PARAM));
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(87.182, 77.145)), module, INTENSIFIES::GAINRANGE_PARAM));
+
+		addParam(createParamCentered<_3Pos>(mm2px(Vec(48.122, 35.871)), module, INTENSIFIES::CARRIERRANGE_PARAM));
+		addParam(createParamCentered<_3Pos>(mm2px(Vec(65.92, 94.064)), module, INTENSIFIES::MODULATORRANGE_PARAM));
 
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(26.707, 11.585)), module, INTENSIFIES::CARRIERCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(97.418, 26.501)), module, INTENSIFIES::FXVOLUMECV_INPUT));
