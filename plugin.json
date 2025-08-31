@@ -222,6 +222,17 @@
         "oscillator",
         "utility"
       ]
+    },
+    {
+      "slug": "INTENSIFIES",
+      "name": "INTENSIFIES",
+      "description": "Eurorack fantasy version of an effect pedal: Amplitude modulated sample rate reduction and distortion",
+      "tags": [
+        "hardware clone",
+        "Noise",
+        "effect",
+        "distortion"
+      ]
     }
   ]
 }
