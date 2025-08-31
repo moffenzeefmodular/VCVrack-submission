@@ -38,24 +38,29 @@ struct INTENSIFIES : Module {
 
 	INTENSIFIES() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(CARRIERRANGE_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(FXBYPASS_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(CARRIER_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(FXVOLUME_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(MODULATORENGAGE_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(GAINRANGE_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(MODULATOR_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(MODULATORRANGE_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(SYNTHVOLUME_PARAM, 0.f, 1.f, 0.f, "");
-		configInput(CARRIERCV_INPUT, "");
-		configInput(FXVOLUMECV_INPUT, "");
-		configInput(GAINCV_INPUT, "");
-		configInput(MODULATORCV_INPUT, "");
-		configInput(AUDIOIN_INPUT, "");
-		configInput(SYNTHVOLUMECV_INPUT, "");
-		configOutput(FXOUT_OUTPUT, "");
-		configOutput(SYNTHOUT_OUTPUT, "");
+		configParam(CARRIER_PARAM, 0.f, 1.f, 1.f, "Carrier Frequency", "%", 0.f, 100.f);
+		configParam(MODULATOR_PARAM, 0.f, 1.f, 1.f, "Modulator Frequency", "%", 0.f, 100.f);
+
+		configParam(SYNTHVOLUME_PARAM, 0.f, 1.f, 1.f, "Synth Volume", "%", 0.f, 100.f);
+		configParam(FXVOLUME_PARAM, 0.f, 1.f, 1.f, "FX Volume", "%", 0.f, 100.f);
+		configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "Gain", "%", 0.f, 100.f);
+
+		configSwitch(CARRIERRANGE_PARAM, 0.f, 2.f, 2.f, "Carrier Frequency Range", {"Low", "Medium", "High"});
+		configSwitch(MODULATORRANGE_PARAM, 0.f, 2.f, 0.f, "Modulator Frequency Range", {"Low", "Medium", "High"});
+
+		configSwitch(FXBYPASS_PARAM, 0.f, 1.f, 0.f, "Bypass", {"Off", "On"});
+		configSwitch(MODULATORENGAGE_PARAM, 0.f, 1.f, 0.f, "Modulator", {"Off", "On"});
+		configSwitch(GAINRANGE_PARAM, 0.f, 1.f, 0.f, "Gain Range", {"20x", "200x"});
+
+		configInput(CARRIERCV_INPUT, "Carrier CV");
+		configInput(FXVOLUMECV_INPUT, "FX Volume CV");
+		configInput(GAINCV_INPUT, "Gain CV");
+		configInput(MODULATORCV_INPUT, "Modulator CV");
+		configInput(AUDIOIN_INPUT, "Audio");
+		configInput(SYNTHVOLUMECV_INPUT, "Synth Volume CV");
+		
+		configOutput(FXOUT_OUTPUT, "FX");
+		configOutput(SYNTHOUT_OUTPUT, "Synth");
 	}
 
 	void process(const ProcessArgs& args) override {
