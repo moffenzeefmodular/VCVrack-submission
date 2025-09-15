@@ -37,14 +37,14 @@ struct TheRunner : Module {
 	TheRunner() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 1.f, 20.f);
-		configParam(VOLUME_PARAM, 0.f, 1.f, 0.f, "Volume", "%", 0.f, 100.f);
+		configParam(VOLUME_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
 		configParam(ANIMATE_PARAM, 0.f, 1.f, 0.f, "Animate", "%", 0.f, 100.f);
 		configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"Low", "High"});
 		configSwitch(CHORUS_PARAM, 0.f, 1.f, 0.f, "Chorus", {"Off", "On"});
 		configParam(HARMONICS_PARAM, 0.f, 1.f, 0.f, "Harmonics", "%", 0.f, 100.f);
-		configParam(CUTOFF_PARAM, 0.f, 1.f, 0.f, "Cutoff", "Hz", 80.f, 5000.f);
+		configParam(CUTOFF_PARAM, 0.f, 1.f, 1.0f, "Cutoff", "Hz", 80.f, 5000.f);
 		configParam(RESONANCE_PARAM, 0.f, 1.f, 0.f, "Resonance", "%", 0.f, 100.f);
-		configParam(PITCH_PARAM, 0.f, 1.f, 0.f, "Pitch", "Hz", 13.75f, 440.f);
+		configParam(PITCH_PARAM, 0.f, 1.f, 0.25f, "Pitch", "Hz", 13.75f, 440.f);
 		configSwitch(NOTESHZ_PARAM, 0.f, 1.f, 0.f, "Quantize", {"Off", "On"});
 		
 		configInput(GAINCVIN_INPUT, "Gain CV");
