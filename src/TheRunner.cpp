@@ -101,12 +101,20 @@ struct TheRunner : Module {
 	float harmCV = inputs[HARMONICSCVIN_INPUT].isConnected() ? clamp(inputs[HARMONICSCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
 	float harm = clamp(harmKnob + harmCV, 0.f, 1.f);
 
-	float mix = voices[0] * 0.2f;
-	for (int i = 1; i < 5; ++i) {
-		float start = 0.2f * i;
-		float gain = clamp((harm - start) / 0.2f, 0.f, 1.f) * 0.2f;
-		mix += voices[i] * gain;
-	}
+float totalGain = 0.f;
+float mix = 0.f;
+
+for (int i = 0; i < 5; ++i) {
+	float start = 0.2f * i;
+	float gain = (i == 0) ? 0.2f : clamp((harm - start) / 0.2f, 0.f, 1.f) * 0.2f;
+	mix += voices[i] * gain;
+	totalGain += gain;
+}
+
+// Normalize to keep output in ±5V range
+if (totalGain > 0.f) {
+	mix = mix / totalGain * 3.f;
+}
 
 	float cutoffKnob = params[CUTOFF_PARAM].getValue();
 	float cutoffCV = inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
