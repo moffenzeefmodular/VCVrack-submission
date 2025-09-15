@@ -1,6 +1,5 @@
 #include "plugin.hpp"
 
-
 struct TheRunner : Module {
 	enum ParamId {
 		GAIN_PARAM,
@@ -16,6 +15,7 @@ struct TheRunner : Module {
 		PARAMS_LEN
 	};
 	enum InputId {
+		GAINCVIN_INPUT,
 		VOLUMECVIN_INPUT,
 		ANIMATECVIN_INPUT,
 		CHORUSCVIN_INPUT,
@@ -36,16 +36,18 @@ struct TheRunner : Module {
 
 	TheRunner() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 0.f, 20.0f);
+		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 1.f, 20.f);
 		configParam(VOLUME_PARAM, 0.f, 1.f, 0.f, "Volume", "%", 0.f, 100.f);
 		configParam(ANIMATE_PARAM, 0.f, 1.f, 0.f, "Animate", "%", 0.f, 100.f);
 		configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"Low", "High"});
 		configSwitch(CHORUS_PARAM, 0.f, 1.f, 0.f, "Chorus", {"Off", "On"});
 		configParam(HARMONICS_PARAM, 0.f, 1.f, 0.f, "Harmonics", "%", 0.f, 100.f);
-		configParam(CUTOFF_PARAM, 0.f, 1.f, 0.f, "Cutoff", "hz", 62.5f, 80.f); // should be 80-5000
+		configParam(CUTOFF_PARAM, 0.f, 1.f, 0.f, "Cutoff", "Hz", 80.f, 5000.f);
 		configParam(RESONANCE_PARAM, 0.f, 1.f, 0.f, "Resonance", "%", 0.f, 100.f);
-		configParam(PITCH_PARAM, 0.f, 1.f, 0.f, "Pitch", "hz", 32.f, 13.75f); // should be 13.7-440
+		configParam(PITCH_PARAM, 0.f, 1.f, 0.f, "Pitch", "Hz", 13.75f, 440.f);
 		configSwitch(NOTESHZ_PARAM, 0.f, 1.f, 0.f, "Quantize", {"Off", "On"});
+		
+		configInput(GAINCVIN_INPUT, "Gain CV");
 		configInput(VOLUMECVIN_INPUT, "Volume CV");
 		configInput(ANIMATECVIN_INPUT, "Animate CV");
 		configInput(CHORUSCVIN_INPUT, "Chorus CV");
@@ -53,39 +55,38 @@ struct TheRunner : Module {
 		configInput(CUTOFFCVIN_INPUT, "Cutoff CV");
 		configInput(RESONANCECVIN_INPUT, "Resonance CV");
 		configInput(PITCHCVIN_INPUT, "1v/Oct");
+
 		configOutput(AUDIOOUT_OUTPUT, "Audio");
 	}
 
-	float phase = 0; 
+	float phases[5] = {};
+	float lp = 0.f;
+	float bp = 0.f;
 
-void process(const ProcessArgs& args) override {
+	static constexpr int maxDelaySamplesHardLimit = 96000; // max buffer size cap
+	float delayBuffer[maxDelaySamplesHardLimit] = {};
+	int delayWriteIndex = 0;
+	float chorusPhase = 0.f;
+
+	void process(const ProcessArgs& args) override {
 	const float minFreq = 13.75f;
 	const float maxFreq = 440.f;
 
 	float pitchKnob = params[PITCH_PARAM].getValue();
-	float basePitch = rescale(pitchKnob, 0.f, 1.f, log2(minFreq), log2(maxFreq));
-	float pitch = basePitch;
-
-	if (inputs[PITCHCVIN_INPUT].isConnected()) {
-		pitch += clamp(inputs[PITCHCVIN_INPUT].getVoltage(), -5.f, 5.f);
-	}
-
-	pitch = clamp(pitch, log2(minFreq), log2(maxFreq));
-
+	float basePitchLog2 = rescale(pitchKnob, 0.f, 1.f, log2f(minFreq), log2f(maxFreq));
+	float pitchCV = inputs[PITCHCVIN_INPUT].isConnected() ? clamp(inputs[PITCHCVIN_INPUT].getVoltage(), 0.f, 8.f) : 0.f;
+	float pitchLog2 = clamp(basePitchLog2 + pitchCV, log2f(minFreq), log2f(maxFreq));
 	if (params[NOTESHZ_PARAM].getValue() > 0.5f) {
-		pitch = std::round(pitch * 12.f) / 12.f;
+		pitchLog2 = std::round(pitchLog2 * 12.f) / 12.f;
 	}
 
-	// Frequencies: Root, Sub, Octave, +5th, +2 Octaves
 	float freqs[5] = {
-		std::pow(2.f, pitch),                   // Root
-		std::pow(2.f, pitch - 1.f),             // Suboctave
-		std::pow(2.f, pitch + 1.f),             // +1 Octave
-		std::pow(2.f, pitch + 19.f / 12.f),     // +1 Octave + 5th
-		std::pow(2.f, pitch + 2.f)              // +2 Octaves
+		powf(2.f, pitchLog2),
+		powf(2.f, pitchLog2 - 1.f),
+		powf(2.f, pitchLog2 + 1.f),
+		powf(2.f, pitchLog2 + 19.f / 12.f),
+		powf(2.f, pitchLog2 + 2.f)
 	};
-
-	static float phases[5] = {0.f};
 
 	float dt = args.sampleTime;
 	float voices[5];
@@ -93,13 +94,12 @@ void process(const ProcessArgs& args) override {
 		phases[i] += freqs[i] * dt;
 		if (phases[i] >= 1.f)
 			phases[i] -= 1.f;
-		voices[i] = (phases[i] < 0.5f) ? 5.f : -5.f;
+		voices[i] = (phases[i] < 0.5f) ? 1.f : -1.f;
 	}
 
-	// Harmonics knob + CV
-	float harmParam = params[HARMONICS_PARAM].getValue();
-	float harmCV = inputs[HARMONICSCVIN_INPUT].isConnected() ? inputs[HARMONICSCVIN_INPUT].getVoltage() / 10.f : 0.f;
-	float harm = clamp(harmParam + harmCV, 0.f, 1.f);
+	float harmKnob = params[HARMONICS_PARAM].getValue();
+	float harmCV = inputs[HARMONICSCVIN_INPUT].isConnected() ? clamp(inputs[HARMONICSCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+	float harm = clamp(harmKnob + harmCV, 0.f, 1.f);
 
 	float mix = voices[0] * 0.2f;
 	for (int i = 1; i < 5; ++i) {
@@ -108,74 +108,109 @@ void process(const ProcessArgs& args) override {
 		mix += voices[i] * gain;
 	}
 
-	// --- 12dB resonant lowpass filter ---
-
-	// Cutoff control
-	float cutoffParam = params[CUTOFF_PARAM].getValue();
-	float cutoffCV = inputs[CUTOFFCVIN_INPUT].isConnected() ? inputs[CUTOFFCVIN_INPUT].getVoltage() / 10.f : 0.f;
-	float cutoffNorm = clamp(cutoffParam + cutoffCV, 0.f, 1.f);
+	float cutoffKnob = params[CUTOFF_PARAM].getValue();
+	float cutoffCV = inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+	float cutoffNorm = clamp(cutoffKnob + cutoffCV, 0.f, 1.f);
 	float cutoffFreq = rescale(cutoffNorm, 0.f, 1.f, 80.f, 5000.f);
 
-	// Resonance control
-	float resoParam = params[RESONANCE_PARAM].getValue();
-	float resoCV = inputs[RESONANCECVIN_INPUT].isConnected() ? inputs[RESONANCECVIN_INPUT].getVoltage() / 10.f : 0.f;
-	float resonance = clamp(resoParam + resoCV, 0.f, 0.9f);
+	float resoKnob = params[RESONANCE_PARAM].getValue();
+	float resoCV = inputs[RESONANCECVIN_INPUT].isConnected() ? clamp(inputs[RESONANCECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+	float resonance = clamp(resoKnob + resoCV, 0.f, 0.9f);
 
-	// SVF state
-	static float lp = 0.f, bp = 0.f;
-
-	// Calculate SVF coefficients
 	float f = 2.f * sinf(float(M_PI) * cutoffFreq * dt);
-	float q = 1.f - resonance;  // Inverted Q for typical resonance behavior
+	float q = 1.f - resonance;
 
-	// Run filter
 	float hp = mix - lp - q * bp;
 	bp += f * hp;
 	lp += f * bp;
 
-	float filtered = lp;
+	float filtered = clamp(lp, -5.f, 5.f);
 
-	// Clamp to +/-5V
-	filtered = clamp(filtered, -5.f, 5.f);
+	bool chorusEnabled = params[CHORUS_PARAM].getValue() > 0.5f;
+	if (inputs[CHORUSCVIN_INPUT].isConnected())
+		chorusEnabled = inputs[CHORUSCVIN_INPUT].getVoltage() > 2.5f;
 
-	outputs[AUDIOOUT_OUTPUT].setVoltage(filtered);
+	float sampleRate = args.sampleRate;
+	float delayBaseSamples = sampleRate * 0.0075f;
+	const float chorusFrequency = 0.4f;
+	const float chorusDepth = 0.6f;
+	const float chorusDryWet = 0.5f;
+
+	float lfo = sinf(2.f * M_PI * chorusPhase);
+	chorusPhase += chorusFrequency / sampleRate;
+	if (chorusPhase >= 1.f)
+		chorusPhase -= 1.f;
+
+	float delayModSamples = chorusDepth * sampleRate * 0.002f;
+	float modulatedDelay = delayBaseSamples + lfo * delayModSamples;
+
+	delayBuffer[delayWriteIndex] = filtered;
+	float readIndex = delayWriteIndex - modulatedDelay;
+	if (readIndex < 0)
+		readIndex += maxDelaySamplesHardLimit;
+
+	int readIndex1 = (int)readIndex;
+	int readIndex2 = (readIndex1 + 1) % maxDelaySamplesHardLimit;
+	float frac = readIndex - readIndex1;
+
+	float delayedSample = delayBuffer[readIndex1] * (1.f - frac) + delayBuffer[readIndex2] * frac;
+	delayWriteIndex = (delayWriteIndex + 1) % maxDelaySamplesHardLimit;
+
+	float postChorus = chorusEnabled
+		? filtered * (1.f - chorusDryWet) + delayedSample * chorusDryWet
+		: filtered;
+
+	float gainKnob = params[GAIN_PARAM].getValue();
+	float gainCV = inputs[GAINCVIN_INPUT].isConnected() ? clamp(inputs[GAINCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+	float gainNorm = clamp(gainKnob + gainCV, 0.f, 1.f);
+	float gain = rescale(gainNorm, 0.f, 1.f, 1.f, 20.f);
+
+	float signal = postChorus * gain;
+	signal = clamp(signal, -5.f, 5.f);
+
+	float volumeKnob = params[VOLUME_PARAM].getValue();
+	float volumeCV = inputs[VOLUMECVIN_INPUT].isConnected() ? clamp(inputs[VOLUMECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+	float volumeNorm = clamp(volumeKnob + volumeCV, 0.f, 1.f);
+
+	signal *= volumeNorm;
+	signal = clamp(signal, -5.f, 5.f);
+
+	outputs[AUDIOOUT_OUTPUT].setVoltage(signal);
 }
 };
-
 
 struct TheRunnerWidget : ModuleWidget {
 	TheRunnerWidget(TheRunner* module) {
 		setModule(module);
-	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/TheRunner.svg"),
-		asset::plugin(pluginInstance, "res/TheRunner-dark.svg")
-		));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/TheRunner.svg")));
+
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(28.141, 108.921)), module, TheRunner::PITCH_PARAM));
+
 		addParam(createParamCentered<_2Pos>(mm2px(Vec(40.936, 49.41)), module, TheRunner::RANGE_PARAM));
 		addParam(createParamCentered<_2Pos>(mm2px(Vec(66.526, 49.41)), module, TheRunner::CHORUS_PARAM));
 		addParam(createParamCentered<_2Pos>(mm2px(Vec(53.754, 108.921)), module, TheRunner::NOTESHZ_PARAM));
 
-		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(28.141, 108.921)), module, TheRunner::PITCH_PARAM));
-
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(15.173, 19.704)), module, TheRunner::GAIN_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(40.79, 19.704)), module, TheRunner::VOLUME_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(15.346, 49.41)), module, TheRunner::ANIMATE_PARAM));
-
+	
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(15.346, 79.116)), module, TheRunner::HARMONICS_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(40.936, 79.116)), module, TheRunner::CUTOFF_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(66.526, 79.116)), module, TheRunner::RESONANCE_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.657, 19.636)), module, TheRunner::VOLUMECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.657, 35.311)), module, TheRunner::ANIMATECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.657, 50.993)), module, TheRunner::CHORUSCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.657, 66.678)), module, TheRunner::HARMONICSCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.657, 82.377)), module, TheRunner::CUTOFFCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.657, 98.06)), module, TheRunner::RESONANCECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.657, 113.745)), module, TheRunner::PITCHCVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 23.525)), module, TheRunner::VOLUMECVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 36.908)), module, TheRunner::GAINCVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 50.298)), module, TheRunner::ANIMATECVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 63.691)), module, TheRunner::CHORUSCVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 77.098)), module, TheRunner::HARMONICSCVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 90.488)), module, TheRunner::CUTOFFCVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 103.882)), module, TheRunner::RESONANCECVIN_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.134, 117.265)), module, TheRunner::PITCHCVIN_INPUT));
 
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(66.45, 19.704)), module, TheRunner::AUDIOOUT_OUTPUT));
 
