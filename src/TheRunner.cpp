@@ -56,15 +56,72 @@ struct TheRunner : Module {
 		configOutput(AUDIOOUT_OUTPUT, "Audio");
 	}
 
-	void process(const ProcessArgs& args) override {
+	float phase = 0; 
+
+void process(const ProcessArgs& args) override {
+	const float minFreq = 13.75f;
+	const float maxFreq = 440.f;
+
+	float pitchKnob = params[PITCH_PARAM].getValue();
+	float basePitch = rescale(pitchKnob, 0.f, 1.f, log2(minFreq), log2(maxFreq));
+	float pitch = basePitch;
+
+	if (inputs[PITCHCVIN_INPUT].isConnected()) {
+		pitch += clamp(inputs[PITCHCVIN_INPUT].getVoltage(), -5.f, 5.f);
 	}
+
+	pitch = clamp(pitch, log2(minFreq), log2(maxFreq));
+
+	if (params[NOTESHZ_PARAM].getValue() > 0.5f) {
+		pitch = std::round(pitch * 12.f) / 12.f;
+	}
+
+	// Frequencies: Root, Sub, Octave, +5th, +2 Octaves
+	float freqs[5] = {
+		std::pow(2.f, pitch),                   // Root
+		std::pow(2.f, pitch - 1.f),             // Suboctave
+		std::pow(2.f, pitch + 1.f),             // +1 Octave
+		std::pow(2.f, pitch + 19.f / 12.f),     // +1 Octave + 5th
+		std::pow(2.f, pitch + 2.f)              // +2 Octaves
+	};
+
+	static float phases[5] = {0.f};
+
+	float dt = args.sampleTime;
+	float voices[5];
+	for (int i = 0; i < 5; ++i) {
+		phases[i] += freqs[i] * dt;
+		if (phases[i] >= 1.f)
+			phases[i] -= 1.f;
+		voices[i] = (phases[i] < 0.5f) ? 5.f : -5.f;
+	}
+
+	// Harmonics knob + CV logic
+	float harmParam = params[HARMONICS_PARAM].getValue(); // 0.0–1.0
+	float harmCV = inputs[HARMONICSCVIN_INPUT].isConnected() ? inputs[HARMONICSCVIN_INPUT].getVoltage() / 10.f : 0.f;
+	float harm = clamp(harmParam + harmCV, 0.f, 1.f);
+
+	// Root always on at 0.2 gain
+	float mix = voices[0] * 0.2f;
+
+	// Sequential fade-in of the other 4 oscillators
+	for (int i = 1; i < 5; ++i) {
+		float start = 0.2f * i;
+		float gain = clamp((harm - start) / 0.2f, 0.f, 1.f) * 0.2f;
+		mix += voices[i] * gain;
+	}
+
+	mix = clamp(mix, -5.f, 5.f);
+	outputs[AUDIOOUT_OUTPUT].setVoltage(mix);
+}
+
 };
 
 
 struct TheRunnerWidget : ModuleWidget {
 	TheRunnerWidget(TheRunner* module) {
 		setModule(module);
-setPanel(createPanel(
+	setPanel(createPanel(
 		asset::plugin(pluginInstance, "res/TheRunner.svg"),
 		asset::plugin(pluginInstance, "res/TheRunner-dark.svg")
 		));
