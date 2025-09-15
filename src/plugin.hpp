@@ -25,6 +25,7 @@ extern Model* model_2hpBlank;
 extern Model* model_14hpBlank;
 extern Model* modelSwarm;
 extern Model* modelINTENSIFIES;
+extern Model* modelTheRunner;
 
 struct CKSSHorizontal : app::SvgSwitch {
 	CKSSHorizontal() {
