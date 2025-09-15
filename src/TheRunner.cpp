@@ -96,25 +96,50 @@ void process(const ProcessArgs& args) override {
 		voices[i] = (phases[i] < 0.5f) ? 5.f : -5.f;
 	}
 
-	// Harmonics knob + CV logic
-	float harmParam = params[HARMONICS_PARAM].getValue(); // 0.0–1.0
+	// Harmonics knob + CV
+	float harmParam = params[HARMONICS_PARAM].getValue();
 	float harmCV = inputs[HARMONICSCVIN_INPUT].isConnected() ? inputs[HARMONICSCVIN_INPUT].getVoltage() / 10.f : 0.f;
 	float harm = clamp(harmParam + harmCV, 0.f, 1.f);
 
-	// Root always on at 0.2 gain
 	float mix = voices[0] * 0.2f;
-
-	// Sequential fade-in of the other 4 oscillators
 	for (int i = 1; i < 5; ++i) {
 		float start = 0.2f * i;
 		float gain = clamp((harm - start) / 0.2f, 0.f, 1.f) * 0.2f;
 		mix += voices[i] * gain;
 	}
 
-	mix = clamp(mix, -5.f, 5.f);
-	outputs[AUDIOOUT_OUTPUT].setVoltage(mix);
-}
+	// --- 12dB resonant lowpass filter ---
 
+	// Cutoff control
+	float cutoffParam = params[CUTOFF_PARAM].getValue();
+	float cutoffCV = inputs[CUTOFFCVIN_INPUT].isConnected() ? inputs[CUTOFFCVIN_INPUT].getVoltage() / 10.f : 0.f;
+	float cutoffNorm = clamp(cutoffParam + cutoffCV, 0.f, 1.f);
+	float cutoffFreq = rescale(cutoffNorm, 0.f, 1.f, 80.f, 5000.f);
+
+	// Resonance control
+	float resoParam = params[RESONANCE_PARAM].getValue();
+	float resoCV = inputs[RESONANCECVIN_INPUT].isConnected() ? inputs[RESONANCECVIN_INPUT].getVoltage() / 10.f : 0.f;
+	float resonance = clamp(resoParam + resoCV, 0.f, 0.9f);
+
+	// SVF state
+	static float lp = 0.f, bp = 0.f;
+
+	// Calculate SVF coefficients
+	float f = 2.f * sinf(float(M_PI) * cutoffFreq * dt);
+	float q = 1.f - resonance;  // Inverted Q for typical resonance behavior
+
+	// Run filter
+	float hp = mix - lp - q * bp;
+	bp += f * hp;
+	lp += f * bp;
+
+	float filtered = lp;
+
+	// Clamp to +/-5V
+	filtered = clamp(filtered, -5.f, 5.f);
+
+	outputs[AUDIOOUT_OUTPUT].setVoltage(filtered);
+}
 };
 
 
