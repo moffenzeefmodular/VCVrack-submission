@@ -42,7 +42,7 @@ struct TheRunner : Module {
 		configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"Low", "High"});
 		configSwitch(CHORUS_PARAM, 0.f, 1.f, 0.f, "Chorus", {"Off", "On"});
 		configParam(HARMONICS_PARAM, 0.f, 1.f, 0.f, "Harmonics", "%", 0.f, 100.f);
-		configParam(CUTOFF_PARAM, 0.f, 1.f, 1.f, "Cutoff", "Hz", 62.5f, 80.f);
+		configParam(CUTOFF_PARAM, 0.f, 1.f, 1.f, "Cutoff", "Hz", 250.f, 20.f);
 		configParam(RESONANCE_PARAM, 0.f, 1.f, 0.f, "Resonance", "%", 0.f, 100.f);
 		configParam(PITCH_PARAM, 0.f, 1.f, 0.25f, "Pitch", "Hz", 32.f, 13.75f);
 		configSwitch(NOTESHZ_PARAM, 0.f, 1.f, 0.f, "Quantize", {"Off", "On"});
@@ -133,7 +133,7 @@ struct TheRunner : Module {
 		float cutoffNorm = clamp(params[CUTOFF_PARAM].getValue() + (inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 		float animateLFOForCutoff = (drunkWalkSmoothed - 0.5f) * 2.f;
 		float modulatedCutoffNorm = clamp(cutoffNorm + animateLFOForCutoff * 0.3f, 0.f, 1.f);
-		float cutoffFreq = rescale(modulatedCutoffNorm, 0.f, 1.f, 80.f, 5000.f);
+		float cutoffFreq = rescale(modulatedCutoffNorm, 0.f, 1.f, 20.f, 5000.f);
 
 		float resonance = clamp(params[RESONANCE_PARAM].getValue() + (inputs[RESONANCECVIN_INPUT].isConnected() ? clamp(inputs[RESONANCECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 0.9f);
 
