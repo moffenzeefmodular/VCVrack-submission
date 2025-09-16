@@ -86,7 +86,7 @@ struct INTENSIFIES : Module {
     float carrierKnob = params[CARRIER_PARAM].getValue();
     float carrierCV = inputs[CARRIERCV_INPUT].isConnected() ? inputs[CARRIERCV_INPUT].getVoltage() / 10.f : 0.f;
     float carrierControl = clamp(carrierKnob + carrierCV, 0.f, 1.f);
-    int carrierRange = static_cast<int>(params[CARRIERRANGE_PARAM].getValue());
+    int carrierRange = params[CARRIERRANGE_PARAM].getValue();
 
     float carrierBaseFreq = 0.f;
     switch (carrierRange) {
@@ -109,7 +109,7 @@ struct INTENSIFIES : Module {
     float modKnob = params[MODULATOR_PARAM].getValue();
     float modCV = inputs[MODULATORCV_INPUT].isConnected() ? inputs[MODULATORCV_INPUT].getVoltage() / 10.f : 0.f;
     float modControl = clamp(modKnob + modCV, 0.f, 1.f);
-    int modRange = static_cast<int>(params[MODULATORRANGE_PARAM].getValue());
+    int modRange = params[MODULATORRANGE_PARAM].getValue();
 
     float minFreq = 0.01f;
     float maxFreq = 500.f;
