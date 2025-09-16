@@ -61,10 +61,12 @@ struct TheRunner : Module {
 
 	float phases[5] = {};
 	float lp = 0.f, bp = 0.f;
-    enum { maxDelaySamplesHardLimit = 96000 };
+	enum { maxDelaySamplesHardLimit = 96000 };
 	float delayBuffer[maxDelaySamplesHardLimit] = {};
 	int delayWriteIndex = 0;
 	float chorusPhase = 0.f;
+	float hpfOut = 0.f;
+	float hpfInPrev = 0.f;
 
 	void process(const ProcessArgs& args) override {
 		const float minFreq = 13.75f;
@@ -108,7 +110,6 @@ struct TheRunner : Module {
 			phases[i] += freqs[i] * dt;
 			if (phases[i] >= 1.f)
 				phases[i] -= 1.f;
-
 			float pwm = clamp(basePWM + (i - 2) * 0.05f, 0.1f, 0.9f);
 			voices[i] = (phases[i] < pwm) ? 1.f : -1.f;
 		}
@@ -175,7 +176,14 @@ struct TheRunner : Module {
 
 		float gain = rescale(clamp(params[GAIN_PARAM].getValue() + (inputs[GAINCVIN_INPUT].isConnected() ? clamp(inputs[GAINCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f), 0.f, 1.f, 1.f, 20.f);
 
-		float signal = clamp(postChorus * gain, -5.f, 5.f);
+		float signal = postChorus * gain;
+
+		float cutoffHz = 20.f;
+		float RC = 1.f / (2.f * M_PI * cutoffHz);
+		float alpha = RC / (RC + dt);
+		hpfOut = alpha * (hpfOut + signal - hpfInPrev);
+		hpfInPrev = signal;
+		signal = hpfOut;
 
 		float volumeNorm = clamp(params[VOLUME_PARAM].getValue() + (inputs[VOLUMECVIN_INPUT].isConnected() ? clamp(inputs[VOLUMECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 
@@ -183,6 +191,7 @@ struct TheRunner : Module {
 		signal = clamp(signal, -5.f, 5.f);
 
 		outputs[AUDIOOUT_OUTPUT].setVoltage(signal);
+
 	}
 };
 
