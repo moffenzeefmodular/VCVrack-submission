@@ -61,7 +61,7 @@ struct TheRunner : Module {
 
 	float phases[5] = {};
 	float lp = 0.f, bp = 0.f;
-	static constexpr int maxDelaySamplesHardLimit = 96000;
+    enum { maxDelaySamplesHardLimit = 96000 };
 	float delayBuffer[maxDelaySamplesHardLimit] = {};
 	int delayWriteIndex = 0;
 	float chorusPhase = 0.f;
