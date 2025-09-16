@@ -27,3 +27,6 @@ By Ross Fish Feb 2025
 - Added 14hp blank panel
 - Added Swarm module 
 - Added [INTENSIFIES] module
+
+## v2.2.0 
+- Added The Runner
