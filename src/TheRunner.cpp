@@ -42,9 +42,9 @@ struct TheRunner : Module {
 		configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"Low", "High"});
 		configSwitch(CHORUS_PARAM, 0.f, 1.f, 0.f, "Chorus", {"Off", "On"});
 		configParam(HARMONICS_PARAM, 0.f, 1.f, 0.f, "Harmonics", "%", 0.f, 100.f);
-		configParam(CUTOFF_PARAM, 0.f, 1.f, 1.f, "Cutoff", "Hz", 80.f, 5000.f);
+		configParam(CUTOFF_PARAM, 0.f, 1.f, 1.f, "Cutoff", "Hz", 62.5f, 80.f);
 		configParam(RESONANCE_PARAM, 0.f, 1.f, 0.f, "Resonance", "%", 0.f, 100.f);
-		configParam(PITCH_PARAM, 0.f, 1.f, 0.25f, "Pitch", "Hz", 13.75f, 440.f);
+		configParam(PITCH_PARAM, 0.f, 1.f, 0.25f, "Pitch", "Hz", 32.f, 13.75f);
 		configSwitch(NOTESHZ_PARAM, 0.f, 1.f, 0.f, "Quantize", {"Off", "On"});
 
 		configInput(GAINCVIN_INPUT, "Gain CV");
@@ -117,14 +117,18 @@ struct TheRunner : Module {
 		float harm = clamp(params[HARMONICS_PARAM].getValue() + (inputs[HARMONICSCVIN_INPUT].isConnected() ? clamp(inputs[HARMONICSCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 
 		float mix = 0.f;
-		float totalGain = 0.f;
+		float gains[5];
+		float harmAmt = clamp(harm, 0.f, 1.f);
+		float sum = 0.f;
 		for (int i = 0; i < 5; ++i) {
-			float gain = (i == 0) ? 0.2f : clamp((harm - 0.2f * i) / 0.2f, 0.f, 1.f) * 0.2f;
-			mix += voices[i] * gain;
-			totalGain += gain;
+			gains[i] = (i == 0) ? 1.f : clamp((harmAmt - 0.25f * i) / 0.25f, 0.f, 1.f);
+			sum += gains[i];
 		}
-		if (totalGain > 0.f)
-			mix = mix / totalGain * 3.f;
+		for (int i = 0; i < 5; ++i) {
+			mix += voices[i] * gains[i];
+		}
+		if (sum > 0.f)
+			mix = mix / sum * 4.f;
 
 		float cutoffNorm = clamp(params[CUTOFF_PARAM].getValue() + (inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 		float animateLFOForCutoff = (drunkWalkSmoothed - 0.5f) * 2.f;
