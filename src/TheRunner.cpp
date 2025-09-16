@@ -46,7 +46,7 @@ struct TheRunner : Module {
 		configParam(RESONANCE_PARAM, 0.f, 1.f, 0.f, "Resonance", "%", 0.f, 100.f);
 		configParam(PITCH_PARAM, 0.f, 1.f, 0.25f, "Pitch", "Hz", 13.75f, 440.f);
 		configSwitch(NOTESHZ_PARAM, 0.f, 1.f, 0.f, "Quantize", {"Off", "On"});
-		
+
 		configInput(GAINCVIN_INPUT, "Gain CV");
 		configInput(VOLUMECVIN_INPUT, "Volume CV");
 		configInput(ANIMATECVIN_INPUT, "Animate CV");
@@ -63,129 +63,184 @@ struct TheRunner : Module {
 	float lp = 0.f;
 	float bp = 0.f;
 
-	static constexpr int maxDelaySamplesHardLimit = 96000; // max buffer size cap
+	static constexpr int maxDelaySamplesHardLimit = 96000;
 	float delayBuffer[maxDelaySamplesHardLimit] = {};
 	int delayWriteIndex = 0;
 	float chorusPhase = 0.f;
 
+	float animateLFOPhase = 0.f;
+	float animateLFOFreqBase = 0.1f;
+	float animateLFOFreqDrunkSmoothed = 0.f;
+
 	void process(const ProcessArgs& args) override {
-	const float minFreq = 13.75f;
-	const float maxFreq = 440.f;
+		const float minFreq = 13.75f;
+		const float maxFreq = 440.f;
 
-	float pitchKnob = params[PITCH_PARAM].getValue();
-	float basePitchLog2 = rescale(pitchKnob, 0.f, 1.f, log2f(minFreq), log2f(maxFreq));
-	float pitchCV = inputs[PITCHCVIN_INPUT].isConnected() ? clamp(inputs[PITCHCVIN_INPUT].getVoltage(), 0.f, 8.f) : 0.f;
-	float pitchLog2 = clamp(basePitchLog2 + pitchCV, log2f(minFreq), log2f(maxFreq));
-	if (params[NOTESHZ_PARAM].getValue() > 0.5f) {
-		pitchLog2 = std::round(pitchLog2 * 12.f) / 12.f;
+		float pitchKnob = params[PITCH_PARAM].getValue();
+		float basePitchLog2 = rescale(pitchKnob, 0.f, 1.f, log2f(minFreq), log2f(maxFreq));
+		float pitchCV = inputs[PITCHCVIN_INPUT].isConnected() ? clamp(inputs[PITCHCVIN_INPUT].getVoltage(), 0.f, 8.f) : 0.f;
+		float pitchLog2 = clamp(basePitchLog2 + pitchCV, log2f(minFreq), log2f(maxFreq));
+		if (params[NOTESHZ_PARAM].getValue() > 0.5f) {
+			pitchLog2 = std::round(pitchLog2 * 12.f) / 12.f;
+		}
+
+		float freqs[5] = {
+			powf(2.f, pitchLog2),
+			powf(2.f, pitchLog2 - 1.f),
+			powf(2.f, pitchLog2 + 1.f),
+			powf(2.f, pitchLog2 + 19.f / 12.f),
+			powf(2.f, pitchLog2 + 2.f)
+		};
+
+		float dt = args.sampleTime;
+
+		float animateKnob = params[ANIMATE_PARAM].getValue();
+		float animateCV = inputs[ANIMATECVIN_INPUT].isConnected() ? clamp(inputs[ANIMATECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+		float animate = clamp(animateKnob + animateCV, 0.f, 1.f);
+
+		static float drunkWalkPos = 0.5f;
+		static float drunkWalkSmoothed = 0.5f;
+
+		float rangeSwitch = params[RANGE_PARAM].getValue();
+		const float minStepSize = 0.00001f;
+		const float maxStepSize = 0.00025f;
+		float stepSizeBase = rescale(animate, 0.f, 1.f, minStepSize, maxStepSize);
+		float stepSize = stepSizeBase * powf(10.f, rangeSwitch * 1.2f);
+
+		const float maxDepth = 0.8f;
+		float depth = animate * maxDepth;
+
+		float randomStep = (random::uniform() - 0.5f) * stepSize * 2.f;
+		drunkWalkPos += randomStep;
+		drunkWalkPos = clamp(drunkWalkPos, 0.1f, 0.9f);
+
+		drunkWalkSmoothed = drunkWalkSmoothed * 0.97f + drunkWalkPos * 0.03f;
+
+		float lfoOutput = (drunkWalkSmoothed - 0.5f) * 5.f * depth;  // -depth to +depth centered at 0
+		float ledBrightness = std::fabs(lfoOutput);                 // full-wave rectification
+		ledBrightness = clamp(ledBrightness, 0.f, 1.f);             // clamp to 0..1
+		lights[ANIMATELED_LIGHT].setBrightnessSmooth(ledBrightness, args.sampleTime);
+
+
+		float basePWM = 0.5f + (drunkWalkSmoothed - 0.5f) * depth;
+		basePWM = clamp(basePWM, 0.1f, 0.9f);
+
+		float voices[5];
+		const float perVoiceOffsetAmount = 0.1f;
+
+		for (int i = 0; i < 5; ++i) {
+			phases[i] += freqs[i] * dt;
+			if (phases[i] >= 1.f)
+				phases[i] -= 1.f;
+
+			float pwm = basePWM + (i - 2) * perVoiceOffsetAmount * 0.5f;
+			pwm = clamp(pwm, 0.1f, 0.9f);
+
+			voices[i] = (phases[i] < pwm) ? 1.f : -1.f;
+		}
+
+		float harmKnob = params[HARMONICS_PARAM].getValue();
+		float harmCV = inputs[HARMONICSCVIN_INPUT].isConnected() ? clamp(inputs[HARMONICSCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+		float harm = clamp(harmKnob + harmCV, 0.f, 1.f);
+
+		float totalGain = 0.f;
+		float mix = 0.f;
+
+		for (int i = 0; i < 5; ++i) {
+			float start = 0.2f * i;
+			float gain = (i == 0) ? 0.2f : clamp((harm - start) / 0.2f, 0.f, 1.f) * 0.2f;
+			mix += voices[i] * gain;
+			totalGain += gain;
+		}
+
+		if (totalGain > 0.f) {
+			mix = mix / totalGain * 3.f;
+		}
+
+		// --- FILTER CUTOFF MODULATION BY ANIMATED LFO ---
+
+		float cutoffKnob = params[CUTOFF_PARAM].getValue();
+		float cutoffCV = inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+		float cutoffNorm = clamp(cutoffKnob + cutoffCV, 0.f, 1.f);
+
+		// Animate LFO mod depth for cutoff
+		const float cutoffDepth = 0.3f;
+
+		// Map drunkWalkSmoothed (0.1 to 0.9) to bipolar (-1 to +1)
+		float animateLFOForCutoff = (drunkWalkSmoothed - 0.5f) * 2.f;
+
+		// Add animated LFO modulation to cutoff normalized param
+		float modulatedCutoffNorm = clamp(cutoffNorm + animateLFOForCutoff * cutoffDepth, 0.f, 1.f);
+
+		float cutoffFreq = rescale(modulatedCutoffNorm, 0.f, 1.f, 80.f, 5000.f);
+
+		float resoKnob = params[RESONANCE_PARAM].getValue();
+		float resoCV = inputs[RESONANCECVIN_INPUT].isConnected() ? clamp(inputs[RESONANCECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+		float resonance = clamp(resoKnob + resoCV, 0.f, 0.9f);
+
+		float f = 2.f * sinf(float(M_PI) * cutoffFreq * dt);
+		float q = 1.f - resonance;
+
+		float hp = mix - lp - q * bp;
+		bp += f * hp;
+		lp += f * bp;
+
+		float filtered = clamp(lp, -5.f, 5.f);
+
+		bool chorusEnabled = params[CHORUS_PARAM].getValue() > 0.5f;
+		if (inputs[CHORUSCVIN_INPUT].isConnected())
+			chorusEnabled = inputs[CHORUSCVIN_INPUT].getVoltage() > 2.5f;
+
+		float sampleRate = args.sampleRate;
+		float delayBaseSamples = sampleRate * 0.0075f;
+		const float chorusFrequency = 0.4f;
+		const float chorusDepth = 0.6f;
+		const float chorusDryWet = 0.5f;
+
+		float lfo = sinf(2.f * M_PI * chorusPhase);
+		chorusPhase += chorusFrequency / sampleRate;
+		if (chorusPhase >= 1.f)
+			chorusPhase -= 1.f;
+
+		float delayModSamples = chorusDepth * sampleRate * 0.002f;
+		float modulatedDelay = delayBaseSamples + lfo * delayModSamples;
+
+		delayBuffer[delayWriteIndex] = filtered;
+		float readIndex = delayWriteIndex - modulatedDelay;
+		if (readIndex < 0)
+			readIndex += maxDelaySamplesHardLimit;
+
+		int readIndex1 = (int)readIndex;
+		int readIndex2 = (readIndex1 + 1) % maxDelaySamplesHardLimit;
+		float frac = readIndex - readIndex1;
+
+		float delayedSample = delayBuffer[readIndex1] * (1.f - frac) + delayBuffer[readIndex2] * frac;
+		delayWriteIndex = (delayWriteIndex + 1) % maxDelaySamplesHardLimit;
+
+		float postChorus = chorusEnabled
+			? filtered * (1.f - chorusDryWet) + delayedSample * chorusDryWet
+			: filtered;
+
+		float gainKnob = params[GAIN_PARAM].getValue();
+		float gainCV = inputs[GAINCVIN_INPUT].isConnected() ? clamp(inputs[GAINCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+		float gainNorm = clamp(gainKnob + gainCV, 0.f, 1.f);
+		float gain = rescale(gainNorm, 0.f, 1.f, 1.f, 20.f);
+
+		float signal = postChorus * gain;
+		signal = clamp(signal, -5.f, 5.f);
+
+		float volumeKnob = params[VOLUME_PARAM].getValue();
+		float volumeCV = inputs[VOLUMECVIN_INPUT].isConnected() ? clamp(inputs[VOLUMECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
+		float volumeNorm = clamp(volumeKnob + volumeCV, 0.f, 1.f);
+
+		signal *= volumeNorm;
+		signal = clamp(signal, -5.f, 5.f);
+
+		outputs[AUDIOOUT_OUTPUT].setVoltage(signal);
 	}
-
-	float freqs[5] = {
-		powf(2.f, pitchLog2),
-		powf(2.f, pitchLog2 - 1.f),
-		powf(2.f, pitchLog2 + 1.f),
-		powf(2.f, pitchLog2 + 19.f / 12.f),
-		powf(2.f, pitchLog2 + 2.f)
-	};
-
-	float dt = args.sampleTime;
-	float voices[5];
-	for (int i = 0; i < 5; ++i) {
-		phases[i] += freqs[i] * dt;
-		if (phases[i] >= 1.f)
-			phases[i] -= 1.f;
-		voices[i] = (phases[i] < 0.5f) ? 1.f : -1.f;
-	}
-
-	float harmKnob = params[HARMONICS_PARAM].getValue();
-	float harmCV = inputs[HARMONICSCVIN_INPUT].isConnected() ? clamp(inputs[HARMONICSCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
-	float harm = clamp(harmKnob + harmCV, 0.f, 1.f);
-
-float totalGain = 0.f;
-float mix = 0.f;
-
-for (int i = 0; i < 5; ++i) {
-	float start = 0.2f * i;
-	float gain = (i == 0) ? 0.2f : clamp((harm - start) / 0.2f, 0.f, 1.f) * 0.2f;
-	mix += voices[i] * gain;
-	totalGain += gain;
-}
-
-// Normalize to keep output in ±5V range
-if (totalGain > 0.f) {
-	mix = mix / totalGain * 3.f;
-}
-
-	float cutoffKnob = params[CUTOFF_PARAM].getValue();
-	float cutoffCV = inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
-	float cutoffNorm = clamp(cutoffKnob + cutoffCV, 0.f, 1.f);
-	float cutoffFreq = rescale(cutoffNorm, 0.f, 1.f, 80.f, 5000.f);
-
-	float resoKnob = params[RESONANCE_PARAM].getValue();
-	float resoCV = inputs[RESONANCECVIN_INPUT].isConnected() ? clamp(inputs[RESONANCECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
-	float resonance = clamp(resoKnob + resoCV, 0.f, 0.9f);
-
-	float f = 2.f * sinf(float(M_PI) * cutoffFreq * dt);
-	float q = 1.f - resonance;
-
-	float hp = mix - lp - q * bp;
-	bp += f * hp;
-	lp += f * bp;
-
-	float filtered = clamp(lp, -5.f, 5.f);
-
-	bool chorusEnabled = params[CHORUS_PARAM].getValue() > 0.5f;
-	if (inputs[CHORUSCVIN_INPUT].isConnected())
-		chorusEnabled = inputs[CHORUSCVIN_INPUT].getVoltage() > 2.5f;
-
-	float sampleRate = args.sampleRate;
-	float delayBaseSamples = sampleRate * 0.0075f;
-	const float chorusFrequency = 0.4f;
-	const float chorusDepth = 0.6f;
-	const float chorusDryWet = 0.5f;
-
-	float lfo = sinf(2.f * M_PI * chorusPhase);
-	chorusPhase += chorusFrequency / sampleRate;
-	if (chorusPhase >= 1.f)
-		chorusPhase -= 1.f;
-
-	float delayModSamples = chorusDepth * sampleRate * 0.002f;
-	float modulatedDelay = delayBaseSamples + lfo * delayModSamples;
-
-	delayBuffer[delayWriteIndex] = filtered;
-	float readIndex = delayWriteIndex - modulatedDelay;
-	if (readIndex < 0)
-		readIndex += maxDelaySamplesHardLimit;
-
-	int readIndex1 = (int)readIndex;
-	int readIndex2 = (readIndex1 + 1) % maxDelaySamplesHardLimit;
-	float frac = readIndex - readIndex1;
-
-	float delayedSample = delayBuffer[readIndex1] * (1.f - frac) + delayBuffer[readIndex2] * frac;
-	delayWriteIndex = (delayWriteIndex + 1) % maxDelaySamplesHardLimit;
-
-	float postChorus = chorusEnabled
-		? filtered * (1.f - chorusDryWet) + delayedSample * chorusDryWet
-		: filtered;
-
-	float gainKnob = params[GAIN_PARAM].getValue();
-	float gainCV = inputs[GAINCVIN_INPUT].isConnected() ? clamp(inputs[GAINCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
-	float gainNorm = clamp(gainKnob + gainCV, 0.f, 1.f);
-	float gain = rescale(gainNorm, 0.f, 1.f, 1.f, 20.f);
-
-	float signal = postChorus * gain;
-	signal = clamp(signal, -5.f, 5.f);
-
-	float volumeKnob = params[VOLUME_PARAM].getValue();
-	float volumeCV = inputs[VOLUMECVIN_INPUT].isConnected() ? clamp(inputs[VOLUMECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f;
-	float volumeNorm = clamp(volumeKnob + volumeCV, 0.f, 1.f);
-
-	signal *= volumeNorm;
-	signal = clamp(signal, -5.f, 5.f);
-
-	outputs[AUDIOOUT_OUTPUT].setVoltage(signal);
-}
 };
+
+
 
 struct TheRunnerWidget : ModuleWidget {
 	TheRunnerWidget(TheRunner* module) {
