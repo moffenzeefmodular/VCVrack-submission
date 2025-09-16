@@ -89,7 +89,7 @@ struct TheRunner : Module {
 
 		float dt = args.sampleTime;
 
-		float animate = clamp(params[ANIMATE_PARAM].getValue() + (inputs[ANIMATECVIN_INPUT].isConnected() ? clamp(inputs[ANIMATECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
+		float animate = clamp(params[ANIMATE_PARAM].getValue() + (inputs[ANIMATECVIN_INPUT].isConnected() ? clamp(inputs[ANIMATECVIN_INPUT].getVoltage() / 10.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 
 		static float drunkWalkPos = 0.5f;
 		static float drunkWalkSmoothed = 0.5f;
@@ -114,7 +114,7 @@ struct TheRunner : Module {
 			voices[i] = (phases[i] < pwm) ? 1.f : -1.f;
 		}
 
-		float harm = clamp(params[HARMONICS_PARAM].getValue() + (inputs[HARMONICSCVIN_INPUT].isConnected() ? clamp(inputs[HARMONICSCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
+		float harm = clamp(params[HARMONICS_PARAM].getValue() + (inputs[HARMONICSCVIN_INPUT].isConnected() ? clamp(inputs[HARMONICSCVIN_INPUT].getVoltage() / 10.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 
 		float mix = 0.f;
 		float gains[5];
@@ -130,12 +130,12 @@ struct TheRunner : Module {
 		if (sum > 0.f)
 			mix = mix / sum * 4.f;
 
-		float cutoffNorm = clamp(params[CUTOFF_PARAM].getValue() + (inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
+		float cutoffNorm = clamp(params[CUTOFF_PARAM].getValue() + (inputs[CUTOFFCVIN_INPUT].isConnected() ? clamp(inputs[CUTOFFCVIN_INPUT].getVoltage() / 10.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 		float animateLFOForCutoff = (drunkWalkSmoothed - 0.5f) * 2.f;
 		float modulatedCutoffNorm = clamp(cutoffNorm + animateLFOForCutoff * 0.3f, 0.f, 1.f);
 		float cutoffFreq = rescale(modulatedCutoffNorm, 0.f, 1.f, 20.f, 5000.f);
 
-		float resonance = clamp(params[RESONANCE_PARAM].getValue() + (inputs[RESONANCECVIN_INPUT].isConnected() ? clamp(inputs[RESONANCECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 0.9f);
+		float resonance = clamp(params[RESONANCE_PARAM].getValue() + (inputs[RESONANCECVIN_INPUT].isConnected() ? clamp(inputs[RESONANCECVIN_INPUT].getVoltage() / 10.f, -1.f, 1.f) : 0.f), 0.f, 0.9f);
 
 		float f = 2.f * sinf(float(M_PI) * cutoffFreq * dt);
 		float q = 1.f - resonance;
@@ -178,7 +178,7 @@ struct TheRunner : Module {
 
 		float postChorus = chorusEnabled ? filtered * (1.f - chorusDryWet) + delayedSample * chorusDryWet : filtered;
 
-		float gain = rescale(clamp(params[GAIN_PARAM].getValue() + (inputs[GAINCVIN_INPUT].isConnected() ? clamp(inputs[GAINCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f), 0.f, 1.f, 1.f, 20.f);
+		float gain = rescale(clamp(params[GAIN_PARAM].getValue() + (inputs[GAINCVIN_INPUT].isConnected() ? clamp(inputs[GAINCVIN_INPUT].getVoltage() / 10.f, -1.f, 1.f) : 0.f), 0.f, 1.f), 0.f, 1.f, 1.f, 20.f);
 
 		float signal = postChorus * gain;
 
@@ -191,7 +191,7 @@ struct TheRunner : Module {
 		hpfInPrev = signal;
 		signal = hpfOut;
 
-		float volumeNorm = clamp(params[VOLUME_PARAM].getValue() + (inputs[VOLUMECVIN_INPUT].isConnected() ? clamp(inputs[VOLUMECVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
+		float volumeNorm = clamp(params[VOLUME_PARAM].getValue() + (inputs[VOLUMECVIN_INPUT].isConnected() ? clamp(inputs[VOLUMECVIN_INPUT].getVoltage() / 10.f, -1.f, 1.f) : 0.f), 0.f, 1.f);
 
 		signal *= volumeNorm;
 		signal = clamp(signal, -5.f, 5.f);
