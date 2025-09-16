@@ -36,7 +36,7 @@ struct TheRunner : Module {
 
 	TheRunner() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 1.f, 20.f);
+		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 20.f, 1.f);
 		configParam(VOLUME_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
 		configParam(ANIMATE_PARAM, 0.f, 1.f, 0.f, "Animate", "%", 0.f, 100.f);
 		configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"Low", "High"});
@@ -181,6 +181,8 @@ struct TheRunner : Module {
 		float gain = rescale(clamp(params[GAIN_PARAM].getValue() + (inputs[GAINCVIN_INPUT].isConnected() ? clamp(inputs[GAINCVIN_INPUT].getVoltage() / 5.f, -1.f, 1.f) : 0.f), 0.f, 1.f), 0.f, 1.f, 1.f, 20.f);
 
 		float signal = postChorus * gain;
+
+		signal = clamp(signal, -5.f, 5.f);
 
 		float cutoffHz = 20.f;
 		float RC = 1.f / (2.f * M_PI * cutoffHz);
