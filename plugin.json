@@ -245,6 +245,15 @@
         "oscillator",
         "synth voice"
       ]
+    },
+    {
+      "slug": "Stargazer",
+      "name": "Stargazer",
+      "description": "Eurorack fantasy version of a previously released drone synth.",
+      "tags": [
+        "Synth voice",
+        "hardware clone"
+      ]
     }
   ]
 }
