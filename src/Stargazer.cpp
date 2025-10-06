@@ -85,17 +85,24 @@ struct StargazerWidget : ModuleWidget {
 
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(26.918, 12.382)), module, Stargazer::PITCH_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(96.236, 14.975)), module, Stargazer::GAIN_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(39.831, 18.384)), module, Stargazer::SUB_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(55.727, 21.557)), module, Stargazer::DETUNE_PARAM));
+
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(40.889, 17.855)), module, Stargazer::SUB_PARAM));
+
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(122.509, 27.037)), module, Stargazer::VOL_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.681, 32.195)), module, Stargazer::MAINWAVE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(78.258, 33.499)), module, Stargazer::REDUX_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(35.809, 36.884)), module, Stargazer::MIX_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(16.256, 53.107)), module, Stargazer::FREQ1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(96.873, 53.957)), module, Stargazer::FREQ2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(60.422, 55.071)), module, Stargazer::ALIAS_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(124.972, 61.36)), module, Stargazer::RES2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(40.412, 65.557)), module, Stargazer::RES1_PARAM));
+		
+		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(55.727, 21.557)), module, Stargazer::DETUNE_PARAM));
+		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(78.258, 33.499)), module, Stargazer::REDUX_PARAM));
+		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(35.809, 36.884)), module, Stargazer::MIX_PARAM));
+
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(16.256, 53.107)), module, Stargazer::FREQ1_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(96.873, 53.957)), module, Stargazer::FREQ2_PARAM));
+
+		addParam(createParamCentered<BefacoBigKnobBlack>(mm2px(Vec(60.422, 55.071)), module, Stargazer::ALIAS_PARAM));
+
+		addParam(createParamCentered<BefacoTinyKnob>(mm2px(Vec(124.972, 61.36)), module, Stargazer::RES2_PARAM));
+		addParam(createParamCentered<BefacoTinyKnob>(mm2px(Vec(40.412, 65.557)), module, Stargazer::RES1_PARAM));
+
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(93.262, 76.91)), module, Stargazer::DEPTH2_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(15.131, 83.658)), module, Stargazer::WAVE1_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(122.023, 89.045)), module, Stargazer::DEPTH3_PARAM));

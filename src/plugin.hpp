@@ -69,3 +69,16 @@ struct _3PosHorizontal : SvgSwitch {
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggleH_2.svg")));
     }
 };
+
+struct BefacoBigKnobBlack : SvgKnob {
+	widget::SvgWidget* bg;
+	BefacoBigKnobBlack() {
+		minAngle = -0.85 * M_PI;
+		maxAngle = 0.85 * M_PI;
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/BefacoBigKnobBlack.svg")));
+
+		bg = new widget::SvgWidget;
+		fb->addChildBelow(bg, tw);
+		bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/BefacoBigKnobBlack_bg.svg")));
+	}
+};
