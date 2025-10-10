@@ -456,9 +456,8 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     finalOutput = quantized * 10.f;
 
     // --- Filter 2 cutoff + resonance (after bit reduction) ---
-    float cutoff2 = params[FREQ2_PARAM].getValue();
-    if (inputs[FREQ2CV_INPUT].isConnected())
-    cutoff2 += inputs[FREQ2CV_INPUT].getVoltage() / 10.f;
+	float freq2CV = inputs[FREQ2CV_INPUT].isConnected() ? inputs[FREQ2CV_INPUT].getVoltage() : (lfo3Value * 0.2f);
+	float cutoff2 = params[FREQ2_PARAM].getValue() + freq2CV / 10.f;
     cutoff2 = clamp(cutoff2, 0.f, 1.f);
     float cutoffHz2 = 80.f * powf(5000.f/80.f, cutoff2);
 
@@ -496,14 +495,28 @@ float gain = 1.f + gainControl * (100.f - 1.f);
 // Apply gain and clip
 float clipped = clamp(finalOutput2 * gain, -10.f, 10.f);
 
-// --- Volume control with CV (same behavior as filter CV) ---
+
+
+// --- LFO2 Tremolo (pre-volume) ---
+float lfo2Depth = params[DEPTH2_PARAM].getValue();
+if (inputs[LFO2DEPTHCV_INPUT].isConnected())
+    lfo2Depth += inputs[LFO2DEPTHCV_INPUT].getVoltage() / 10.f;
+lfo2Depth = clamp(lfo2Depth, 0.f, 1.f);
+
+// LFO2 (±5 V) → 0–1 amplitude modulation
+float tremolo = 0.5f * (1.f + (lfo2Value / 5.f) * lfo2Depth);
+tremolo = clamp(tremolo, 0.f, 1.f);
+
+float tremoloSignal = clipped * tremolo;
+
+// --- Master volume with CV (same behavior as filter CV) ---
 float volControl = params[VOL_PARAM].getValue();
 if (inputs[VOLUMECV_INPUT].isConnected())
     volControl += inputs[VOLUMECV_INPUT].getVoltage() / 10.f;
 volControl = clamp(volControl, 0.f, 1.f);
 
-// Apply volume scaling
-float outputSignal = clipped * volControl * 0.5f;
+// Apply final volume scaling
+float outputSignal = tremoloSignal * volControl * 0.5f;
 
 outputs[OUT_OUTPUT].setVoltage(outputSignal);
 
