@@ -419,139 +419,48 @@ float outputSignal = clipped * volume * 0.5f;
 
 outputs[OUT_OUTPUT].setVoltage(outputSignal);
 
-// MODULATION SECTION 
+auto processLFO = [&](int rateParam, int depthParam, int waveParam,
+                      int rateCV, int depthCV, int waveCV,
+                      float& phase, float& stepCounter, float& randValue,
+                      int outId, int ledId) {
+    float rate = params[rateParam].getValue();
+    if (inputs[rateCV].isConnected()) rate += inputs[rateCV].getVoltage() / 10.f;
+    rate = clamp(rate, 0.f, 1.f);
+    float freq = 0.05f * powf(50.f / 0.05f, rate);
 
-// LFO1
-float lfo1Rate = params[RATE1_PARAM].getValue();
-if (inputs[LFO1RATECV_INPUT].isConnected())
-    lfo1Rate += inputs[LFO1RATECV_INPUT].getVoltage() / 10.f;
-lfo1Rate = clamp(lfo1Rate, 0.f, 1.f);
+    float depth = params[depthParam].getValue();
+    if (inputs[depthCV].isConnected()) depth += inputs[depthCV].getVoltage() / 10.f;
+    depth = clamp(depth, 0.f, 1.f);
 
-float lfo1Freq = 0.05f * powf(50.f / 0.05f, lfo1Rate);
+    phase += freq * args.sampleTime;
+    if (phase >= 1.f) phase -= 1.f;
 
-float lfo1Depth = params[DEPTH1_PARAM].getValue();
-if (inputs[LFO1DEPTHCV_INPUT].isConnected())
-    lfo1Depth += inputs[LFO1DEPTHCV_INPUT].getVoltage() / 10.f;
-lfo1Depth = clamp(lfo1Depth, 0.f, 1.f);
+    int wave = clamp((int)roundf(params[waveParam].getValue() +
+                 (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f)/2.f : 0.f)), 0, 5);
 
-lfo1Phase += lfo1Freq * args.sampleTime;
-if (lfo1Phase >= 1.f) lfo1Phase -= 1.f;
+    float value = 0.f;
+    switch (wave) {
+        case 0: value = sinf(2.f * float(M_PI) * phase); break;
+        case 1: value = 1.f - 4.f * fabsf(phase - 0.5f); break;
+        case 2: value = 2.f * phase - 1.f; break;
+        case 3: value = 1.f - 2.f * phase; break;
+        case 4: value = (phase < 0.5f) ? 1.f : -1.f; break;
+        case 5:
+            if (stepCounter >= 1.f) { randValue = 2.f*((float)rand()/RAND_MAX)-1.f; stepCounter -= 1.f; }
+            stepCounter += freq * args.sampleTime;
+            value = randValue;
+            break;
+    }
 
-float lfo1Value = 0.f;
+    value *= depth * 5.f;
+    outputs[outId].setVoltage(value);
+    lights[ledId].setBrightness(clamp(fabsf(value)/5.f, 0.f, 1.f));
+};
 
-int lfo1Wave = clamp((int)roundf(params[WAVE1_PARAM].getValue() +
-    (inputs[LFO1WAVECV_INPUT].isConnected() ? clamp(inputs[LFO1WAVECV_INPUT].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
-
-switch (lfo1Wave) {
-    case 0: lfo1Value = sinf(2.f * float(M_PI) * lfo1Phase); break;
-    case 1: lfo1Value = 1.f - 4.f * fabsf(lfo1Phase - 0.5f); break;
-    case 2: lfo1Value = 2.f * lfo1Phase - 1.f; break;
-    case 3: lfo1Value = 1.f - 2.f * lfo1Phase; break;
-    case 4: lfo1Value = (lfo1Phase < 0.5f) ? 1.f : -1.f; break;
-    case 5:
-        if (lfo1StepCounter >= 1.f) {
-            lfo1RandValue = 2.f * ((float)rand() / RAND_MAX) - 1.f;
-            lfo1StepCounter -= 1.f;
-        }
-        lfo1StepCounter += lfo1Freq * args.sampleTime;
-        lfo1Value = lfo1RandValue;
-        break;
-}
-
-lfo1Value *= lfo1Depth * 5.f;
-
-outputs[LFO1OUT_OUTPUT].setVoltage(lfo1Value);
-
-float lfo1Led = clamp(fabsf(lfo1Value) / 5.f, 0.f, 1.f);
-lights[LFO1LED_LIGHT].setBrightness(lfo1Led);
-
-// LFO2
-float lfo2Rate = params[RATE2_PARAM].getValue();
-if (inputs[LFO2RATECV_INPUT].isConnected())
-    lfo2Rate += inputs[LFO2RATECV_INPUT].getVoltage() / 10.f;
-lfo2Rate = clamp(lfo2Rate, 0.f, 1.f);
-
-float lfo2Freq = 0.05f * powf(50.f / 0.05f, lfo2Rate);
-
-float lfo2Depth = params[DEPTH2_PARAM].getValue();
-if (inputs[LFO2DEPTHCV_INPUT].isConnected())
-    lfo2Depth += inputs[LFO2DEPTHCV_INPUT].getVoltage() / 10.f;
-lfo2Depth = clamp(lfo2Depth, 0.f, 1.f);
-
-lfo2Phase += lfo2Freq * args.sampleTime;
-if (lfo2Phase >= 1.f) lfo2Phase -= 1.f;
-
-float lfo2Value = 0.f;
-
-int lfo2Wave = clamp((int)roundf(params[WAVE2_PARAM].getValue() +
-    (inputs[LFO2WAVECV_INPUT].isConnected() ? clamp(inputs[LFO2WAVECV_INPUT].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
-
-switch (lfo2Wave) {
-    case 0: lfo2Value = sinf(2.f * float(M_PI) * lfo2Phase); break;
-    case 1: lfo2Value = 1.f - 4.f * fabsf(lfo2Phase - 0.5f); break;
-    case 2: lfo2Value = 2.f * lfo2Phase - 1.f; break;
-    case 3: lfo2Value = 1.f - 2.f * lfo2Phase; break;
-    case 4: lfo2Value = (lfo2Phase < 0.5f) ? 1.f : -1.f; break;
-    case 5:
-        if (lfo2StepCounter >= 1.f) {
-            lfo2RandValue = 2.f * ((float)rand() / RAND_MAX) - 1.f;
-            lfo2StepCounter -= 1.f;
-        }
-        lfo2StepCounter += lfo2Freq * args.sampleTime;
-        lfo2Value = lfo2RandValue;
-        break;
-}
-
-lfo2Value *= lfo2Depth * 5.f;
-
-outputs[LFO2OUT_OUTPUT].setVoltage(lfo2Value);
-
-float lfo2Led = clamp(fabsf(lfo2Value) / 5.f, 0.f, 1.f);
-lights[LFO2LED_LIGHT].setBrightness(lfo2Led);
-
-// LFO3
-float lfo3Rate = params[RATE3_PARAM].getValue();
-if (inputs[LFO3RATECV_INPUT].isConnected())
-    lfo3Rate += inputs[LFO3RATECV_INPUT].getVoltage() / 10.f;
-lfo3Rate = clamp(lfo3Rate, 0.f, 1.f);
-
-float lfo3Freq = 0.05f * powf(50.f / 0.05f, lfo3Rate);
-
-float lfo3Depth = params[DEPTH3_PARAM].getValue();
-if (inputs[LFO3DEPTHCV_INPUT].isConnected())
-    lfo3Depth += inputs[LFO3DEPTHCV_INPUT].getVoltage() / 10.f;
-lfo3Depth = clamp(lfo3Depth, 0.f, 1.f);
-
-lfo3Phase += lfo3Freq * args.sampleTime;
-if (lfo3Phase >= 1.f) lfo3Phase -= 1.f;
-
-float lfo3Value = 0.f;
-
-int lfo3Wave = clamp((int)roundf(params[WAVE3_PARAM].getValue() +
-    (inputs[LFO3WAVECV_INPUT].isConnected() ? clamp(inputs[LFO3WAVECV_INPUT].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
-
-switch (lfo3Wave) {
-    case 0: lfo3Value = sinf(2.f * float(M_PI) * lfo3Phase); break;
-    case 1: lfo3Value = 1.f - 4.f * fabsf(lfo3Phase - 0.5f); break;
-    case 2: lfo3Value = 2.f * lfo3Phase - 1.f; break;
-    case 3: lfo3Value = 1.f - 2.f * lfo3Phase; break;
-    case 4: lfo3Value = (lfo3Phase < 0.5f) ? 1.f : -1.f; break;
-    case 5:
-        if (lfo3StepCounter >= 1.f) {
-            lfo3RandValue = 2.f * ((float)rand() / RAND_MAX) - 1.f;
-            lfo3StepCounter -= 1.f;
-        }
-        lfo3StepCounter += lfo3Freq * args.sampleTime;
-        lfo3Value = lfo3RandValue;
-        break;
-}
-
-lfo3Value *= lfo3Depth * 5.f;
-
-outputs[LFO3OUT_OUTPUT].setVoltage(lfo3Value);
-
-float lfo3Led = clamp(fabsf(lfo3Value) / 5.f, 0.f, 1.f);
-lights[LFO3LED_LIGHT].setBrightness(lfo3Led);
+// Call for each LFO
+processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM, LFO1RATECV_INPUT, LFO1DEPTHCV_INPUT, LFO1WAVECV_INPUT, lfo1Phase, lfo1StepCounter, lfo1RandValue, LFO1OUT_OUTPUT, LFO1LED_LIGHT);
+processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM, LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT, lfo2Phase, lfo2StepCounter, lfo2RandValue, LFO2OUT_OUTPUT, LFO2LED_LIGHT);
+processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM, LFO3RATECV_INPUT, LFO3DEPTHCV_INPUT, LFO3WAVECV_INPUT, lfo3Phase, lfo3StepCounter, lfo3RandValue, LFO3OUT_OUTPUT, LFO3LED_LIGHT);
 }
 };
 
