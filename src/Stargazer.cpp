@@ -571,8 +571,8 @@ struct StargazerWidget : ModuleWidget {
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 115.02)), module, Stargazer::LFO2OUT_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(156.615, 115.092)), module, Stargazer::LFO3OUT_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.873, 99.304)), module, Stargazer::LFO1LEDRED_LIGHT));
-		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(8.873, 99.304)), module, Stargazer::LFO1LEDGREEN_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(29.232, 91.869)), module, Stargazer::LFO1LEDRED_LIGHT));
+		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(29.232, 91.869)), module, Stargazer::LFO1LEDGREEN_LIGHT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(69.881, 80.617)), module, Stargazer::LFO2LEDRED_LIGHT));
 		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(69.881, 80.617)), module, Stargazer::LFO2LEDGREEN_LIGHT));
