@@ -106,6 +106,8 @@ struct Stargazer : Module {
 		LFO3WAVECV_INPUT,
 		LFO3RATECV_INPUT,
 		LFO3DEPTHCV_INPUT,
+		GAINCV_INPUT,
+		VOLUMECV_INPUT,
 		INPUTS_LEN
 	};
 	enum OutputId {
@@ -177,11 +179,12 @@ struct Stargazer : Module {
 		configInput(LFO3WAVECV_INPUT, "LFO 3 Waveshape CV");
 		configInput(LFO3RATECV_INPUT, "LFO 3 Rate CV");
 		configInput(LFO3DEPTHCV_INPUT, "LFO 3 Depth CV");
+		configInput(GAINCV_INPUT, "Gain CV");
+		configInput(VOLUMECV_INPUT, "Volume CV");
 		configOutput(OUT_OUTPUT, "Audio");
 		configOutput(LFO1OUT_OUTPUT, "LFO 1");
 		configOutput(LFO2OUT_OUTPUT, "LFO 2");
 		configOutput(LFO3OUT_OUTPUT, "LFO 3");
-
 
 		std::string path = asset::plugin(pluginInstance, "res/wavetables/StargazerWavetables.wav");
 
@@ -393,7 +396,6 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
 	if (inputs[FREQ1CV_INPUT].isConnected()){
     	cutoff += inputs[FREQ1CV_INPUT].getVoltage() / 10.f;
 	}
-	cutoff += lfo1Value / 10.f;  // scale ±5V → ±0.5 and sum with cutoff (0–1)
 	cutoff = clamp(cutoff, 0.f, 1.f);
 	float cutoffHz = 80.f * std::pow(5000.f / 80.f, cutoff);
 
@@ -456,7 +458,6 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     float cutoff2 = params[FREQ2_PARAM].getValue();
     if (inputs[FREQ2CV_INPUT].isConnected())
     cutoff2 += inputs[FREQ2CV_INPUT].getVoltage() / 10.f;
-	cutoff2 += lfo3Value / 10.f;  // scale ±5V → ±0.5 and sum with cutoff (0–1)
     cutoff2 = clamp(cutoff2, 0.f, 1.f);
     float cutoffHz2 = 80.f * powf(5000.f/80.f, cutoff2);
 
@@ -495,7 +496,7 @@ float volume = params[VOL_PARAM].getValue(); // 0–1
 
 float outputSignal = clipped * volume * 0.5f;
 
-outputs[OUT_OUTPUT].setVoltage(outputSignal * (1.f - params[DEPTH2_PARAM].getValue() * ((lfo2Value * -1.f) / 5.f)));
+outputs[OUT_OUTPUT].setVoltage(outputSignal);
 }
 };
 
@@ -541,7 +542,7 @@ struct StargazerWidget : ModuleWidget {
 		addParam(createParamCentered<StargazerLFOKnob>(mm2px(Vec(108.733, 102.098)), module, Stargazer::RATE3_PARAM));
 		addParam(createParamCentered<StargazerLFOKnob>(mm2px(Vec(88.822, 109.405)), module, Stargazer::WAVE3_PARAM));
 		addParam(createParamCentered<StargazerLFOKnob>(mm2px(Vec(40.523, 112.668)), module, Stargazer::DEPTH1_PARAM));
-
+		
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 12.362)), module, Stargazer::PITCHCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 12.362)), module, Stargazer::SUBCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 23.389)), module, Stargazer::WAVECV_INPUT));
@@ -553,20 +554,22 @@ struct StargazerWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 47.866)), module, Stargazer::REDUXCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 47.866)), module, Stargazer::FREQ2CV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 47.866)), module, Stargazer::RES2CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 59.694)), module, Stargazer::LFO1WAVECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 59.694)), module, Stargazer::LFO1RATECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 59.694)), module, Stargazer::LFO1DEPTHCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 85.37)), module, Stargazer::LFO2WAVECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 85.37)), module, Stargazer::LFO2RATECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 85.37)), module, Stargazer::LFO2DEPTHCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 109.911)), module, Stargazer::LFO3WAVECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 109.911)), module, Stargazer::LFO3RATECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 109.911)), module, Stargazer::LFO3DEPTHCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.489, 60.158)), module, Stargazer::GAINCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.804, 60.158)), module, Stargazer::VOLUMECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 76.628)), module, Stargazer::LFO1WAVECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 76.628)), module, Stargazer::LFO1RATECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 76.628)), module, Stargazer::LFO1DEPTHCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 90.133)), module, Stargazer::LFO2WAVECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 90.133)), module, Stargazer::LFO2RATECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 90.133)), module, Stargazer::LFO2DEPTHCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 102.503)), module, Stargazer::LFO3WAVECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 102.503)), module, Stargazer::LFO3RATECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 102.503)), module, Stargazer::LFO3DEPTHCV_INPUT));
 
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.955, 9.29)), module, Stargazer::OUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 72.541)), module, Stargazer::LFO1OUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 98.217)), module, Stargazer::LFO2OUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 121.17)), module, Stargazer::LFO3OUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(138.373, 114.98)), module, Stargazer::LFO1OUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 115.02)), module, Stargazer::LFO2OUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(156.615, 115.092)), module, Stargazer::LFO3OUT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.873, 99.304)), module, Stargazer::LFO1LEDRED_LIGHT));
 		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(8.873, 99.304)), module, Stargazer::LFO1LEDGREEN_LIGHT));

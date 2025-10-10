@@ -252,7 +252,10 @@
       "description": "Eurorack fantasy version of a previously released drone synth.",
       "tags": [
         "Synth voice",
-        "hardware clone"
+        "oscillator",
+        "hardware clone",
+        "LFO",
+        "Random"
       ]
     }
   ]
