@@ -566,14 +566,17 @@ struct StargazerWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 47.866)), module, Stargazer::RES2CV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.489, 60.158)), module, Stargazer::GAINCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.804, 60.158)), module, Stargazer::VOLUMECV_INPUT));
+
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 76.628)), module, Stargazer::LFO1WAVECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 76.628)), module, Stargazer::LFO1RATECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 76.628)), module, Stargazer::LFO1DEPTHCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 90.133)), module, Stargazer::LFO2WAVECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 76.628)), module, Stargazer::LFO2WAVECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 76.628)), module, Stargazer::LFO3WAVECV_INPUT));
+
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 90.133)), module, Stargazer::LFO1RATECV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 90.133)), module, Stargazer::LFO2RATECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 90.133)), module, Stargazer::LFO2DEPTHCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 102.503)), module, Stargazer::LFO3WAVECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 102.503)), module, Stargazer::LFO3RATECV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 90.133)), module, Stargazer::LFO3RATECV_INPUT));
+		
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 102.503)), module, Stargazer::LFO1DEPTHCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 102.503)), module, Stargazer::LFO2DEPTHCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 102.503)), module, Stargazer::LFO3DEPTHCV_INPUT));
 
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.955, 9.29)), module, Stargazer::OUT_OUTPUT));
