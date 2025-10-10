@@ -133,7 +133,7 @@ struct Stargazer : Module {
 		configParam(FREQ1_PARAM, 0.f, 1.f, 1.f, "Filter 1 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
 		configParam(RES1_PARAM, 0.f, 1.f, 0.f, "Filter 1 Resonance", "%", 0.f, 100.f); // Q 1-5
 
-		configParam(ALIAS_PARAM, 1.f, 0.f, 0.f, "Sample Rate", "hz", 18000.f, 1.f); // 18khz - 1hz 
+		configParam(ALIAS_PARAM, 1.f, 0.f, 0.f, "Sample Rate", "hz", 878.04f, 20.5f); // 18khz - 1hz 
 		configSwitch(REDUX_PARAM, 0.f, 12.f, 0.f, "Bit Depth", {"12", "11", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"});
 
 		configParam(FREQ2_PARAM, 0.f, 1.f, 1.f, "Filter 2 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
@@ -193,14 +193,20 @@ struct Stargazer : Module {
 		}
 	}
 
+	// Main wavetable
 	std::vector<std::vector<float>> wavetables; 
 	int tableSize = 600;       // samples per frame
 	int numTables = 88;        // total tables
 	float phase = 0.f;         // oscillator phase
 	float sampleRate = 44100.f; // default fallback
 
+	// Filter 1 AGC
 	float agcGain = 1.f;
     float agcEnv = 0.f;
+
+	// Sample rate reducer
+	float aliasCounter = 0.f;
+	float lastSample = 0.f;
 
 void process(const ProcessArgs& args) override {
 	if (wavetables.empty()) {
@@ -328,8 +334,27 @@ if (agcEnv > 0.0001f)
 float scaledOutput = y * agcGain * 0.5f;
 scaledOutput = clamp(scaledOutput, -10.f, 10.f);
 
-outputs[OUT_OUTPUT].setVoltage(scaledOutput);
+// --- Alias knob (no CV) ---
+float aliasKnob = 1.f - params[ALIAS_PARAM].getValue(); // 0–1
 
+// --- Compute fadeFactor for first 5% of knob ---
+float fadeFactor = 1.f;
+if (aliasKnob <= 0.05f)
+    fadeFactor = aliasKnob / 0.05f; // 0 = fully dry, 0.05 = fully wet
+
+// --- Map knob 0–1 → 18 kHz → 1 Hz linearly for sample rate reducer ---
+float aliasRate = 25.f + (18000.f - aliasKnob * (18000.f - 1.f)); // knob 0 = 18kHz (dry), knob 1 = 1Hz (fully wet)
+
+// --- Sample & hold for rate reduction ---
+aliasCounter += aliasRate * args.sampleTime;
+if (aliasCounter >= 1.f) {
+    lastSample = scaledOutput; // scaledOutput is post-filter + AGC
+    aliasCounter -= 1.f;
+}
+
+// --- Mix dry and wet signals using fadeFactor ---
+float finalOutput = scaledOutput * (1.f - fadeFactor) + lastSample * fadeFactor;
+outputs[OUT_OUTPUT].setVoltage(finalOutput);
 }
 };
 
