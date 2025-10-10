@@ -135,13 +135,13 @@ struct Stargazer : Module {
 		configParam(MIX_PARAM, 0.f, 1.f, 0.f, "Oscillator 2 Volume", "%", 0.f, 100.f); 
 		configParam(DETUNE_PARAM, -1.f, 1.f, 0.f, "Oscillator 2 Detune", "hz", 0.f, 5.f); // +/-5hz 
 
-		configParam(FREQ1_PARAM, 0.f, 1.f, 1.f, "Filter 1 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
+		configParam(FREQ1_PARAM, 0.f, 1.f, 1.f, "Filter 1 Cutoff", "hz", 200.f, 80.f); // 80hz - 16khz
 		configParam(RES1_PARAM, 0.f, 1.f, 0.f, "Filter 1 Resonance", "%", 0.f, 100.f); // Q 1-5
 
 		configParam(ALIAS_PARAM, 1.f, 0.f, 1.f, "Sample Rate", "hz", 878.04f, 20.5f); // 18khz - 1hz 
 		configSwitch(REDUX_PARAM, 0.f, 8.f, 0.f, "Bit Depth", {"12", "11", "10", "9", "8", "7", "6", "5", "4"});
 
-		configParam(FREQ2_PARAM, 0.f, 1.f, 1.f, "Filter 2 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
+		configParam(FREQ2_PARAM, 0.f, 1.f, 1.f, "Filter 2 Cutoff", "hz", 200.f, 80.f); // 80hz - 5khz
 		configParam(RES2_PARAM, 0.f, 1.f, 0.f, "Filter 2 Resonance", "%", 0.f, 100.f); // Q 1-5
 
 		configSwitch(WAVE1_PARAM, 0.f, 5.f, 0.f, "LFO 1 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"} );
@@ -398,7 +398,7 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     	cutoff += inputs[FREQ1CV_INPUT].getVoltage() / 10.f;
 	}
 	cutoff = clamp(cutoff, 0.f, 1.f);
-	float cutoffHz = 80.f * std::pow(5000.f / 80.f, cutoff);
+	float cutoffHz = 80.f * std::pow(16000.f / 80.f, cutoff);
 
     float res = params[RES1_PARAM].getValue();
     if (inputs[RES1CV_INPUT].isConnected())
@@ -459,7 +459,7 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
 	float freq2CV = inputs[FREQ2CV_INPUT].isConnected() ? inputs[FREQ2CV_INPUT].getVoltage() : (lfo3Value * 0.2f);
 	float cutoff2 = params[FREQ2_PARAM].getValue() + freq2CV / 10.f;
     cutoff2 = clamp(cutoff2, 0.f, 1.f);
-    float cutoffHz2 = 80.f * powf(5000.f/80.f, cutoff2);
+    float cutoffHz2 = 80.f * powf(16000.f/80.f, cutoff2);
 
     float res2 = params[RES2_PARAM].getValue();
     if (inputs[RES2CV_INPUT].isConnected())
