@@ -228,6 +228,18 @@ float lfo1LastValue = 0.f;      // last output (already exists)
 float lfo1StepCounter = 1.f;    // for stepped random waveform
 float lfo1RandValue = 0.f;      // for stepped random waveform
 
+// LFO2 member variables
+float lfo2Phase = 0.f;
+float lfo2LastValue = 0.f;      // last output (already exists)
+float lfo2StepCounter = 1.f;    // for stepped random waveform
+float lfo2RandValue = 0.f;      // for stepped random waveform
+
+// LFO3 member variables
+float lfo3Phase = 0.f;
+float lfo3LastValue = 0.f;      // last output (already exists)
+float lfo3StepCounter = 1.f;    // for stepped random waveform
+float lfo3RandValue = 0.f;      // for stepped random waveform
+
 
 void process(const ProcessArgs& args) override {
     if (wavetables.empty()) {
@@ -453,6 +465,93 @@ outputs[LFO1OUT_OUTPUT].setVoltage(lfo1Value);
 float lfo1Led = clamp(fabsf(lfo1Value) / 5.f, 0.f, 1.f);
 lights[LFO1LED_LIGHT].setBrightness(lfo1Led);
 
+// LFO2
+float lfo2Rate = params[RATE2_PARAM].getValue();
+if (inputs[LFO2RATECV_INPUT].isConnected())
+    lfo2Rate += inputs[LFO2RATECV_INPUT].getVoltage() / 10.f;
+lfo2Rate = clamp(lfo2Rate, 0.f, 1.f);
+
+float lfo2Freq = 0.05f * powf(50.f / 0.05f, lfo2Rate);
+
+float lfo2Depth = params[DEPTH2_PARAM].getValue();
+if (inputs[LFO2DEPTHCV_INPUT].isConnected())
+    lfo2Depth += inputs[LFO2DEPTHCV_INPUT].getVoltage() / 10.f;
+lfo2Depth = clamp(lfo2Depth, 0.f, 1.f);
+
+lfo2Phase += lfo2Freq * args.sampleTime;
+if (lfo2Phase >= 1.f) lfo2Phase -= 1.f;
+
+float lfo2Value = 0.f;
+
+int lfo2Wave = clamp((int)roundf(params[WAVE2_PARAM].getValue() +
+    (inputs[LFO2WAVECV_INPUT].isConnected() ? clamp(inputs[LFO2WAVECV_INPUT].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
+
+switch (lfo2Wave) {
+    case 0: lfo2Value = sinf(2.f * float(M_PI) * lfo2Phase); break;
+    case 1: lfo2Value = 1.f - 4.f * fabsf(lfo2Phase - 0.5f); break;
+    case 2: lfo2Value = 2.f * lfo2Phase - 1.f; break;
+    case 3: lfo2Value = 1.f - 2.f * lfo2Phase; break;
+    case 4: lfo2Value = (lfo2Phase < 0.5f) ? 1.f : -1.f; break;
+    case 5:
+        if (lfo2StepCounter >= 1.f) {
+            lfo2RandValue = 2.f * ((float)rand() / RAND_MAX) - 1.f;
+            lfo2StepCounter -= 1.f;
+        }
+        lfo2StepCounter += lfo2Freq * args.sampleTime;
+        lfo2Value = lfo2RandValue;
+        break;
+}
+
+lfo2Value *= lfo2Depth * 5.f;
+
+outputs[LFO2OUT_OUTPUT].setVoltage(lfo2Value);
+
+float lfo2Led = clamp(fabsf(lfo2Value) / 5.f, 0.f, 1.f);
+lights[LFO2LED_LIGHT].setBrightness(lfo2Led);
+
+// LFO3
+float lfo3Rate = params[RATE3_PARAM].getValue();
+if (inputs[LFO3RATECV_INPUT].isConnected())
+    lfo3Rate += inputs[LFO3RATECV_INPUT].getVoltage() / 10.f;
+lfo3Rate = clamp(lfo3Rate, 0.f, 1.f);
+
+float lfo3Freq = 0.05f * powf(50.f / 0.05f, lfo3Rate);
+
+float lfo3Depth = params[DEPTH3_PARAM].getValue();
+if (inputs[LFO3DEPTHCV_INPUT].isConnected())
+    lfo3Depth += inputs[LFO3DEPTHCV_INPUT].getVoltage() / 10.f;
+lfo3Depth = clamp(lfo3Depth, 0.f, 1.f);
+
+lfo3Phase += lfo3Freq * args.sampleTime;
+if (lfo3Phase >= 1.f) lfo3Phase -= 1.f;
+
+float lfo3Value = 0.f;
+
+int lfo3Wave = clamp((int)roundf(params[WAVE3_PARAM].getValue() +
+    (inputs[LFO3WAVECV_INPUT].isConnected() ? clamp(inputs[LFO3WAVECV_INPUT].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
+
+switch (lfo3Wave) {
+    case 0: lfo3Value = sinf(2.f * float(M_PI) * lfo3Phase); break;
+    case 1: lfo3Value = 1.f - 4.f * fabsf(lfo3Phase - 0.5f); break;
+    case 2: lfo3Value = 2.f * lfo3Phase - 1.f; break;
+    case 3: lfo3Value = 1.f - 2.f * lfo3Phase; break;
+    case 4: lfo3Value = (lfo3Phase < 0.5f) ? 1.f : -1.f; break;
+    case 5:
+        if (lfo3StepCounter >= 1.f) {
+            lfo3RandValue = 2.f * ((float)rand() / RAND_MAX) - 1.f;
+            lfo3StepCounter -= 1.f;
+        }
+        lfo3StepCounter += lfo3Freq * args.sampleTime;
+        lfo3Value = lfo3RandValue;
+        break;
+}
+
+lfo3Value *= lfo3Depth * 5.f;
+
+outputs[LFO3OUT_OUTPUT].setVoltage(lfo3Value);
+
+float lfo3Led = clamp(fabsf(lfo3Value) / 5.f, 0.f, 1.f);
+lights[LFO3LED_LIGHT].setBrightness(lfo3Led);
 }
 };
 
