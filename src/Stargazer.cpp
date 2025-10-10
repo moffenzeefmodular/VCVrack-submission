@@ -334,16 +334,23 @@ if (agcEnv > 0.0001f)
 float scaledOutput = y * agcGain * 0.5f;
 scaledOutput = clamp(scaledOutput, -10.f, 10.f);
 
-// --- Alias knob (no CV) ---
-float aliasKnob = 1.f - params[ALIAS_PARAM].getValue(); // 0–1
+
+// --- Alias knob with CV (reversed polarity) ---
+float aliasKnob = 1.f - params[ALIAS_PARAM].getValue(); // knob 0 = dry, 1 = fully wet
+
+// Apply CV (-5V → +5V mapped to -0.5 → +0.5 range)
+if (inputs[ALIASCV_INPUT].isConnected())
+    aliasKnob += inputs[ALIASCV_INPUT].getVoltage() / 10.f; // reversed polarity for CV
+
+aliasKnob = clamp(aliasKnob, 0.f, 1.f);
 
 // --- Compute fadeFactor for first 5% of knob ---
 float fadeFactor = 1.f;
 if (aliasKnob <= 0.05f)
     fadeFactor = aliasKnob / 0.05f; // 0 = fully dry, 0.05 = fully wet
 
-// --- Map knob 0–1 → 18 kHz → 1 Hz linearly for sample rate reducer ---
-float aliasRate = 25.f + (18000.f - aliasKnob * (18000.f - 1.f)); // knob 0 = 18kHz (dry), knob 1 = 1Hz (fully wet)
+// --- Map knob + CV 0–1 → 18 kHz → 1 Hz linearly for sample rate reducer ---
+float aliasRate = 25.f + (18000.f - aliasKnob * (18000.f - 1.f)); // 0 = dry (18 kHz), 1 = fully wet (1 Hz)
 
 // --- Sample & hold for rate reduction ---
 aliasCounter += aliasRate * args.sampleTime;
