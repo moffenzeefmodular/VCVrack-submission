@@ -227,21 +227,87 @@ float lfo1Phase = 0.f;
 float lfo1LastValue = 0.f;      // last output (already exists)
 float lfo1StepCounter = 1.f;    // for stepped random waveform
 float lfo1RandValue = 0.f;      // for stepped random waveform
+float lfo1Value = 0.f;
 
 // LFO2 member variables
 float lfo2Phase = 0.f;
 float lfo2LastValue = 0.f;      // last output (already exists)
 float lfo2StepCounter = 1.f;    // for stepped random waveform
 float lfo2RandValue = 0.f;      // for stepped random waveform
+float lfo2Value = 0.f;
 
 // LFO3 member variables
 float lfo3Phase = 0.f;
 float lfo3LastValue = 0.f;      // last output (already exists)
 float lfo3StepCounter = 1.f;    // for stepped random waveform
 float lfo3RandValue = 0.f;      // for stepped random waveform
+float lfo3Value = 0.f;
 
 
 void process(const ProcessArgs& args) override {
+
+// MODULATION SECTION 
+auto processLFO = [&](int rateParam, int depthParam, int waveParam,
+                      int rateCV, int depthCV, int waveCV,
+                      float& phase, float& stepCounter, float& randValue,
+                      int outId, int ledId,
+                      float* outValue = nullptr) {
+    float rate = params[rateParam].getValue();
+    if (inputs[rateCV].isConnected()) rate += inputs[rateCV].getVoltage() / 10.f;
+    rate = clamp(rate, 0.f, 1.f);
+    float freq = 0.05f * powf(50.f / 0.05f, rate);
+
+    float depth = params[depthParam].getValue();
+    if (inputs[depthCV].isConnected()) depth += inputs[depthCV].getVoltage() / 10.f;
+    depth = clamp(depth, 0.f, 1.f);
+
+    phase += freq * args.sampleTime;
+    if (phase >= 1.f) phase -= 1.f;
+
+    int wave = clamp((int)roundf(params[waveParam].getValue() +
+                 (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f)/2.f : 0.f)), 0, 5);
+
+    float value = 0.f;
+switch (wave) {
+    case 0: value = sinf(2.f * float(M_PI) * phase); break;
+    case 1: value = 1.f - 4.f * fabsf(phase - 0.5f); break;
+    case 2: value = 2.f * phase - 1.f; break;
+    case 3: value = 1.f - 2.f * phase; break;
+    case 4: value = (phase < 0.5f) ? 1.f : -1.f; break;
+    case 5:
+        if (stepCounter >= 1.f) {
+            randValue = 2.f*((float)rand()/RAND_MAX)-1.f;
+            stepCounter -= 1.f;
+        }
+        stepCounter += freq * args.sampleTime * 2.f; // double frequency
+        value = randValue;
+        break;
+}
+
+    value *= depth * 5.f;
+    outputs[outId].setVoltage(value);
+lights[ledId].setBrightnessSmooth(clamp(value / 5.f, 0.f, 1.f), args.sampleTime);
+
+    if (outValue)
+        *outValue = value;
+};
+
+// Call all three LFOs and capture their values
+processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM,
+           LFO1RATECV_INPUT, LFO1DEPTHCV_INPUT, LFO1WAVECV_INPUT,
+           lfo1Phase, lfo1StepCounter, lfo1RandValue,
+           LFO1OUT_OUTPUT, LFO1LED_LIGHT, &lfo1Value);
+
+processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM,
+           LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT,
+           lfo2Phase, lfo2StepCounter, lfo2RandValue,
+           LFO2OUT_OUTPUT, LFO2LED_LIGHT, &lfo2Value);
+
+processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
+           LFO3RATECV_INPUT, LFO3DEPTHCV_INPUT, LFO3WAVECV_INPUT,
+           lfo3Phase, lfo3StepCounter, lfo3RandValue,
+           LFO3OUT_OUTPUT, LFO3LED_LIGHT, &lfo3Value);
+
     if (wavetables.empty()) {
         outputs[OUT_OUTPUT].setVoltage(0.f);
         return;
@@ -315,11 +381,14 @@ void process(const ProcessArgs& args) override {
     float sample = osc1 + osc2 * mix;
 
     // --- Filter 1 cutoff + resonance ---
-    float cutoff = params[FREQ1_PARAM].getValue();
-    if (inputs[FREQ1CV_INPUT].isConnected())
-        cutoff += inputs[FREQ1CV_INPUT].getVoltage() / 10.f;
-    cutoff = clamp(cutoff, 0.f, 1.f);
-    float cutoffHz = 80.f * std::pow(5000.f / 80.f, cutoff);
+	float cutoff = params[FREQ1_PARAM].getValue();
+	if (inputs[FREQ1CV_INPUT].isConnected()){
+    	cutoff += inputs[FREQ1CV_INPUT].getVoltage() / 10.f;
+	}
+	cutoff += lfo1Value / 10.f;  // scale ±5V → ±0.5 and sum with cutoff (0–1)
+	cutoff = clamp(cutoff, 0.f, 1.f);
+	float cutoffHz = 80.f * std::pow(5000.f / 80.f, cutoff);
+
     float res = params[RES1_PARAM].getValue();
     if (inputs[RES1CV_INPUT].isConnected())
         res += inputs[RES1CV_INPUT].getVoltage() / 10.f;
@@ -418,49 +487,6 @@ float volume = params[VOL_PARAM].getValue(); // 0–1
 float outputSignal = clipped * volume * 0.5f;
 
 outputs[OUT_OUTPUT].setVoltage(outputSignal);
-
-auto processLFO = [&](int rateParam, int depthParam, int waveParam,
-                      int rateCV, int depthCV, int waveCV,
-                      float& phase, float& stepCounter, float& randValue,
-                      int outId, int ledId) {
-    float rate = params[rateParam].getValue();
-    if (inputs[rateCV].isConnected()) rate += inputs[rateCV].getVoltage() / 10.f;
-    rate = clamp(rate, 0.f, 1.f);
-    float freq = 0.05f * powf(50.f / 0.05f, rate);
-
-    float depth = params[depthParam].getValue();
-    if (inputs[depthCV].isConnected()) depth += inputs[depthCV].getVoltage() / 10.f;
-    depth = clamp(depth, 0.f, 1.f);
-
-    phase += freq * args.sampleTime;
-    if (phase >= 1.f) phase -= 1.f;
-
-    int wave = clamp((int)roundf(params[waveParam].getValue() +
-                 (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f)/2.f : 0.f)), 0, 5);
-
-    float value = 0.f;
-    switch (wave) {
-        case 0: value = sinf(2.f * float(M_PI) * phase); break;
-        case 1: value = 1.f - 4.f * fabsf(phase - 0.5f); break;
-        case 2: value = 2.f * phase - 1.f; break;
-        case 3: value = 1.f - 2.f * phase; break;
-        case 4: value = (phase < 0.5f) ? 1.f : -1.f; break;
-        case 5:
-            if (stepCounter >= 1.f) { randValue = 2.f*((float)rand()/RAND_MAX)-1.f; stepCounter -= 1.f; }
-            stepCounter += freq * args.sampleTime;
-            value = randValue;
-            break;
-    }
-
-    value *= depth * 5.f;
-    outputs[outId].setVoltage(value);
-    lights[ledId].setBrightness(clamp(fabsf(value)/5.f, 0.f, 1.f));
-};
-
-// Call for each LFO
-processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM, LFO1RATECV_INPUT, LFO1DEPTHCV_INPUT, LFO1WAVECV_INPUT, lfo1Phase, lfo1StepCounter, lfo1RandValue, LFO1OUT_OUTPUT, LFO1LED_LIGHT);
-processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM, LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT, lfo2Phase, lfo2StepCounter, lfo2RandValue, LFO2OUT_OUTPUT, LFO2LED_LIGHT);
-processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM, LFO3RATECV_INPUT, LFO3DEPTHCV_INPUT, LFO3WAVECV_INPUT, lfo3Phase, lfo3StepCounter, lfo3RandValue, LFO3OUT_OUTPUT, LFO3LED_LIGHT);
 }
 };
 
