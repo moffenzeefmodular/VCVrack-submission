@@ -443,8 +443,8 @@ struct MitoWidget : ModuleWidget {
 	MitoWidget(Mito* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Mito.svg"),
-		asset::plugin(pluginInstance, "res/Mito-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Mito.svg"),
+		asset::plugin(pluginInstance, "res/panels/Mito-dark.svg")
 		));
 
 

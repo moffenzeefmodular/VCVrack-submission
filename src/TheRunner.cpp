@@ -204,8 +204,8 @@ struct TheRunnerWidget : ModuleWidget {
 	TheRunnerWidget(TheRunner* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/TheRunner.svg"),
-		asset::plugin(pluginInstance, "res/TheRunner-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/TheRunner.svg"),
+		asset::plugin(pluginInstance, "res/panels/TheRunner-dark.svg")
 		));
         
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

@@ -163,8 +163,8 @@ struct BadIdea1800Widget : ModuleWidget {
 	BadIdea1800Widget(BadIdea1800* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/BadIdea1800.svg"),
-		asset::plugin(pluginInstance, "res/BadIdea1800-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/BadIdea1800.svg"),
+		asset::plugin(pluginInstance, "res/panels/BadIdea1800-dark.svg")
 		));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

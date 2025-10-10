@@ -1317,8 +1317,8 @@ struct MuskratWidget : ModuleWidget {
 	MuskratWidget(Muskrat* module) {
 		setModule(module);
 	  setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Muskrat.svg"),
-		asset::plugin(pluginInstance, "res/Muskrat-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Muskrat.svg"),
+		asset::plugin(pluginInstance, "res/panels/Muskrat-dark.svg")
 		));
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

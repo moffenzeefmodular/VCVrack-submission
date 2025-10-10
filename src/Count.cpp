@@ -292,8 +292,8 @@ struct ClockModuleWidget : ModuleWidget {
     ClockModuleWidget(ClockModule* module) {
         setModule(module);
 setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Count.svg"),
-		asset::plugin(pluginInstance, "res/Count-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Count.svg"),
+		asset::plugin(pluginInstance, "res/panels/Count-dark.svg")
 		));
 
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

@@ -52,8 +52,8 @@ struct BusMultWidget : ModuleWidget {
     BusMultWidget(BusMult* module) {
         setModule(module);
 setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/BusMult.svg"),
-		asset::plugin(pluginInstance, "res/BusMult-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/BusMult.svg"),
+		asset::plugin(pluginInstance, "res/panels/BusMult-dark.svg")
 		));
 
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

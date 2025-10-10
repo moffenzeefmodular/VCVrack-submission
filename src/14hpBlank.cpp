@@ -28,8 +28,8 @@ struct _14hpBlankWidget : ModuleWidget {
 	_14hpBlankWidget(_14hpBlank* module) {
 		setModule(module);
 setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/14hpBlank.svg"),
-		asset::plugin(pluginInstance, "res/14hpBlank-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/14hpBlank.svg"),
+		asset::plugin(pluginInstance, "res/panels/14hpBlank-dark.svg")
 		));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));

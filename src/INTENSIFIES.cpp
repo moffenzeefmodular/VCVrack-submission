@@ -225,8 +225,8 @@ struct INTENSIFIESWidget : ModuleWidget {
 	INTENSIFIESWidget(INTENSIFIES* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/INTENSIFIES.svg"),
-		asset::plugin(pluginInstance, "res/INTENSIFIES-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/INTENSIFIES.svg"),
+		asset::plugin(pluginInstance, "res/panels/INTENSIFIES-dark.svg")
 		));
         
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

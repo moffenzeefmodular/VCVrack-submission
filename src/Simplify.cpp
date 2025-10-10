@@ -246,8 +246,8 @@ struct SimplifyWidget : ModuleWidget {
 	SimplifyWidget(Simplify* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Simplify.svg"),
-		asset::plugin(pluginInstance, "res/Simplify-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Simplify.svg"),
+		asset::plugin(pluginInstance, "res/panels/Simplify-dark.svg")
 		));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

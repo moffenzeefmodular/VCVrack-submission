@@ -169,8 +169,8 @@ struct SwarmWidget : ModuleWidget {
     SwarmWidget(Swarm* module) {
         setModule(module);
         setPanel(createPanel(
-            asset::plugin(pluginInstance, "res/Swarm.svg"),
-            asset::plugin(pluginInstance, "res/Swarm-dark.svg")
+            asset::plugin(pluginInstance, "res/panels/Swarm.svg"),
+            asset::plugin(pluginInstance, "res/panels/Swarm-dark.svg")
         ));
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

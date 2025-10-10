@@ -119,8 +119,8 @@ struct BadIdea9Widget : ModuleWidget {
 	BadIdea9Widget(BadIdea9* module) {
 		setModule(module);
 		setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/BadIdea9.svg"),
-		asset::plugin(pluginInstance, "res/BadIdea9-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/BadIdea9.svg"),
+		asset::plugin(pluginInstance, "res/panels/BadIdea9-dark.svg")
 		));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

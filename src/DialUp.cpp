@@ -174,8 +174,8 @@ struct DialUpWidget : ModuleWidget {
     DialUpWidget(DialUp* module) {
         setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/DialUp.svg"),
-		asset::plugin(pluginInstance, "res/DialUp-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/DialUp.svg"),
+		asset::plugin(pluginInstance, "res/panels/DialUp-dark.svg")
 		));
 
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

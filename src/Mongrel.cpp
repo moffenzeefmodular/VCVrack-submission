@@ -163,8 +163,8 @@ struct MongrelWidget : ModuleWidget {
 	MongrelWidget(Mongrel* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Mongrel.svg"),
-		asset::plugin(pluginInstance, "res/Mongrel-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Mongrel.svg"),
+		asset::plugin(pluginInstance, "res/panels/Mongrel-dark.svg")
 		));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

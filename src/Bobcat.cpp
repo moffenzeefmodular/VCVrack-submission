@@ -299,8 +299,8 @@ struct BobcatWidget : ModuleWidget {
 	BobcatWidget(Bobcat* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Bobcat.svg"),
-		asset::plugin(pluginInstance, "res/Bobcat-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Bobcat.svg"),
+		asset::plugin(pluginInstance, "res/panels/Bobcat-dark.svg")
 		));
 
 

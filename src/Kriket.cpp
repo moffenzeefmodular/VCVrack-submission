@@ -202,8 +202,8 @@ struct KriketWidget : ModuleWidget {
     KriketWidget(Kriket* module) {
         setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Kriket.svg"),
-		asset::plugin(pluginInstance, "res/Kriket-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Kriket.svg"),
+		asset::plugin(pluginInstance, "res/panels/Kriket-dark.svg")
 		));
 
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));

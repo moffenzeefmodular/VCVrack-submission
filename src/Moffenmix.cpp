@@ -188,8 +188,8 @@ struct MoffenmixWidget : ModuleWidget {
 	MoffenmixWidget(Moffenmix* module) {
 		setModule(module);
 	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/Moffenmix.svg"),
-		asset::plugin(pluginInstance, "res/Moffenmix-dark.svg")
+		asset::plugin(pluginInstance, "res/panels/Moffenmix.svg"),
+		asset::plugin(pluginInstance, "res/panels/Moffenmix-dark.svg")
 		));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
