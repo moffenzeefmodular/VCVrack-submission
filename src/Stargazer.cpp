@@ -199,6 +199,9 @@ struct Stargazer : Module {
 	float phase = 0.f;         // oscillator phase
 	float sampleRate = 44100.f; // default fallback
 
+	float agcGain = 1.f;
+    float agcEnv = 0.f;
+
 void process(const ProcessArgs& args) override {
 	if (wavetables.empty()) {
 		outputs[OUT_OUTPUT].setVoltage(0.f);
@@ -228,7 +231,6 @@ void process(const ProcessArgs& args) override {
 	int idx0 = (int)pos1;
 	int idx1 = (idx0 + 1) % tableSize;
 	float fracPos = pos1 - idx0;
-
 	float s00 = wavetables[i0][idx0];
 	float s01 = wavetables[i0][idx1];
 	float s10 = wavetables[i1][idx0];
@@ -242,21 +244,14 @@ void process(const ProcessArgs& args) override {
 	if (inputs[DETUNECV_INPUT].isConnected())
 	    detune += inputs[DETUNECV_INPUT].getVoltage() / 5.f; // ±5V → ±1
 	detune = clamp(detune, -1.f, 1.f);
-	float detuneHz = detune * 5.f; // scale to ±5 Hz
-
-	float freq2 = clamp(freq + detuneHz, 1.f, 500.f);
+	float freq2 = clamp(freq + detune * 5.f, 1.f, 500.f);
 
 	// Determine if sub oscillator is enabled
-	bool subEnabled = params[SUB_PARAM].getValue() > 0.5f; // switch
-	if (inputs[SUBCV_INPUT].isConnected()) {
-	    float subCV = inputs[SUBCV_INPUT].getVoltage(); // -5V → 5V
-	    subEnabled = subCV > 0.f; // CV overrides switch state
-	}
-
-	// Apply sub octave drop if enabled
-	if (subEnabled) {
+	bool subEnabled = params[SUB_PARAM].getValue() > 0.5f;
+	if (inputs[SUBCV_INPUT].isConnected())
+	    subEnabled = inputs[SUBCV_INPUT].getVoltage() > 0.f;
+	if (subEnabled)
 	    freq2 *= 0.5f;
-	}
 
 	static float phase2 = 0.f;
 	phase2 += freq2 / sampleRate;
@@ -265,27 +260,76 @@ void process(const ProcessArgs& args) override {
 	int idx20 = (int)pos2;
 	int idx21 = (idx20 + 1) % tableSize;
 	float fracPos2 = pos2 - idx20;
-
 	float s00_2 = wavetables[i0][idx20];
 	float s01_2 = wavetables[i0][idx21];
 	float s10_2 = wavetables[i1][idx20];
 	float s11_2 = wavetables[i1][idx21];
-	float a2 = s00_2 + (s01_2 - s00_2) * fracPos2;
-	float b2 = s10_2 + (s11_2 - s10_2) * fracPos2;
-	float osc2 = a2 + (b2 - a2) * frac;
+	float a2_osc = s00_2 + (s01_2 - s00_2) * fracPos2;
+	float b2_osc = s10_2 + (s11_2 - s10_2) * fracPos2;
+	float osc2 = a2_osc + (b2_osc - a2_osc) * frac;
 
 	// --- Mix knob 0–1 plus CV ---
 	float mix = params[MIX_PARAM].getValue();
 	if (inputs[MIXCV_INPUT].isConnected())
-		mix += inputs[MIXCV_INPUT].getVoltage() / 10.f; // ±5V → ±0.5
+		mix += inputs[MIXCV_INPUT].getVoltage() / 10.f;
 	mix = clamp(mix, 0.f, 1.f);
 
-	// --- Output: osc1 full volume + osc2 * mix ---
+	// --- Oscillator mixer ---
 	float sample = osc1 + osc2 * mix;
 
-	// --- Scale output to ±5 V ---
-	sample *= 5.f;
-	outputs[OUT_OUTPUT].setVoltage(sample);
+	// --- Filter cutoff and resonance ---
+	float cutoff = params[FREQ1_PARAM].getValue();
+	if (inputs[FREQ1CV_INPUT].isConnected())
+		cutoff += inputs[FREQ1CV_INPUT].getVoltage() / 10.f;
+	cutoff = clamp(cutoff, 0.f, 1.f);
+	float cutoffHz = 80.f * std::pow(5000.f / 80.f, cutoff); // logarithmic 80–5000 Hz
+
+// Resonance (RES1 knob + CV)
+	float res = params[RES1_PARAM].getValue();
+	if (inputs[RES1CV_INPUT].isConnected())
+    res += inputs[RES1CV_INPUT].getVoltage() / 10.f; // ±5V → ±0.5
+	res = clamp(res, 0.f, 1.f);
+	float Q = 1.f + res * (5.f - 1.f); // Q 1–5
+
+	// --- Resonant 12dB/oct biquad lowpass ---
+	static float lp_x1 = 0.f, lp_x2 = 0.f, lp_y1 = 0.f, lp_y2 = 0.f;
+	float w0 = 2.f * float(M_PI) * cutoffHz / sampleRate;
+	float alpha = sinf(w0) / (2.f * Q);
+	float cos_w0 = cosf(w0);
+
+	float fb0 = (1.f - cos_w0) / 2.f;
+	float fb1 = 1.f - cos_w0;
+	float fb2 = (1.f - cos_w0) / 2.f;
+	float fa0 = 1.f + alpha;
+	float fa1 = -2.f * cos_w0;
+	float fa2 = 1.f - alpha;
+
+	float y = (fb0/fa0)*sample + (fb1/fa0)*lp_x1 + (fb2/fa0)*lp_x2 - (fa1/fa0)*lp_y1 - (fa2/fa0)*lp_y2;
+
+	lp_x2 = lp_x1;
+	lp_x1 = sample;
+	lp_y2 = lp_y1;
+	lp_y1 = y;
+
+// --- AGC parameters ---
+const float agcAttack = 0.001f;   // smoothing when signal rises
+const float agcRelease = 0.01f;   // smoothing when signal falls
+const float targetPeak = 0.8f;    // target normalized peak
+
+// --- Compute envelope ---
+float absY = fabsf(y);
+agcEnv += (absY - agcEnv) * (absY > agcEnv ? agcAttack : agcRelease);
+
+// --- Update gain factor ---
+if (agcEnv > 0.0001f)
+    agcGain = targetPeak / agcEnv;
+
+// --- Scale to ±5V with headroom ±10V ---
+float scaledOutput = y * agcGain * 0.5f;
+scaledOutput = clamp(scaledOutput, -10.f, 10.f);
+
+outputs[OUT_OUTPUT].setVoltage(scaledOutput);
+
 }
 };
 
