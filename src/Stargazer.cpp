@@ -197,193 +197,206 @@ struct Stargazer : Module {
 	std::vector<std::vector<float>> wavetables; 
 	int tableSize = 600;       // samples per frame
 	int numTables = 88;        // total tables
-	float phase = 0.f;         // oscillator phase
 	float sampleRate = 44100.f; // default fallback
 
-	// Filter 1 AGC
-	float agcGain = 1.f;
-    float agcEnv = 0.f;
+	// --- Oscillator phases ---
+float phase1 = 0.f;
+float phase2 = 0.f;
 
-	// Sample rate reducer
-	float aliasCounter = 0.f;
-	float lastSample = 0.f;
+// --- Filter 1 state (biquad) ---
+float lp1_x1 = 0.f, lp1_x2 = 0.f, lp1_y1 = 0.f, lp1_y2 = 0.f;
 
-void process(const ProcessArgs& args) override {
-	if (wavetables.empty()) {
-		outputs[OUT_OUTPUT].setVoltage(0.f);
-		return;
-	}
+// --- Filter 2 state (biquad) ---
+float lp2_x1 = 0.f, lp2_x2 = 0.f, lp2_y1 = 0.f, lp2_y2 = 0.f;
 
-	sampleRate = 1.f / args.sampleTime;
+// --- AGC states for filter 1 ---
+float agcEnv1 = 0.f;
+float agcGain1 = 1.f;
 
-	// --- Frequency control (1–500 Hz base + 1V/oct CV) ---
-	float baseFreqParam = params[PITCH_PARAM].getValue();
-	float baseFreq = 1.f + baseFreqParam * (500.f - 1.f);
-	float pitchCV = inputs[PITCHCV_INPUT].isConnected() ? inputs[PITCHCV_INPUT].getVoltage() : 0.f;
-	float freq = clamp(baseFreq * std::pow(2.f, pitchCV), 1.f, 500.f);
+// --- AGC states for filter 2 ---
+float agcEnv2 = 0.f;
+float agcGain2 = 1.f;
 
-	// --- MAINWAVE_PARAM: 1–88 selection (morph) ---
-	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f + inputs[WAVECV_INPUT].getVoltage() / 10.0f, 0.0f, 1.0f) * 87.0f;
-	float wavePos = clamp(waveParam - 1.f, 0.f, numTables - 1.f);
-	int i0 = (int)wavePos;
-	int i1 = std::min(i0 + 1, numTables - 1);
-	float frac = wavePos - i0;
-
-	// --- Oscillator 1 ---
-	static float phase1 = 0.f;
-	phase1 += freq / sampleRate;
-	if (phase1 >= 1.f) phase1 -= 1.f;
-	float pos1 = phase1 * (tableSize - 1);
-	int idx0 = (int)pos1;
-	int idx1 = (idx0 + 1) % tableSize;
-	float fracPos = pos1 - idx0;
-	float s00 = wavetables[i0][idx0];
-	float s01 = wavetables[i0][idx1];
-	float s10 = wavetables[i1][idx0];
-	float s11 = wavetables[i1][idx1];
-	float a = s00 + (s01 - s00) * fracPos;
-	float b = s10 + (s11 - s10) * fracPos;
-	float osc1 = a + (b - a) * frac;
-
-	// --- Oscillator 2 (detuned + independent volume + sub) ---
-	float detune = params[DETUNE_PARAM].getValue(); // knob -1 → 1
-	if (inputs[DETUNECV_INPUT].isConnected())
-	    detune += inputs[DETUNECV_INPUT].getVoltage() / 5.f; // ±5V → ±1
-	detune = clamp(detune, -1.f, 1.f);
-	float freq2 = clamp(freq + detune * 5.f, 1.f, 500.f);
-
-	// Determine if sub oscillator is enabled
-	bool subEnabled = params[SUB_PARAM].getValue() > 0.5f;
-	if (inputs[SUBCV_INPUT].isConnected())
-	    subEnabled = inputs[SUBCV_INPUT].getVoltage() > 0.f;
-	if (subEnabled)
-	    freq2 *= 0.5f;
-
-	static float phase2 = 0.f;
-	phase2 += freq2 / sampleRate;
-	if (phase2 >= 1.f) phase2 -= 1.f;
-	float pos2 = phase2 * (tableSize - 1);
-	int idx20 = (int)pos2;
-	int idx21 = (idx20 + 1) % tableSize;
-	float fracPos2 = pos2 - idx20;
-	float s00_2 = wavetables[i0][idx20];
-	float s01_2 = wavetables[i0][idx21];
-	float s10_2 = wavetables[i1][idx20];
-	float s11_2 = wavetables[i1][idx21];
-	float a2_osc = s00_2 + (s01_2 - s00_2) * fracPos2;
-	float b2_osc = s10_2 + (s11_2 - s10_2) * fracPos2;
-	float osc2 = a2_osc + (b2_osc - a2_osc) * frac;
-
-	// --- Mix knob 0–1 plus CV ---
-	float mix = params[MIX_PARAM].getValue();
-	if (inputs[MIXCV_INPUT].isConnected())
-		mix += inputs[MIXCV_INPUT].getVoltage() / 10.f;
-	mix = clamp(mix, 0.f, 1.f);
-
-	// --- Oscillator mixer ---
-	float sample = osc1 + osc2 * mix;
-
-	// --- Filter cutoff and resonance ---
-	float cutoff = params[FREQ1_PARAM].getValue();
-	if (inputs[FREQ1CV_INPUT].isConnected())
-		cutoff += inputs[FREQ1CV_INPUT].getVoltage() / 10.f;
-	cutoff = clamp(cutoff, 0.f, 1.f);
-	float cutoffHz = 80.f * std::pow(5000.f / 80.f, cutoff); // logarithmic 80–5000 Hz
-
-// Resonance (RES1 knob + CV)
-	float res = params[RES1_PARAM].getValue();
-	if (inputs[RES1CV_INPUT].isConnected())
-    res += inputs[RES1CV_INPUT].getVoltage() / 10.f; // ±5V → ±0.5
-	res = clamp(res, 0.f, 1.f);
-	float Q = 1.f + res * (5.f - 1.f); // Q 1–5
-
-	// --- Resonant 12dB/oct biquad lowpass ---
-	static float lp_x1 = 0.f, lp_x2 = 0.f, lp_y1 = 0.f, lp_y2 = 0.f;
-	float w0 = 2.f * float(M_PI) * cutoffHz / sampleRate;
-	float alpha = sinf(w0) / (2.f * Q);
-	float cos_w0 = cosf(w0);
-
-	float fb0 = (1.f - cos_w0) / 2.f;
-	float fb1 = 1.f - cos_w0;
-	float fb2 = (1.f - cos_w0) / 2.f;
-	float fa0 = 1.f + alpha;
-	float fa1 = -2.f * cos_w0;
-	float fa2 = 1.f - alpha;
-
-	float y = (fb0/fa0)*sample + (fb1/fa0)*lp_x1 + (fb2/fa0)*lp_x2 - (fa1/fa0)*lp_y1 - (fa2/fa0)*lp_y2;
-
-	lp_x2 = lp_x1;
-	lp_x1 = sample;
-	lp_y2 = lp_y1;
-	lp_y1 = y;
-
-// --- AGC parameters ---
+// --- AGC parameters (shared) ---
 const float agcAttack = 0.001f;   // smoothing when signal rises
 const float agcRelease = 0.01f;   // smoothing when signal falls
 const float targetPeak = 0.8f;    // target normalized peak
 
-// --- Compute envelope ---
-float absY = fabsf(y);
-agcEnv += (absY - agcEnv) * (absY > agcEnv ? agcAttack : agcRelease);
+// Alias 
+float aliasCounter = 0.f;
+float lastSample = 0.f;
 
-// --- Update gain factor ---
-if (agcEnv > 0.0001f)
-    agcGain = targetPeak / agcEnv;
+void process(const ProcessArgs& args) override {
+    if (wavetables.empty()) {
+        outputs[OUT_OUTPUT].setVoltage(0.f);
+        return;
+    }
 
-// --- Scale to ±5V with headroom ±10V ---
-float scaledOutput = y * agcGain * 0.5f;
-scaledOutput = clamp(scaledOutput, -10.f, 10.f);
+    sampleRate = 1.f / args.sampleTime;
 
+    // --- Frequency control (1–500 Hz base + 1V/oct CV) ---
+    float baseFreqParam = params[PITCH_PARAM].getValue();
+    float baseFreq = 1.f + baseFreqParam * (500.f - 1.f);
+    float pitchCV = inputs[PITCHCV_INPUT].isConnected() ? inputs[PITCHCV_INPUT].getVoltage() : 0.f;
+    float freq = clamp(baseFreq * std::pow(2.f, pitchCV), 1.f, 500.f);
 
-// --- Alias knob with CV (reversed polarity) ---
-float aliasKnob = 1.f - params[ALIAS_PARAM].getValue(); // knob 0 = dry, 1 = fully wet
+    // --- MAINWAVE_PARAM: 1–88 selection (morph) ---
+    float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f +
+                                   inputs[WAVECV_INPUT].getVoltage() / 10.0f, 0.0f, 1.0f) * 87.0f;
+    float wavePos = clamp(waveParam - 1.f, 0.f, numTables - 1.f);
+    int i0 = (int)wavePos;
+    int i1 = std::min(i0 + 1, numTables - 1);
+    float frac = wavePos - i0;
 
-// Apply CV (-5V → +5V mapped to -0.5 → +0.5 range)
-if (inputs[ALIASCV_INPUT].isConnected())
-    aliasKnob += inputs[ALIASCV_INPUT].getVoltage() / 10.f; // reversed polarity for CV
+    // --- Oscillator 1 ---
+    phase1 += freq / sampleRate;
+    if (phase1 >= 1.f) phase1 -= 1.f;
+    float pos1 = phase1 * (tableSize - 1);
+    int idx0 = (int)pos1;
+    int idx1 = (idx0 + 1) % tableSize;
+    float fracPos = pos1 - idx0;
+    float s00 = wavetables[i0][idx0];
+    float s01 = wavetables[i0][idx1];
+    float s10 = wavetables[i1][idx0];
+    float s11 = wavetables[i1][idx1];
+    float a = s00 + (s01 - s00) * fracPos;
+    float b = s10 + (s11 - s10) * fracPos;
+    float osc1 = a + (b - a) * frac;
 
-aliasKnob = clamp(aliasKnob, 0.f, 1.f);
+    // --- Oscillator 2 (detuned + independent volume + sub) ---
+    float detune = params[DETUNE_PARAM].getValue();
+    if (inputs[DETUNECV_INPUT].isConnected())
+        detune += inputs[DETUNECV_INPUT].getVoltage() / 5.f; // ±5V → ±1
+    detune = clamp(detune, -1.f, 1.f);
+    float freq2 = clamp(freq + detune * 5.f, 1.f, 500.f);
 
-// --- Compute fadeFactor for first 5% of knob ---
-float fadeFactor = 1.f;
-if (aliasKnob <= 0.05f)
-    fadeFactor = aliasKnob / 0.05f; // 0 = fully dry, 0.05 = fully wet
+    bool subEnabled = params[SUB_PARAM].getValue() > 0.5f;
+    if (inputs[SUBCV_INPUT].isConnected())
+        subEnabled = inputs[SUBCV_INPUT].getVoltage() > 0.f;
+    if (subEnabled)
+        freq2 *= 0.5f;
 
-// --- Map knob + CV 0–1 → 18 kHz → 1 Hz linearly for sample rate reducer ---
-float aliasRate = 25.f + (18000.f - aliasKnob * (18000.f - 1.f)); // 0 = dry (18 kHz), 1 = fully wet (1 Hz)
+    phase2 += freq2 / sampleRate;
+    if (phase2 >= 1.f) phase2 -= 1.f;
+    float pos2 = phase2 * (tableSize - 1);
+    int idx20 = (int)pos2;
+    int idx21 = (idx20 + 1) % tableSize;
+    float fracPos2 = pos2 - idx20;
+    float s00_2 = wavetables[i0][idx20];
+    float s01_2 = wavetables[i0][idx21];
+    float s10_2 = wavetables[i1][idx20];
+    float s11_2 = wavetables[i1][idx21];
+    float a2_osc = s00_2 + (s01_2 - s00_2) * fracPos2;
+    float b2_osc = s10_2 + (s11_2 - s10_2) * fracPos2;
+    float osc2 = a2_osc + (b2_osc - a2_osc) * frac;
 
-// --- Sample & hold for rate reduction ---
-aliasCounter += aliasRate * args.sampleTime;
-if (aliasCounter >= 1.f) {
-    lastSample = scaledOutput; // scaledOutput is post-filter + AGC
-    aliasCounter -= 1.f;
-}
+    // --- Mix knob 0–1 plus CV ---
+    float mix = params[MIX_PARAM].getValue();
+    if (inputs[MIXCV_INPUT].isConnected())
+        mix += inputs[MIXCV_INPUT].getVoltage() / 10.f;
+    mix = clamp(mix, 0.f, 1.f);
 
-// --- Mix dry and wet signals using fadeFactor ---
-float finalOutput = scaledOutput * (1.f - fadeFactor) + lastSample * fadeFactor;
+    // --- Oscillator mixer ---
+    float sample = osc1 + osc2 * mix;
 
-// --- Redux switch + optional CV ---
-// Base switch value: 0 → 12 bits, max → 4 bits
-int reduxBitDepth = 12 - (int)params[REDUX_PARAM].getValue(); 
-reduxBitDepth = clamp(reduxBitDepth, 4, 12);
+    // --- Filter 1 cutoff + resonance ---
+    float cutoff = params[FREQ1_PARAM].getValue();
+    if (inputs[FREQ1CV_INPUT].isConnected())
+        cutoff += inputs[FREQ1CV_INPUT].getVoltage() / 10.f;
+    cutoff = clamp(cutoff, 0.f, 1.f);
+    float cutoffHz = 80.f * std::pow(5000.f / 80.f, cutoff);
+    float res = params[RES1_PARAM].getValue();
+    if (inputs[RES1CV_INPUT].isConnected())
+        res += inputs[RES1CV_INPUT].getVoltage() / 10.f;
+    res = clamp(res, 0.f, 1.f);
+    float Q = 1.f + res * 4.f;
 
-// Apply CV (-5V → 12 bits, +5V → 4 bits)
-if (inputs[REDUXCV_INPUT].isConnected()) {
-    float reduxCV = clamp(inputs[REDUXCV_INPUT].getVoltage(), -5.f, 5.f);
+    // --- Filter 1 biquad ---
+    float w0 = 2.f * float(M_PI) * cutoffHz / sampleRate;
+    float alpha = sinf(w0) / (2.f * Q);
+    float cos_w0 = cosf(w0);
+    float fb0 = (1.f - cos_w0) / 2.f;
+    float fb1 = 1.f - cos_w0;
+    float fb2 = (1.f - cos_w0) / 2.f;
+    float fa0 = 1.f + alpha;
+    float fa1 = -2.f * cos_w0;
+    float fa2 = 1.f - alpha;
+
+    float y = (fb0/fa0)*sample + (fb1/fa0)*lp1_x1 + (fb2/fa0)*lp1_x2 - (fa1/fa0)*lp1_y1 - (fa2/fa0)*lp1_y2;
+    lp1_x2 = lp1_x1; lp1_x1 = sample;
+    lp1_y2 = lp1_y1; lp1_y1 = y;
+
+    // --- AGC 1 ---
+    float absY = fabsf(y);
+    agcEnv1 += (absY - agcEnv1) * (absY > agcEnv1 ? agcAttack : agcRelease);
+    if (agcEnv1 > 0.0001f) agcGain1 = targetPeak / agcEnv1;
+    float scaledOutput = clamp(y * agcGain1 * 0.5f, -10.f, 10.f);
+
+    // --- Alias (sample rate reducer) ---
+    float aliasKnob = 1.f - params[ALIAS_PARAM].getValue();
+    if (inputs[ALIASCV_INPUT].isConnected())
+        aliasKnob += inputs[ALIASCV_INPUT].getVoltage() / 10.f;
+    aliasKnob = clamp(aliasKnob, 0.f, 1.f);
+
+    float fadeFactor = (aliasKnob <= 0.05f) ? (aliasKnob / 0.05f) : 1.f;
+    float aliasRate = 25.f + (18000.f - aliasKnob * (18000.f - 1.f));
+
+    aliasCounter += aliasRate * args.sampleTime;
+    if (aliasCounter >= 1.f) {
+        lastSample = scaledOutput;
+        aliasCounter -= 1.f;
+    }
+    float finalOutput = scaledOutput * (1.f - fadeFactor) + lastSample * fadeFactor;
+
+    // --- Redux bit reduction ---
+    int reduxBitDepth = 12 - (int)params[REDUX_PARAM].getValue();
+    reduxBitDepth = clamp(reduxBitDepth, 4, 12);
+    if (inputs[REDUXCV_INPUT].isConnected()) {
+        float reduxCV = clamp(inputs[REDUXCV_INPUT].getVoltage(), -5.f, 5.f);
+        reduxBitDepth = clamp((int)roundf(12.f - ((reduxCV + 5.f)/10.f)*(12.f-4.f)), 4, 12);
+    }
+    float maxVal = powf(2.f, reduxBitDepth - 1) - 1.f;
+    float normalized = clamp(finalOutput / 10.f, -1.f, 1.f);
+    float quantized = roundf(normalized * maxVal) / maxVal;
+    finalOutput = quantized * 10.f;
+
+    // --- Filter 2 cutoff + resonance (after bit reduction) ---
+    float cutoff2 = params[FREQ2_PARAM].getValue();
+    if (inputs[FREQ2CV_INPUT].isConnected())
+    cutoff2 += inputs[FREQ2CV_INPUT].getVoltage() / 10.f;
+    cutoff2 = clamp(cutoff2, 0.f, 1.f);
+    float cutoffHz2 = 80.f * powf(5000.f/80.f, cutoff2);
+
+    float res2 = params[RES2_PARAM].getValue();
+    if (inputs[RES2CV_INPUT].isConnected())
+    res2 += inputs[RES2CV_INPUT].getVoltage() / 10.f;
+    res2 = clamp(res2, 0.f, 1.f);
+    float Q2 = 1.f + res2 * 4.f;
+
+    float w0_2 = 2.f * float(M_PI) * cutoffHz2 / sampleRate;
+    float alpha2 = sinf(w0_2) / (2.f * Q2);
+    float cos_w0_2 = cosf(w0_2);
+    float fb0_2 = (1.f - cos_w0_2) / 2.f;
+    float fb1_2 = 1.f - cos_w0_2;
+    float fb2_2 = (1.f - cos_w0_2) / 2.f;
+    float fa0_2 = 1.f + alpha2;
+    float fa1_2 = -2.f * cos_w0_2;
+    float fa2_2 = 1.f - alpha2;
+
+    float y2 = (fb0_2/fa0_2)*finalOutput + (fb1_2/fa0_2)*lp2_x1 + (fb2_2/fa0_2)*lp2_x2
+               - (fa1_2/fa0_2)*lp2_y1 - (fa2_2/fa0_2)*lp2_y2;
+
+    lp2_x2 = lp2_x1; lp2_x1 = finalOutput;
+    lp2_y2 = lp2_y1; lp2_y1 = y2;
     
-    // Map -5V → 12, +5V → 4
-    int cvBitDepth = (int)roundf(12.f - ((reduxCV + 5.f) / 10.f) * (12.f - 4.f));
-    reduxBitDepth = clamp(cvBitDepth, 4, 12);
-}
+	/*
+    float absY2 = fabsf(y2);
+    agcEnv2 += (absY2 - agcEnv2) * (absY2 > agcEnv2 ? agcAttack : agcRelease);
+    if (agcEnv2 > 0.0001f) agcGain2 = targetPeak / agcEnv2;
+	*/
+    float finalOutput2 = clamp(y2 * 0.5f, -10.f, 10.f);
 
-// --- Apply bit reduction to finalOutput ---
-float maxVal = powf(2.f, reduxBitDepth - 1) - 1.f;  // max integer for bit depth
-float normalized = clamp(finalOutput / 10.f, -1.f, 1.f); // scale to ±1
-float quantized = roundf(normalized * maxVal) / maxVal; // quantize
-finalOutput = quantized * 10.f; // scale back to ±10V
-
-outputs[OUT_OUTPUT].setVoltage(finalOutput);
-
+    outputs[OUT_OUTPUT].setVoltage(finalOutput2);
 }
 };
 
