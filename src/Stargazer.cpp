@@ -124,7 +124,7 @@ struct Stargazer : Module {
 
 	Stargazer() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(PITCH_PARAM, 0.f, 1.f, 0.5f, "Pitch", "hz", 500.f, 1.f); // 1hz - 500hz
+		configParam(PITCH_PARAM, 0.f, 1.f, 0.1f, "Pitch", "hz", 500.f, 1.f); // 1hz - 500hz
 		configSwitch(SUB_PARAM, 0.f, 1.f, 0.f, "Sub Oscillator", {"Off", "On"}); // Turn osc2 into sub oscillator
 		configParam(MAINWAVE_PARAM, 1.f, 88.f, 0.f, "Wavetable Select"); // 1 - 88 morphing wavetable select
 		configParam(MIX_PARAM, 0.f, 1.f, 0.f, "Oscillator 2 Volume", "%", 0.f, 100.f); 
@@ -133,7 +133,7 @@ struct Stargazer : Module {
 		configParam(FREQ1_PARAM, 0.f, 1.f, 1.f, "Filter 1 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
 		configParam(RES1_PARAM, 0.f, 1.f, 0.f, "Filter 1 Resonance", "%", 0.f, 100.f); // Q 1-5
 
-		configParam(ALIAS_PARAM, 1.f, 0.f, 0.f, "Sample Rate", "hz", 878.04f, 20.5f); // 18khz - 1hz 
+		configParam(ALIAS_PARAM, 1.f, 0.f, 1.f, "Sample Rate", "hz", 878.04f, 20.5f); // 18khz - 1hz 
 		configSwitch(REDUX_PARAM, 0.f, 8.f, 0.f, "Bit Depth", {"12", "11", "10", "9", "8", "7", "6", "5", "4"});
 
 		configParam(FREQ2_PARAM, 0.f, 1.f, 1.f, "Filter 2 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
@@ -212,10 +212,6 @@ float lp2_x1 = 0.f, lp2_x2 = 0.f, lp2_y1 = 0.f, lp2_y2 = 0.f;
 // --- AGC states for filter 1 ---
 float agcEnv1 = 0.f;
 float agcGain1 = 1.f;
-
-// --- AGC states for filter 2 ---
-float agcEnv2 = 0.f;
-float agcGain2 = 1.f;
 
 // --- AGC parameters (shared) ---
 const float agcAttack = 0.001f;   // smoothing when signal rises
@@ -388,15 +384,21 @@ void process(const ProcessArgs& args) override {
 
     lp2_x2 = lp2_x1; lp2_x1 = finalOutput;
     lp2_y2 = lp2_y1; lp2_y1 = y2;
-    
-	/*
-    float absY2 = fabsf(y2);
-    agcEnv2 += (absY2 - agcEnv2) * (absY2 > agcEnv2 ? agcAttack : agcRelease);
-    if (agcEnv2 > 0.0001f) agcGain2 = targetPeak / agcEnv2;
-	*/
+
     float finalOutput2 = clamp(y2 * 0.5f, -10.f, 10.f);
 
-    outputs[OUT_OUTPUT].setVoltage(finalOutput2);
+// --- Final gain stage (1x → 100x) ---
+float gainKnob = params[GAIN_PARAM].getValue(); // 0–1
+float gain = 1.f + gainKnob * (100.f - 1.f);   // map 0–1 to 1→100x
+
+float clipped = clamp(finalOutput2 * gain, -10.f, 10.f);
+
+// --- Volume knob (0–1) applied after gain + clipping ---
+float volume = params[VOL_PARAM].getValue(); // 0–1
+
+float outputSignal = clipped * volume * 0.5f;
+
+outputs[OUT_OUTPUT].setVoltage(outputSignal);
 }
 };
 
