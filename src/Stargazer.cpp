@@ -485,18 +485,27 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
 
     float finalOutput2 = clamp(y2 * 0.5f, -10.f, 10.f);
 
-// --- Final gain stage (1x → 100x) ---
-float gainKnob = params[GAIN_PARAM].getValue(); // 0–1
-float gain = 1.f + gainKnob * (100.f - 1.f);   // map 0–1 to 1→100x
+// --- Final gain stage with CV (same behavior as filter CV) ---
+float gainControl = params[GAIN_PARAM].getValue();
+if (inputs[GAINCV_INPUT].isConnected())
+    gainControl += inputs[GAINCV_INPUT].getVoltage() / 10.f;
+gainControl = clamp(gainControl, 0.f, 1.f);
+float gain = 1.f + gainControl * (100.f - 1.f);
 
+// Apply gain and clip
 float clipped = clamp(finalOutput2 * gain, -10.f, 10.f);
 
-// --- Volume knob (0–1) applied after gain + clipping ---
-float volume = params[VOL_PARAM].getValue(); // 0–1
+// --- Volume control with CV (same behavior as filter CV) ---
+float volControl = params[VOL_PARAM].getValue();
+if (inputs[VOLUMECV_INPUT].isConnected())
+    volControl += inputs[VOLUMECV_INPUT].getVoltage() / 10.f;
+volControl = clamp(volControl, 0.f, 1.f);
 
-float outputSignal = clipped * volume * 0.5f;
+// Apply volume scaling
+float outputSignal = clipped * volControl * 0.5f;
 
 outputs[OUT_OUTPUT].setVoltage(outputSignal);
+
 }
 };
 
