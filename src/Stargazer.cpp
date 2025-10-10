@@ -205,64 +205,86 @@ void process(const ProcessArgs& args) override {
 		return;
 	}
 
-	// --- Sample rate correction ---
 	sampleRate = 1.f / args.sampleTime;
 
 	// --- Frequency control (1–500 Hz base + 1V/oct CV) ---
-	float baseFreqParam = params[PITCH_PARAM].getValue(); // 0–1
-	float baseFreq = 1.f + baseFreqParam * (500.f - 1.f); // Map knob 0–1 → 1–500 Hz
+	float baseFreqParam = params[PITCH_PARAM].getValue();
+	float baseFreq = 1.f + baseFreqParam * (500.f - 1.f);
+	float pitchCV = inputs[PITCHCV_INPUT].isConnected() ? inputs[PITCHCV_INPUT].getVoltage() : 0.f;
+	float freq = clamp(baseFreq * std::pow(2.f, pitchCV), 1.f, 500.f);
 
-	// Read pitch CV (1V/oct), default 0 V
-	float pitchCV = 0.f;
-	if (inputs[PITCHCV_INPUT].isConnected())
-		pitchCV = inputs[PITCHCV_INPUT].getVoltage(); // volts
-
-	// Apply exponential 1V/oct scaling
-	float freq = baseFreq * std::pow(2.f, pitchCV);
-
-	// Clamp to safe oscillator range
-	freq = clamp(freq, 1.f, 500.f);
-
-	// Main Wave Knob + CV 
-	//float waveParam = params[MAINWAVE_PARAM].getValue(); // 1–88
-
-	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f + inputs[WAVECV_INPUT].getVoltage() / 10.0f, 0.0f, 1.0f) * 87.0f;
-	
 	// --- MAINWAVE_PARAM: 1–88 selection (morph) ---
+	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f + inputs[WAVECV_INPUT].getVoltage() / 10.0f, 0.0f, 1.0f) * 87.0f;
 	float wavePos = clamp(waveParam - 1.f, 0.f, numTables - 1.f);
 	int i0 = (int)wavePos;
 	int i1 = std::min(i0 + 1, numTables - 1);
 	float frac = wavePos - i0;
 
-	// --- Phase increment (pitch stable across sample rates) ---
-	float phaseInc = freq / sampleRate;
-	phase += phaseInc;
-	if (phase >= 1.f)
-		phase -= 1.f;
-
-	// --- Lookup position within table ---
-	float pos = phase * (tableSize - 1);
-	int idx0 = (int)pos;
+	// --- Oscillator 1 ---
+	static float phase1 = 0.f;
+	phase1 += freq / sampleRate;
+	if (phase1 >= 1.f) phase1 -= 1.f;
+	float pos1 = phase1 * (tableSize - 1);
+	int idx0 = (int)pos1;
 	int idx1 = (idx0 + 1) % tableSize;
-	float fracPos = pos - idx0;
+	float fracPos = pos1 - idx0;
 
-	// --- Interpolate within tables ---
 	float s00 = wavetables[i0][idx0];
 	float s01 = wavetables[i0][idx1];
 	float s10 = wavetables[i1][idx0];
 	float s11 = wavetables[i1][idx1];
-
-	// Interpolate between samples (horizontal)
 	float a = s00 + (s01 - s00) * fracPos;
 	float b = s10 + (s11 - s10) * fracPos;
+	float osc1 = a + (b - a) * frac;
 
-	// Interpolate between tables (vertical morph)
-	float sample = a + (b - a) * frac;
+	// --- Oscillator 2 (detuned + independent volume + sub) ---
+	float detune = params[DETUNE_PARAM].getValue(); // knob -1 → 1
+	if (inputs[DETUNECV_INPUT].isConnected())
+	    detune += inputs[DETUNECV_INPUT].getVoltage() / 5.f; // ±5V → ±1
+	detune = clamp(detune, -1.f, 1.f);
+	float detuneHz = detune * 5.f; // scale to ±5 Hz
+
+	float freq2 = clamp(freq + detuneHz, 1.f, 500.f);
+
+	// Determine if sub oscillator is enabled
+	bool subEnabled = params[SUB_PARAM].getValue() > 0.5f; // switch
+	if (inputs[SUBCV_INPUT].isConnected()) {
+	    float subCV = inputs[SUBCV_INPUT].getVoltage(); // -5V → 5V
+	    subEnabled = subCV > 0.f; // CV overrides switch state
+	}
+
+	// Apply sub octave drop if enabled
+	if (subEnabled) {
+	    freq2 *= 0.5f;
+	}
+
+	static float phase2 = 0.f;
+	phase2 += freq2 / sampleRate;
+	if (phase2 >= 1.f) phase2 -= 1.f;
+	float pos2 = phase2 * (tableSize - 1);
+	int idx20 = (int)pos2;
+	int idx21 = (idx20 + 1) % tableSize;
+	float fracPos2 = pos2 - idx20;
+
+	float s00_2 = wavetables[i0][idx20];
+	float s01_2 = wavetables[i0][idx21];
+	float s10_2 = wavetables[i1][idx20];
+	float s11_2 = wavetables[i1][idx21];
+	float a2 = s00_2 + (s01_2 - s00_2) * fracPos2;
+	float b2 = s10_2 + (s11_2 - s10_2) * fracPos2;
+	float osc2 = a2 + (b2 - a2) * frac;
+
+	// --- Mix knob 0–1 plus CV ---
+	float mix = params[MIX_PARAM].getValue();
+	if (inputs[MIXCV_INPUT].isConnected())
+		mix += inputs[MIXCV_INPUT].getVoltage() / 10.f; // ±5V → ±0.5
+	mix = clamp(mix, 0.f, 1.f);
+
+	// --- Output: osc1 full volume + osc2 * mix ---
+	float sample = osc1 + osc2 * mix;
 
 	// --- Scale output to ±5 V ---
 	sample *= 5.f;
-
-	// --- Output final waveform ---
 	outputs[OUT_OUTPUT].setVoltage(sample);
 }
 };
