@@ -495,7 +495,7 @@ float volume = params[VOL_PARAM].getValue(); // 0–1
 
 float outputSignal = clipped * volume * 0.5f;
 
-outputs[OUT_OUTPUT].setVoltage(outputSignal);
+outputs[OUT_OUTPUT].setVoltage(outputSignal * (1.f - params[DEPTH2_PARAM].getValue() * (lfo2Value / 5.f)));
 }
 };
 
