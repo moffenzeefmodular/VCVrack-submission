@@ -222,6 +222,13 @@ const float targetPeak = 0.8f;    // target normalized peak
 float aliasCounter = 0.f;
 float lastSample = 0.f;
 
+// LFO1 member variables
+float lfo1Phase = 0.f;
+float lfo1LastValue = 0.f;      // last output (already exists)
+float lfo1StepCounter = 1.f;    // for stepped random waveform
+float lfo1RandValue = 0.f;      // for stepped random waveform
+
+
 void process(const ProcessArgs& args) override {
     if (wavetables.empty()) {
         outputs[OUT_OUTPUT].setVoltage(0.f);
@@ -399,6 +406,53 @@ float volume = params[VOL_PARAM].getValue(); // 0–1
 float outputSignal = clipped * volume * 0.5f;
 
 outputs[OUT_OUTPUT].setVoltage(outputSignal);
+
+// MODULATION SECTION 
+
+// LFO1
+float lfo1Rate = params[RATE1_PARAM].getValue();
+if (inputs[LFO1RATECV_INPUT].isConnected())
+    lfo1Rate += inputs[LFO1RATECV_INPUT].getVoltage() / 10.f;
+lfo1Rate = clamp(lfo1Rate, 0.f, 1.f);
+
+float lfo1Freq = 0.05f * powf(50.f / 0.05f, lfo1Rate);
+
+float lfo1Depth = params[DEPTH1_PARAM].getValue();
+if (inputs[LFO1DEPTHCV_INPUT].isConnected())
+    lfo1Depth += inputs[LFO1DEPTHCV_INPUT].getVoltage() / 10.f;
+lfo1Depth = clamp(lfo1Depth, 0.f, 1.f);
+
+lfo1Phase += lfo1Freq * args.sampleTime;
+if (lfo1Phase >= 1.f) lfo1Phase -= 1.f;
+
+float lfo1Value = 0.f;
+
+int lfo1Wave = clamp((int)roundf(params[WAVE1_PARAM].getValue() +
+    (inputs[LFO1WAVECV_INPUT].isConnected() ? clamp(inputs[LFO1WAVECV_INPUT].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
+
+switch (lfo1Wave) {
+    case 0: lfo1Value = sinf(2.f * float(M_PI) * lfo1Phase); break;
+    case 1: lfo1Value = 1.f - 4.f * fabsf(lfo1Phase - 0.5f); break;
+    case 2: lfo1Value = 2.f * lfo1Phase - 1.f; break;
+    case 3: lfo1Value = 1.f - 2.f * lfo1Phase; break;
+    case 4: lfo1Value = (lfo1Phase < 0.5f) ? 1.f : -1.f; break;
+    case 5:
+        if (lfo1StepCounter >= 1.f) {
+            lfo1RandValue = 2.f * ((float)rand() / RAND_MAX) - 1.f;
+            lfo1StepCounter -= 1.f;
+        }
+        lfo1StepCounter += lfo1Freq * args.sampleTime;
+        lfo1Value = lfo1RandValue;
+        break;
+}
+
+lfo1Value *= lfo1Depth * 5.f;
+
+outputs[LFO1OUT_OUTPUT].setVoltage(lfo1Value);
+
+float lfo1Led = clamp(fabsf(lfo1Value) / 5.f, 0.f, 1.f);
+lights[LFO1LED_LIGHT].setBrightness(lfo1Led);
+
 }
 };
 
