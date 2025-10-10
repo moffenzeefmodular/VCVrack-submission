@@ -66,52 +66,60 @@ struct Stargazer : Module {
 
 	Stargazer() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(PITCH_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(SUB_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(DETUNE_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(VOL_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(MAINWAVE_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(REDUX_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(MIX_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(FREQ1_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(FREQ2_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(ALIAS_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(RES2_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(RES1_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(DEPTH2_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(WAVE1_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(DEPTH3_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(RATE2_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(WAVE2_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(RATE1_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(RATE3_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(WAVE3_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(DEPTH1_PARAM, 0.f, 1.f, 0.f, "");
-		configInput(PITCHCV_INPUT, "");
-		configInput(SUBCV_INPUT, "");
-		configInput(WAVECV_INPUT, "");
-		configInput(MIXCV_INPUT, "");
-		configInput(DETUNECV_INPUT, "");
-		configInput(FREQ1CV_INPUT, "");
-		configInput(RES1CV_INPUT, "");
-		configInput(ALIASCV_INPUT, "");
-		configInput(REDUXCV_INPUT, "");
-		configInput(FREQ2CV_INPUT, "");
-		configInput(RES2CV_INPUT, "");
-		configInput(LFO1WAVECV_INPUT, "");
-		configInput(LFO1RATECV_INPUT, "");
-		configInput(LFO1DEPTHCV_INPUT, "");
-		configInput(LFO2WAVECV_INPUT, "");
-		configInput(LFO2RATECV_INPUT, "");
-		configInput(LFO2DEPTHCV_INPUT, "");
-		configInput(LFO3WAVECV_INPUT, "");
-		configInput(LFO3RATECV_INPUT, "");
-		configInput(LFO3DEPTHCV_INPUT, "");
-		configOutput(OUT_OUTPUT, "");
-		configOutput(LFO1OUT_OUTPUT, "");
-		configOutput(LFO2OUT_OUTPUT, "");
-		configOutput(LFO3OUT_OUTPUT, "");
+		configParam(PITCH_PARAM, 0.f, 1.f, 0.5f, "Pitch", "hz", 500.f, 1.f); // 1hz - 500hz
+		configSwitch(SUB_PARAM, 0.f, 1.f, 0.f, "Sub Oscillator", {"Off", "On"}); // Turn osc2 into sub oscillator
+		configParam(MAINWAVE_PARAM, 1.f, 88.f, 0.f, "Wavetable Select"); // 1 - 88 morphing wavetable select
+		configParam(MIX_PARAM, 0.f, 1.f, 0.f, "Oscillator 2 Volume", "%", 0.f, 100.f); 
+		configParam(DETUNE_PARAM, -1.f, 1.f, 0.f, "Oscillator 2 Detune", "hz", 0.f, 5.f); // +/-5hz 
+
+		configParam(FREQ1_PARAM, 0.f, 1.f, 1.f, "Filter 1 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
+		configParam(RES1_PARAM, 0.f, 1.f, 0.f, "Filter 1 Resonance", "%", 0.f, 100.f); // Q 1-5
+
+		configParam(ALIAS_PARAM, 1.f, 0.f, 0.f, "Sample Rate", "hz", 18000.f, 1.f); // 18khz - 1hz 
+		configSwitch(REDUX_PARAM, 0.f, 12.f, 0.f, "Bit Depth", {"12", "11", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"});
+
+		configParam(FREQ2_PARAM, 0.f, 1.f, 1.f, "Filter 2 Cutoff", "hz", 62.5f, 80.f); // 80hz - 5khz
+		configParam(RES2_PARAM, 0.f, 1.f, 0.f, "Filter 2 Resonance", "%", 0.f, 100.f); // Q 1-5
+
+		configSwitch(WAVE1_PARAM, 0.f, 5.f, 0.f, "LFO 1 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"} );
+		configParam(RATE1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Frequency", "hz", 1000.f, 0.05f); // 0.05hz - 50hz
+		configParam(DEPTH1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Depth", "%", 0.f, 100.f);
+
+		configSwitch(WAVE2_PARAM, 0.f, 5.f, 0.f, "LFO 2 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"});
+		configParam(RATE2_PARAM, 0.f, 1.f, 0.f, "LFO 2 Frequency", "hz", 1000.f, 0.05f); // 0.05hz - 50hz
+		configParam(DEPTH2_PARAM, 0.f, 1.f, 0.f, "LFO 2 Depth", "%", 0.f, 100.f);
+
+		configSwitch(WAVE3_PARAM, 0.f, 5.f, 0.f, "LFO 3 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"});
+		configParam(RATE3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Frequency", "hz", 1000.f, 0.05f); // 0.05hz - 50hz
+		configParam(DEPTH3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Depth", "%", 0.f, 100.f);
+
+		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 100.f, 1.f); // Unity - 100x gain 
+		configParam(VOL_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
+
+		configInput(PITCHCV_INPUT, "1v/Oct");
+		configInput(SUBCV_INPUT, "Sub CV");
+		configInput(WAVECV_INPUT, "Wave CV");
+		configInput(MIXCV_INPUT, "Mix CV");
+		configInput(DETUNECV_INPUT, "Detune CV");
+		configInput(FREQ1CV_INPUT, "Filter 1 Cutoff CV");
+		configInput(RES1CV_INPUT, "Filter 1 Resonance CV");
+		configInput(ALIASCV_INPUT, "Alias CV");
+		configInput(REDUXCV_INPUT, "Redux CV");
+		configInput(FREQ2CV_INPUT, "Filter 2 Cutoff CV");
+		configInput(RES2CV_INPUT, "Filter 2 Resonance CV");
+		configInput(LFO1WAVECV_INPUT, "LFO 1 Waveshape CV");
+		configInput(LFO1RATECV_INPUT, "LFO 1 Rate CV");
+		configInput(LFO1DEPTHCV_INPUT, "LFO 1 Depth CV");
+		configInput(LFO2WAVECV_INPUT, "LFO 2 Waveshape CV");
+		configInput(LFO2RATECV_INPUT, "LFO 2 Rate CV");
+		configInput(LFO2DEPTHCV_INPUT, "LFO 2 Depth CV");
+		configInput(LFO3WAVECV_INPUT, "LFO 3 Waveshape CV");
+		configInput(LFO3RATECV_INPUT, "LFO 3 Rate CV");
+		configInput(LFO3DEPTHCV_INPUT, "LFO 3 Depth CV");
+		configOutput(OUT_OUTPUT, "Audio");
+		configOutput(LFO1OUT_OUTPUT, "LFO 1");
+		configOutput(LFO2OUT_OUTPUT, "LFO 2");
+		configOutput(LFO3OUT_OUTPUT, "LFO 3");
 	}
 
 	void process(const ProcessArgs& args) override {
