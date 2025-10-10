@@ -1,5 +1,63 @@
 #include "plugin.hpp"
 
+#include <fstream>
+#include <vector>
+#include <string>
+
+// --- Minimal WAV file reader (mono, 16-bit or 32-bit float) ---
+static bool loadWavetableFile(const std::string& path, std::vector<float>& outSamples) {
+	std::ifstream file(path, std::ios::binary);
+	if (!file)
+		return false;
+
+	char riff[4];
+	file.read(riff, 4);
+	if (std::strncmp(riff, "RIFF", 4) != 0)
+		return false;
+
+	file.seekg(22);
+	uint16_t channels;
+	file.read(reinterpret_cast<char*>(&channels), 2);
+	if (channels != 1)
+		return false; // must be mono
+
+	uint32_t sampleRate;
+	file.read(reinterpret_cast<char*>(&sampleRate), 4);
+
+	file.seekg(34);
+	uint16_t bitsPerSample;
+	file.read(reinterpret_cast<char*>(&bitsPerSample), 2);
+
+	file.seekg(36);
+	char dataHeader[4];
+	while (true) {
+		file.read(dataHeader, 4);
+		uint32_t chunkSize;
+		file.read(reinterpret_cast<char*>(&chunkSize), 4);
+		if (std::strncmp(dataHeader, "data", 4) == 0) {
+			break;
+		}
+		file.seekg(chunkSize, std::ios::cur);
+	}
+
+	std::vector<char> buffer((std::istreambuf_iterator<char>(file)), {});
+	size_t numSamples = buffer.size() / (bitsPerSample / 8);
+	outSamples.resize(numSamples);
+
+	if (bitsPerSample == 16) {
+		const int16_t* src = reinterpret_cast<const int16_t*>(buffer.data());
+		for (size_t i = 0; i < numSamples; i++)
+			outSamples[i] = src[i] / 32768.f;
+	} else if (bitsPerSample == 32) {
+		const float* src = reinterpret_cast<const float*>(buffer.data());
+		for (size_t i = 0; i < numSamples; i++)
+			outSamples[i] = src[i];
+	} else {
+		return false;
+	}
+
+	return true;
+}
 
 struct Stargazer : Module {
 	enum ParamId {
@@ -120,10 +178,89 @@ struct Stargazer : Module {
 		configOutput(LFO1OUT_OUTPUT, "LFO 1");
 		configOutput(LFO2OUT_OUTPUT, "LFO 2");
 		configOutput(LFO3OUT_OUTPUT, "LFO 3");
+
+
+		std::string path = asset::plugin(pluginInstance, "res/wavetables/StargazerWavetables.wav");
+
+		std::vector<float> samples;
+		if (loadWavetableFile(path, samples)) {
+			numTables = samples.size() / tableSize;
+			wavetables.resize(numTables);
+			for (int i = 0; i < numTables; i++) {
+				wavetables[i].assign(samples.begin() + i * tableSize,
+		        samples.begin() + (i + 1) * tableSize);
+			}
+		}
 	}
 
-	void process(const ProcessArgs& args) override {
+	std::vector<std::vector<float>> wavetables; 
+	int tableSize = 600;       // samples per frame
+	int numTables = 88;        // total tables
+	float phase = 0.f;         // oscillator phase
+	float sampleRate = 44100.f; // default fallback
+
+void process(const ProcessArgs& args) override {
+	if (wavetables.empty()) {
+		outputs[OUT_OUTPUT].setVoltage(0.f);
+		return;
 	}
+
+	// --- Sample rate correction ---
+	sampleRate = 1.f / args.sampleTime;
+
+	// --- Frequency control (1–500 Hz base + 1V/oct CV) ---
+	float baseFreqParam = params[PITCH_PARAM].getValue(); // 0–1
+	float baseFreq = 1.f + baseFreqParam * (500.f - 1.f); // Map knob 0–1 → 1–500 Hz
+
+	// Read pitch CV (1V/oct), default 0 V
+	float pitchCV = 0.f;
+	if (inputs[PITCHCV_INPUT].isConnected())
+		pitchCV = inputs[PITCHCV_INPUT].getVoltage(); // volts
+
+	// Apply exponential 1V/oct scaling
+	float freq = baseFreq * std::pow(2.f, pitchCV);
+
+	// Clamp to safe oscillator range
+	freq = clamp(freq, 1.f, 500.f);
+
+	// --- MAINWAVE_PARAM: 1–88 selection (morph) ---
+	float waveParam = params[MAINWAVE_PARAM].getValue(); // 1–88
+	float wavePos = clamp(waveParam - 1.f, 0.f, numTables - 1.f);
+	int i0 = (int)wavePos;
+	int i1 = std::min(i0 + 1, numTables - 1);
+	float frac = wavePos - i0;
+
+	// --- Phase increment (pitch stable across sample rates) ---
+	float phaseInc = freq / sampleRate;
+	phase += phaseInc;
+	if (phase >= 1.f)
+		phase -= 1.f;
+
+	// --- Lookup position within table ---
+	float pos = phase * (tableSize - 1);
+	int idx0 = (int)pos;
+	int idx1 = (idx0 + 1) % tableSize;
+	float fracPos = pos - idx0;
+
+	// --- Interpolate within tables ---
+	float s00 = wavetables[i0][idx0];
+	float s01 = wavetables[i0][idx1];
+	float s10 = wavetables[i1][idx0];
+	float s11 = wavetables[i1][idx1];
+
+	// Interpolate between samples (horizontal)
+	float a = s00 + (s01 - s00) * fracPos;
+	float b = s10 + (s11 - s10) * fracPos;
+
+	// Interpolate between tables (vertical morph)
+	float sample = a + (b - a) * frac;
+
+	// --- Scale output to ±5 V ---
+	sample *= 5.f;
+
+	// --- Output final waveform ---
+	outputs[OUT_OUTPUT].setVoltage(sample);
+}
 };
 
 
