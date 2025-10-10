@@ -332,9 +332,10 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     float pitchCV = inputs[PITCHCV_INPUT].isConnected() ? inputs[PITCHCV_INPUT].getVoltage() : 0.f;
     float freq = clamp(baseFreq * std::pow(2.f, pitchCV), 1.f, 500.f);
 
-    // --- MAINWAVE_PARAM: 1–88 selection (morph) ---
-    float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f +
-                                   inputs[WAVECV_INPUT].getVoltage() / 10.0f, 0.0f, 1.0f) * 87.0f;
+	float waveCV = inputs[WAVECV_INPUT].isConnected() ? inputs[WAVECV_INPUT].getVoltage() : (lfo1Value * 0.2f);
+	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f +
+								   waveCV / 10.0f, 0.0f, 1.0f) * 87.0f;
+	
     float wavePos = clamp(waveParam - 1.f, 0.f, numTables - 1.f);
     int i0 = (int)wavePos;
     int i1 = std::min(i0 + 1, numTables - 1);
