@@ -223,8 +223,12 @@ void process(const ProcessArgs& args) override {
 	// Clamp to safe oscillator range
 	freq = clamp(freq, 1.f, 500.f);
 
+	// Main Wave Knob + CV 
+	//float waveParam = params[MAINWAVE_PARAM].getValue(); // 1–88
+
+	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f + inputs[WAVECV_INPUT].getVoltage() / 10.0f, 0.0f, 1.0f) * 87.0f;
+	
 	// --- MAINWAVE_PARAM: 1–88 selection (morph) ---
-	float waveParam = params[MAINWAVE_PARAM].getValue(); // 1–88
 	float wavePos = clamp(waveParam - 1.f, 0.f, numTables - 1.f);
 	int i0 = (int)wavePos;
 	int i1 = std::min(i0 + 1, numTables - 1);
