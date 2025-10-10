@@ -116,9 +116,12 @@ struct Stargazer : Module {
 		OUTPUTS_LEN
 	};
 	enum LightId {
-		LFO2LED_LIGHT,
-		LFO1LED_LIGHT,
-		LFO3LED_LIGHT,
+		LFO1LEDRED_LIGHT,
+		LFO1LEDGREEN_LIGHT,
+		LFO2LEDRED_LIGHT,
+		LFO2LEDGREEN_LIGHT,
+		LFO3LEDRED_LIGHT,
+		LFO3LEDGREEN_LIGHT,
 		LIGHTS_LEN
 	};
 
@@ -250,7 +253,7 @@ void process(const ProcessArgs& args) override {
 auto processLFO = [&](int rateParam, int depthParam, int waveParam,
                       int rateCV, int depthCV, int waveCV,
                       float& phase, float& stepCounter, float& randValue,
-                      int outId, int ledId,
+                      int outId, int ledRedId, int ledGreenId,
                       float* outValue = nullptr) {
     float rate = params[rateParam].getValue();
     if (inputs[rateCV].isConnected()) rate += inputs[rateCV].getVoltage() / 10.f;
@@ -268,46 +271,51 @@ auto processLFO = [&](int rateParam, int depthParam, int waveParam,
                  (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f)/2.f : 0.f)), 0, 5);
 
     float value = 0.f;
-switch (wave) {
-    case 0: value = sinf(2.f * float(M_PI) * phase); break;
-    case 1: value = 1.f - 4.f * fabsf(phase - 0.5f); break;
-    case 2: value = 2.f * phase - 1.f; break;
-    case 3: value = 1.f - 2.f * phase; break;
-    case 4: value = (phase < 0.5f) ? 1.f : -1.f; break;
-    case 5:
-        if (stepCounter >= 1.f) {
-            randValue = 2.f*((float)rand()/RAND_MAX)-1.f;
-            stepCounter -= 1.f;
-        }
-        stepCounter += freq * args.sampleTime * 2.f; // double frequency
-        value = randValue;
-        break;
-}
+    switch (wave) {
+        case 0: value = sinf(2.f * float(M_PI) * phase); break;
+        case 1: value = 1.f - 4.f * fabsf(phase - 0.5f); break;
+        case 2: value = 2.f * phase - 1.f; break;
+        case 3: value = 1.f - 2.f * phase; break;
+        case 4: value = (phase < 0.5f) ? 1.f : -1.f; break;
+        case 5:
+            if (stepCounter >= 1.f) {
+                randValue = 2.f*((float)rand()/RAND_MAX)-1.f;
+                stepCounter -= 1.f;
+            }
+            stepCounter += freq * args.sampleTime * 2.f; // double frequency for stepped random
+            value = randValue;
+            break;
+    }
 
     value *= depth * 5.f;
     outputs[outId].setVoltage(value);
-lights[ledId].setBrightnessSmooth(clamp(value / 5.f, 0.f, 1.f), args.sampleTime);
+
+    // LED logic: green = positive, red = negative
+    lights[ledGreenId].setBrightnessSmooth(clamp(value / 5.f, 0.f, 1.f), args.sampleTime);
+    lights[ledRedId].setBrightnessSmooth(clamp(-value / 5.f, 0.f, 1.f), args.sampleTime);
 
     if (outValue)
         *outValue = value;
 };
 
-// Call all three LFOs and capture their values
+// Call all three LFOs with both LED IDs
 processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM,
            LFO1RATECV_INPUT, LFO1DEPTHCV_INPUT, LFO1WAVECV_INPUT,
            lfo1Phase, lfo1StepCounter, lfo1RandValue,
-           LFO1OUT_OUTPUT, LFO1LED_LIGHT, &lfo1Value);
+           LFO1OUT_OUTPUT, LFO1LEDRED_LIGHT, LFO1LEDGREEN_LIGHT, &lfo1Value);
 
 processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM,
            LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT,
            lfo2Phase, lfo2StepCounter, lfo2RandValue,
-           LFO2OUT_OUTPUT, LFO2LED_LIGHT, &lfo2Value);
+           LFO2OUT_OUTPUT, LFO2LEDRED_LIGHT, LFO2LEDGREEN_LIGHT, &lfo2Value);
 
 processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
            LFO3RATECV_INPUT, LFO3DEPTHCV_INPUT, LFO3WAVECV_INPUT,
            lfo3Phase, lfo3StepCounter, lfo3RandValue,
-           LFO3OUT_OUTPUT, LFO3LED_LIGHT, &lfo3Value);
+           LFO3OUT_OUTPUT, LFO3LEDRED_LIGHT, LFO3LEDGREEN_LIGHT, &lfo3Value);
 
+
+	// START OF AUDIO SECTION 
     if (wavetables.empty()) {
         outputs[OUT_OUTPUT].setVoltage(0.f);
         return;
@@ -559,9 +567,14 @@ struct StargazerWidget : ModuleWidget {
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 98.217)), module, Stargazer::LFO2OUT_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 121.17)), module, Stargazer::LFO3OUT_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(69.881, 80.617)), module, Stargazer::LFO2LED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.873, 99.304)), module, Stargazer::LFO1LED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(121.456, 105.787)), module, Stargazer::LFO3LED_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.873, 99.304)), module, Stargazer::LFO1LEDRED_LIGHT));
+		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(8.873, 99.304)), module, Stargazer::LFO1LEDGREEN_LIGHT));
+
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(69.881, 80.617)), module, Stargazer::LFO2LEDRED_LIGHT));
+		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(69.881, 80.617)), module, Stargazer::LFO2LEDGREEN_LIGHT));
+
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(121.456, 105.787)), module, Stargazer::LFO3LEDRED_LIGHT));
+		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(121.456, 105.787)), module, Stargazer::LFO3LEDGREEN_LIGHT));
 	}
 };
 
