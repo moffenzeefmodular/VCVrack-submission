@@ -456,6 +456,7 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     float cutoff2 = params[FREQ2_PARAM].getValue();
     if (inputs[FREQ2CV_INPUT].isConnected())
     cutoff2 += inputs[FREQ2CV_INPUT].getVoltage() / 10.f;
+	cutoff2 += lfo3Value / 10.f;  // scale ±5V → ±0.5 and sum with cutoff (0–1)
     cutoff2 = clamp(cutoff2, 0.f, 1.f);
     float cutoffHz2 = 80.f * powf(5000.f/80.f, cutoff2);
 
