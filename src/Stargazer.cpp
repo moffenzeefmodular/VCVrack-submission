@@ -62,6 +62,7 @@ static bool loadWavetableFile(const std::string& path, std::vector<float>& outSa
 struct Stargazer : Module {
 	enum ParamId {
 		PITCH_PARAM,
+        FM_PARAM,
 		GAIN_PARAM,
 		SUB_PARAM,
 		DETUNE_PARAM,
@@ -92,6 +93,7 @@ struct Stargazer : Module {
 	};
 	enum InputId {
 		PITCHCV_INPUT,
+        FMCV_INPUT,
 		SUBCV_INPUT,
 		WAVECV_INPUT,
 		MIXCV_INPUT,
@@ -136,6 +138,8 @@ struct Stargazer : Module {
 	Stargazer() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(PITCH_PARAM, 0.f, 1.f, 0.1f, "Pitch", "hz", 500.f, 1.f); // 1hz - 500hz
+        configParam(FM_PARAM, 0.f, 1.f, 0.1f, "FM", "%", 0.f, 100.f); // FM Attenuator
+
 		configSwitch(SUB_PARAM, 0.f, 1.f, 0.f, "Sub Oscillator", {"Off", "On"}); // Turn osc2 into sub oscillator
 		configParam(MAINWAVE_PARAM, 1.f, 88.f, 0.f, "Wavetable Select"); // 1 - 88 morphing wavetable select
 		configParam(MIX_PARAM, 0.f, 1.f, 0.f, "Oscillator 2 Volume", "%", 0.f, 100.f); 
@@ -178,6 +182,7 @@ struct Stargazer : Module {
 		configInput(MIXCV_INPUT, "Mix CV");
 		configInput(DETUNECV_INPUT, "Detune CV");
 		configInput(FREQ1CV_INPUT, "Filter 1 Cutoff CV");
+        configInput(FMCV_INPUT, "FM CV");
 		configInput(RES1CV_INPUT, "Filter 1 Resonance CV");
 		configInput(ALIASCV_INPUT, "Alias CV");
 		configInput(REDUXCV_INPUT, "Redux CV");
@@ -675,11 +680,13 @@ struct StargazerWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(26.918, 12.382)), module, Stargazer::PITCH_PARAM));
+        addParam(createParamCentered<_9mmKnob>(mm2px(Vec(47.715, 8.739)), module, Stargazer::FM_PARAM));
+
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(96.236, 14.975)), module, Stargazer::GAIN_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(10.681, 32.195)), module, Stargazer::MAINWAVE_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(122.509, 27.037)), module, Stargazer::VOL_PARAM));
 
-		addParam(createParamCentered<_2Pos>(mm2px(Vec(40.889, 17.855)), module, Stargazer::SUB_PARAM));
+		addParam(createParamCentered<_2Pos>(mm2px(Vec(40.613, 16.470)), module, Stargazer::SUB_PARAM));
 
 		addParam(createParamCentered<_3Pos>(mm2px(Vec(13.450, 113.833)), module, Stargazer::RANGE1_PARAM));
 		addParam(createParamCentered<_3Pos>(mm2px(Vec(67.963, 101.533)), module, Stargazer::RANGE2_PARAM));
@@ -712,6 +719,8 @@ struct StargazerWidget : ModuleWidget {
 		addParam(createParamCentered<StargazerLFOKnob>(mm2px(Vec(40.523, 112.668)), module, Stargazer::DEPTH1_PARAM));
 		
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 12.362)), module, Stargazer::PITCHCV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 12.362)), module, Stargazer::FMCV_INPUT));
+
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 12.362)), module, Stargazer::SUBCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 23.389)), module, Stargazer::WAVECV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 23.389)), module, Stargazer::MIXCV_INPUT));
