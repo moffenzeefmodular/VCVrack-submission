@@ -155,19 +155,19 @@ struct Stargazer : Module {
 		configParam(DEPTH1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Depth", "%", 0.f, 100.f);
 
 		configSwitch(WAVE2_PARAM, 0.f, 5.f, 0.f, "LFO 2 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"});
-		configParam(RATE2_PARAM, 0.f, 1.f, 0.f, "LFO 2 Frequency", "hz", 1000.f, 0.05f); // 0.05hz - 50hz
+		configParam(RATE2_PARAM, 0.f, 1.f, 0.f, "LFO 2 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH2_PARAM, 0.f, 1.f, 0.f, "LFO 2 Depth", "%", 0.f, 100.f);
 
 		configSwitch(WAVE3_PARAM, 0.f, 5.f, 0.f, "LFO 3 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"});
-		configParam(RATE3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Frequency", "hz", 1000.f, 0.05f); // 0.05hz - 50hz
+		configParam(RATE3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Depth", "%", 0.f, 100.f);
 
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 100.f, 1.f); // Unity - 100x gain 
 		configParam(VOL_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
 
-		configSwitch(RANGE1_PARAM, 0.f, 2.f, 0.f, "LFO 1 Range", {"Low", "Medium", "High"});
-		configSwitch(RANGE2_PARAM, 0.f, 2.f, 0.f, "LFO 2 Range", {"Low", "Medium", "High"});
-		configSwitch(RANGE3_PARAM, 0.f, 2.f, 0.f, "LFO 3 Range", {"Low", "Medium", "High"});
+		configSwitch(RANGE1_PARAM, 0.f, 2.f, 0.f, "LFO 1 Range", {"Slow", "Medium", "Fast"});
+		configSwitch(RANGE2_PARAM, 0.f, 2.f, 1.f, "LFO 2 Range", {"Slow", "Medium", "Fast"});
+		configSwitch(RANGE3_PARAM, 0.f, 2.f, 1.f, "LFO 3 Range", {"Slow", "Medium", "Fast"});
 
 		configInput(PITCHCV_INPUT, "1v/Oct");
 		configInput(SUBCV_INPUT, "Sub CV");
@@ -264,25 +264,61 @@ bool lfo1SlowRange = true;
 
 void process(const ProcessArgs& args) override {
 
-// MODULATION SECTION 
 auto processLFO = [&](int rateParam, int depthParam, int waveParam,
                       int rateCV, int depthCV, int waveCV,
                       float& phase, float& stepCounter, float& randValue,
                       int outId, int ledRedId, int ledGreenId,
+                      int rangeParam, // new: LFO range switch
                       float* outValue = nullptr) {
+
     float rate = params[rateParam].getValue();
     if (inputs[rateCV].isConnected()) rate += inputs[rateCV].getVoltage() / 10.f;
     rate = clamp(rate, 0.f, 1.f);
-float freq;
-    freq = 0.05f * powf(50.f / 0.05f, rate);
 
+    // Determine frequency range based on range switch
+    float minFreq = 0.05f;
+    float maxFreq = 50.f;
+    int range = (int)params[rangeParam].getValue(); // 0,1,2 for three positions
+    switch (range) {
+        case 0: minFreq = 0.01f; maxFreq = 0.1f; break;   // Range1
+        case 1: minFreq = 0.01f; maxFreq = 10.f; break;   // Range2
+        case 2: minFreq = 0.05f; maxFreq = 50.f; break;   // Range3
+    }
+    float freq = minFreq * powf(maxFreq / minFreq, rate);
+
+// --- Dynamically update knob display based on LFO's range switch ---
+if (paramQuantities.size() > rateParam) {
+    auto* q = paramQuantities[rateParam];
+
+    // Read the LFO's range switch
+    int lfoRange = (int)params[rangeParam].getValue();
+
+    switch (lfoRange) {
+        case 0: // Slow range
+            q->displayBase = 10.f;
+            q->displayMultiplier = 0.01f; 
+            break;
+        case 1: // Medium range
+            q->displayBase = 200.f;
+            q->displayMultiplier = 0.05f;
+            break;
+        case 2: // Fast range
+            q->displayBase = 1000.f;
+            q->displayMultiplier = 0.05f;
+            break;
+    }
+}
+
+    // Depth
     float depth = params[depthParam].getValue();
     if (inputs[depthCV].isConnected()) depth += inputs[depthCV].getVoltage() / 10.f;
     depth = clamp(depth, 0.f, 1.f);
 
+    // Phase increment
     phase += freq * args.sampleTime;
     if (phase >= 1.f) phase -= 1.f;
 
+    // Waveform selection
     int wave = clamp((int)roundf(params[waveParam].getValue() +
                  (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f)/2.f : 0.f)), 0, 5);
 
@@ -298,7 +334,7 @@ float freq;
                 randValue = 2.f*((float)rand()/RAND_MAX)-1.f;
                 stepCounter -= 1.f;
             }
-            stepCounter += freq * args.sampleTime * 2.f; // double frequency for stepped random
+            stepCounter += freq * args.sampleTime * 2.f;
             value = randValue;
             break;
     }
@@ -306,7 +342,7 @@ float freq;
     value *= depth * 5.f;
     outputs[outId].setVoltage(value);
 
-    // LED logic: green = positive, red = negative
+    // LED logic
     lights[ledGreenId].setBrightnessSmooth(clamp(value / 5.f, 0.f, 1.f), args.sampleTime);
     lights[ledRedId].setBrightnessSmooth(clamp(-value / 5.f, 0.f, 1.f), args.sampleTime);
 
@@ -314,21 +350,23 @@ float freq;
         *outValue = value;
 };
 
-// Call all three LFOs with both LED IDs
 processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM,
            LFO1RATECV_INPUT, LFO1DEPTHCV_INPUT, LFO1WAVECV_INPUT,
            lfo1Phase, lfo1StepCounter, lfo1RandValue,
-           LFO1OUT_OUTPUT, LFO1LEDRED_LIGHT, LFO1LEDGREEN_LIGHT, &lfo1Value);
+           LFO1OUT_OUTPUT, LFO1LEDRED_LIGHT, LFO1LEDGREEN_LIGHT,
+           RANGE1_PARAM, &lfo1Value);
 
 processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM,
            LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT,
            lfo2Phase, lfo2StepCounter, lfo2RandValue,
-           LFO2OUT_OUTPUT, LFO2LEDRED_LIGHT, LFO2LEDGREEN_LIGHT, &lfo2Value);
+           LFO2OUT_OUTPUT, LFO2LEDRED_LIGHT, LFO2LEDGREEN_LIGHT,
+           RANGE2_PARAM, &lfo2Value);
 
 processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
            LFO3RATECV_INPUT, LFO3DEPTHCV_INPUT, LFO3WAVECV_INPUT,
            lfo3Phase, lfo3StepCounter, lfo3RandValue,
-           LFO3OUT_OUTPUT, LFO3LEDRED_LIGHT, LFO3LEDGREEN_LIGHT, &lfo3Value);
+           LFO3OUT_OUTPUT, LFO3LEDRED_LIGHT, LFO3LEDGREEN_LIGHT,
+           RANGE3_PARAM, &lfo3Value);
 
 
 	// START OF AUDIO SECTION 
