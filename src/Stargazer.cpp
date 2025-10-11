@@ -113,6 +113,7 @@ struct Stargazer : Module {
 		LFO3WAVECV_INPUT,
 		LFO3RATECV_INPUT,
 		LFO3DEPTHCV_INPUT,
+        WIDTHCV_INPUT,
 		GAINCV_INPUT,
 		VOLUMECV_INPUT,
 		INPUTS_LEN
@@ -197,6 +198,7 @@ struct Stargazer : Module {
 		configInput(LFO3WAVECV_INPUT, "LFO 3 Waveshape CV");
 		configInput(LFO3RATECV_INPUT, "LFO 3 Rate CV");
 		configInput(LFO3DEPTHCV_INPUT, "LFO 3 Depth CV");
+        configInput(WIDTHCV_INPUT, "Width CV");
 		configInput(GAINCV_INPUT, "Gain CV");
 		configInput(VOLUMECV_INPUT, "Volume CV");
 		configOutput(OUTL_OUTPUT, "Audio Left");
@@ -731,7 +733,8 @@ struct StargazerWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 47.866)), module, Stargazer::REDUXCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 47.866)), module, Stargazer::FREQ2CV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.591, 47.866)), module, Stargazer::RES2CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.489, 60.158)), module, Stargazer::GAINCV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.489, 60.158)), module, Stargazer::WIDTHCV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 60.158)), module, Stargazer::GAINCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.804, 60.158)), module, Stargazer::VOLUMECV_INPUT));
 
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(138.373, 76.628)), module, Stargazer::LFO1WAVECV_INPUT));
