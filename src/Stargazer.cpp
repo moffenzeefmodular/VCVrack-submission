@@ -289,7 +289,7 @@ auto processLFO = [&](int rateParam, int depthParam, int waveParam,
     float freq = minFreq * powf(maxFreq / minFreq, rate);
 
 // --- Dynamically update knob display based on LFO's range switch ---
-if (paramQuantities.size() > rateParam) {
+if (paramQuantities.size() > (size_t)rateParam) {
     auto* q = paramQuantities[rateParam];
 
     // Read the LFO's range switch
