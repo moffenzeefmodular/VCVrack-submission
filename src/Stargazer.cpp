@@ -83,6 +83,7 @@ struct Stargazer : Module {
 		RATE3_PARAM,
 		WAVE3_PARAM,
 		DEPTH1_PARAM,
+		FILTERMODE_PARAM,
 		PARAMS_LEN
 	};
 	enum InputId {
@@ -137,6 +138,8 @@ struct Stargazer : Module {
 
 		configParam(FREQ1_PARAM, 0.f, 1.f, 1.f, "Filter 1 Cutoff", "hz", 200.f, 80.f); // 80hz - 16khz
 		configParam(RES1_PARAM, 0.f, 1.f, 0.f, "Filter 1 Resonance", "%", 0.f, 100.f); // Q 1-5
+
+		configSwitch(FILTERMODE_PARAM, 0.f, 4.f, 0.f, "Filter Mode", {"Lowpass", "Bandpass", "Notch", "Highpass", "Off"});
 
 		configParam(ALIAS_PARAM, 1.f, 0.f, 1.f, "Sample Rate", "hz", 878.04f, 20.5f); // 18khz - 1hz 
 		configSwitch(REDUX_PARAM, 0.f, 8.f, 0.f, "Bit Depth", {"12", "11", "10", "9", "8", "7", "6", "5", "4"});
@@ -584,6 +587,8 @@ struct StargazerWidget : ModuleWidget {
 
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(16.256, 53.107)), module, Stargazer::FREQ1_PARAM));
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(96.873, 53.957)), module, Stargazer::FREQ2_PARAM));
+
+		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(25.744, 70.211)), module, Stargazer::FILTERMODE_PARAM));
 
 		addParam(createParamCentered<BefacoBigKnobBlack>(mm2px(Vec(60.422, 55.071)), module, Stargazer::ALIAS_PARAM));
 

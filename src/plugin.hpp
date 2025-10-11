@@ -96,6 +96,15 @@ struct MediumKnob : SvgKnob {
 	}
 };
 
+struct _9mmKnob : SvgKnob {
+	widget::SvgWidget* bg;
+	_9mmKnob() {
+		minAngle = -0.85 * M_PI;
+		maxAngle = 0.85 * M_PI;
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/9mm_Knob.svg")));
+	}
+};
+
 struct StargazerDavies : SvgKnob {
 	widget::SvgWidget* bg;
 	StargazerDavies() {
