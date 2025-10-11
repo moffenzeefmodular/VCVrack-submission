@@ -142,7 +142,7 @@ struct Stargazer : Module {
 		configSwitch(FILTERMODE_PARAM, 0.f, 4.f, 0.f, "Filter Mode", {"Lowpass", "Bandpass", "Notch", "Highpass", "Off"});
 
 		configParam(ALIAS_PARAM, 1.f, 0.f, 1.f, "Sample Rate", "hz", 878.04f, 20.5f); // 18khz - 1hz 
-		configSwitch(REDUX_PARAM, 0.f, 8.f, 0.f, "Bit Depth", {"12", "11", "10", "9", "8", "7", "6", "5", "4"});
+		configSwitch(REDUX_PARAM, 0.f, 12.f, 0.f, "Bit Depth", {"16", "15", "14", "13", "12", "11", "10", "9", "8", "7", "6", "5", "4"});
 
 		configParam(FREQ2_PARAM, 0.f, 1.f, 1.f, "Filter 2 Cutoff", "hz", 200.f, 80.f); // 80hz - 5khz
 		configParam(RES2_PARAM, 0.f, 1.f, 0.f, "Filter 2 Resonance", "%", 0.f, 100.f); // Q 1-5
@@ -524,11 +524,11 @@ if (mode != 4) {
     float finalOutput = scaledOutput * (1.f - fadeFactor) + lastSample * fadeFactor;
 
     // --- Redux bit reduction ---
-    int reduxBitDepth = 12 - (int)params[REDUX_PARAM].getValue();
-    reduxBitDepth = clamp(reduxBitDepth, 4, 12);
+    int reduxBitDepth = 16 - (int)params[REDUX_PARAM].getValue();
+    reduxBitDepth = clamp(reduxBitDepth, 4, 16);
     if (inputs[REDUXCV_INPUT].isConnected()) {
         float reduxCV = clamp(inputs[REDUXCV_INPUT].getVoltage(), -5.f, 5.f);
-        reduxBitDepth = clamp((int)roundf(12.f - ((reduxCV + 5.f)/10.f)*(12.f-4.f)), 4, 12);
+        reduxBitDepth = clamp((int)roundf(16.f - ((reduxCV + 5.f)/10.f)*(16.f-4.f)), 4, 16);
     }
     float maxVal = powf(2.f, reduxBitDepth - 1) - 1.f;
     float normalized = clamp(finalOutput / 10.f, -1.f, 1.f);
