@@ -145,7 +145,7 @@ struct Stargazer : Module {
 		configParam(RES2_PARAM, 0.f, 1.f, 0.f, "Filter 2 Resonance", "%", 0.f, 100.f); // Q 1-5
 
 		configSwitch(WAVE1_PARAM, 0.f, 5.f, 0.f, "LFO 1 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"} );
-		configParam(RATE1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Frequency", "hz", 1000.f, 0.05f); // 0.05hz - 50hz
+		configParam(RATE1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Depth", "%", 0.f, 100.f);
 
 		configSwitch(WAVE2_PARAM, 0.f, 5.f, 0.f, "LFO 2 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Random"});
@@ -249,6 +249,8 @@ float lfo3StepCounter = 1.f;    // for stepped random waveform
 float lfo3RandValue = 0.f;      // for stepped random waveform
 float lfo3Value = 0.f;
 
+// GUI
+bool lfo1SlowRange = true;
 
 void process(const ProcessArgs& args) override {
 
@@ -261,7 +263,25 @@ auto processLFO = [&](int rateParam, int depthParam, int waveParam,
     float rate = params[rateParam].getValue();
     if (inputs[rateCV].isConnected()) rate += inputs[rateCV].getVoltage() / 10.f;
     rate = clamp(rate, 0.f, 1.f);
-    float freq = 0.05f * powf(50.f / 0.05f, rate);
+float freq;
+if (rateParam == RATE1_PARAM) {
+    // Determine LFO1 waveform (0 = sine, 1 = tri, 2 = ramp up, 3 = ramp down, 4 = square, 5 = random)
+    int currentWave = clamp((int)roundf(params[waveParam].getValue() +
+                      (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
+
+    if (currentWave == 4 || currentWave == 5) {
+        // Square or random → normal fast range (0.05–50 Hz)
+        freq = 0.05f * powf(50.f / 0.05f, rate);
+        lfo1SlowRange = false;
+    } else {
+        // All other shapes → slow range (0.01–0.1 Hz)
+        freq = 0.01f * powf(0.1f / 0.01f, rate);
+        lfo1SlowRange = true;
+    }
+} else {
+    // LFO2 and LFO3 normal range (0.05–50 Hz)
+    freq = 0.05f * powf(50.f / 0.05f, rate);
+}
 
     float depth = params[depthParam].getValue();
     if (inputs[depthCV].isConnected()) depth += inputs[depthCV].getVoltage() / 10.f;
@@ -307,6 +327,20 @@ processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM,
            lfo1Phase, lfo1StepCounter, lfo1RandValue,
            LFO1OUT_OUTPUT, LFO1LEDRED_LIGHT, LFO1LEDGREEN_LIGHT, &lfo1Value);
 
+// --- Dynamically update LFO1 frequency display scaling ---
+if (paramQuantities.size() > RATE1_PARAM) {
+    auto* q = paramQuantities[RATE1_PARAM];
+    if (lfo1SlowRange) {
+		q->displayBase = 10.f; 
+		q->displayMultiplier = 0.01f;  
+    } else {
+        // Fast range: 0.05–50 Hz
+		q->displayBase = 1000.f; 
+        q->displayMultiplier = 0.05f;  
+    }
+}
+
+
 processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM,
            LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT,
            lfo2Phase, lfo2StepCounter, lfo2RandValue,
@@ -332,7 +366,7 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     float pitchCV = inputs[PITCHCV_INPUT].isConnected() ? inputs[PITCHCV_INPUT].getVoltage() : 0.f;
     float freq = clamp(baseFreq * std::pow(2.f, pitchCV), 1.f, 500.f);
 
-	float waveCV = inputs[WAVECV_INPUT].isConnected() ? inputs[WAVECV_INPUT].getVoltage() : (lfo1Value * 0.2f);
+	float waveCV = inputs[WAVECV_INPUT].isConnected() ? inputs[WAVECV_INPUT].getVoltage() : lfo1Value;
 	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f +
 								   waveCV / 10.0f, 0.0f, 1.0f) * 87.0f;
 	
