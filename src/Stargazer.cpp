@@ -61,6 +61,7 @@ static bool loadWavetableFile(const std::string& path, std::vector<float>& outSa
 
 struct Stargazer : Module {
 	enum ParamId {
+        WIDTH_PARAM,
 		PITCH_PARAM,
         FM_PARAM,
 		GAIN_PARAM,
@@ -170,6 +171,7 @@ struct Stargazer : Module {
 		configParam(RATE3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Depth", "%", 0.f, 100.f);
 
+        configParam(WIDTH_PARAM, 0.f, 1.f, 0.f, "Width", "%", 0.f, 100.f); // Unity - 100x gain 
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 100.f, 1.f); // Unity - 100x gain 
 		configParam(VOL_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
 
@@ -683,6 +685,8 @@ struct StargazerWidget : ModuleWidget {
 
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(26.918, 12.382)), module, Stargazer::PITCH_PARAM));
         addParam(createParamCentered<_9mmKnob>(mm2px(Vec(47.715, 8.739)), module, Stargazer::FM_PARAM));
+
+        addParam(createParamCentered<_9mmKnob>(mm2px(Vec(78.869, 10.580)), module, Stargazer::WIDTH_PARAM));
 
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(96.236, 14.975)), module, Stargazer::GAIN_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(10.681, 32.195)), module, Stargazer::MAINWAVE_PARAM));
