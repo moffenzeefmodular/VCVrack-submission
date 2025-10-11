@@ -116,7 +116,8 @@ struct Stargazer : Module {
 		INPUTS_LEN
 	};
 	enum OutputId {
-		OUT_OUTPUT,
+		OUTL_OUTPUT,
+        OUTR_OUTPUT,
 		LFO1OUT_OUTPUT,
 		LFO2OUT_OUTPUT,
 		LFO3OUT_OUTPUT,
@@ -193,7 +194,8 @@ struct Stargazer : Module {
 		configInput(LFO3DEPTHCV_INPUT, "LFO 3 Depth CV");
 		configInput(GAINCV_INPUT, "Gain CV");
 		configInput(VOLUMECV_INPUT, "Volume CV");
-		configOutput(OUT_OUTPUT, "Audio");
+		configOutput(OUTL_OUTPUT, "Audio Left");
+        configOutput(OUTR_OUTPUT, "Audio Right");
 		configOutput(LFO1OUT_OUTPUT, "LFO 1");
 		configOutput(LFO2OUT_OUTPUT, "LFO 2");
 		configOutput(LFO3OUT_OUTPUT, "LFO 3");
@@ -372,11 +374,6 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
 
 
 	// START OF AUDIO SECTION 
-    if (wavetables.empty()) {
-        outputs[OUT_OUTPUT].setVoltage(0.f);
-        return;
-    }
-
     sampleRate = 1.f / args.sampleTime;
 
     // --- Frequency control (1–500 Hz base + 1V/oct CV) ---
@@ -658,7 +655,7 @@ volControl = clamp(volControl, 0.f, 1.f);
 // Apply final volume scaling
 float outputSignal = tremoloSignal * volControl;
 
-outputs[OUT_OUTPUT].setVoltage(outputSignal);
+outputs[OUTL_OUTPUT].setVoltage(outputSignal);
 
 }
 };
@@ -740,7 +737,9 @@ struct StargazerWidget : ModuleWidget {
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(147.477, 102.503)), module, Stargazer::LFO2DEPTHCV_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(156.615, 102.503)), module, Stargazer::LFO3DEPTHCV_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.955, 9.29)), module, Stargazer::OUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(110.173, 6.085)), module, Stargazer::OUTL_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.641, 8.975)), module, Stargazer::OUTR_OUTPUT));
+
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(138.373, 114.98)), module, Stargazer::LFO1OUT_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(147.477, 115.02)), module, Stargazer::LFO2OUT_OUTPUT));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(156.615, 115.092)), module, Stargazer::LFO3OUT_OUTPUT));
