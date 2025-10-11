@@ -138,7 +138,7 @@ struct Stargazer : Module {
 	Stargazer() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(PITCH_PARAM, 0.f, 1.f, 0.1f, "Pitch", "hz", 500.f, 1.f); // 1hz - 500hz
-        configParam(FM_PARAM, 0.f, 1.f, 0.1f, "FM", "%", 0.f, 100.f); // FM Attenuator
+        configParam(FM_PARAM, 0.f, 1.f, 0.f, "FM", "%", 0.f, 100.f); // FM Attenuator
 
 		configSwitch(SUB_PARAM, 0.f, 1.f, 0.f, "Sub Oscillator", {"Off", "On"}); // Turn osc2 into sub oscillator
 		configParam(MAINWAVE_PARAM, 1.f, 88.f, 0.f, "Wavetable Select"); // 1 - 88 morphing wavetable select
