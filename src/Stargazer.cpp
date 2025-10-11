@@ -632,7 +632,7 @@ struct StargazerWidget : ModuleWidget {
 
 		addParam(createParamCentered<_3Pos>(mm2px(Vec(13.450, 113.833)), module, Stargazer::RANGE1_PARAM));
 		addParam(createParamCentered<_3Pos>(mm2px(Vec(67.963, 101.533)), module, Stargazer::RANGE2_PARAM));
-		//addParam(createParamCentered<_3Pos>(mm2px(Vec(40.889, 17.855)), module, Stargazer::RANGE3_PARAM));
+		addParam(createParamCentered<_3Pos>(mm2px(Vec(102.129, 113.242)), module, Stargazer::RANGE3_PARAM));
 
 
 		addParam(createParamCentered<MediumKnob>(mm2px(Vec(55.727, 21.557)), module, Stargazer::DETUNE_PARAM));
