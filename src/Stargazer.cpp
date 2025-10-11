@@ -443,26 +443,69 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     res = clamp(res, 0.f, 1.f);
     float Q = 1.f + res * 4.f;
 
-    // --- Filter 1 biquad ---
-    float w0 = 2.f * float(M_PI) * cutoffHz / sampleRate;
-    float alpha = sinf(w0) / (2.f * Q);
-    float cos_w0 = cosf(w0);
-    float fb0 = (1.f - cos_w0) / 2.f;
-    float fb1 = 1.f - cos_w0;
-    float fb2 = (1.f - cos_w0) / 2.f;
-    float fa0 = 1.f + alpha;
-    float fa1 = -2.f * cos_w0;
-    float fa2 = 1.f - alpha;
+// --- Filter 1 biquad with selectable mode + gain normalization ---
+int mode = (int) params[FILTERMODE_PARAM].getValue(); 
+// 0 = Lowpass, 1 = Bandpass, 2 = Notch, 3 = Highpass, 4 = Off
 
-    float y = (fb0/fa0)*sample + (fb1/fa0)*lp1_x1 + (fb2/fa0)*lp1_x2 - (fa1/fa0)*lp1_y1 - (fa2/fa0)*lp1_y2;
+float y = sample; // default passthrough
+if (mode != 4) {
+    float w0 = 2.f * float(M_PI) * cutoffHz / sampleRate;
+    float cos_w0 = cosf(w0);
+    float sin_w0 = sinf(w0);
+    float alpha = sin_w0 / (2.f * Q);
+
+    float b0, b1, b2, a0, a1, a2;
+    switch (mode) {
+        case 0: // Lowpass
+            b0 = (1.f - cos_w0) / 2.f;
+            b1 = 1.f - cos_w0;
+            b2 = (1.f - cos_w0) / 2.f;
+            break;
+        case 1: // Bandpass
+            b0 = sin_w0 / 2.f;
+            b1 = 0.f;
+            b2 = -sin_w0 / 2.f;
+            break;
+        case 2: // Notch
+            b0 = 1.f;
+            b1 = -2.f * cos_w0;
+            b2 = 1.f;
+            break;
+        case 3: // Highpass
+            b0 = (1.f + cos_w0) / 2.f;
+            b1 = -(1.f + cos_w0);
+            b2 = (1.f + cos_w0) / 2.f;
+            break;
+    }
+
+    a0 = 1.f + alpha;
+    a1 = -2.f * cos_w0;
+    a2 = 1.f - alpha;
+
+    // biquad process
+    y = (b0/a0)*sample + (b1/a0)*lp1_x1 + (b2/a0)*lp1_x2
+        - (a1/a0)*lp1_y1 - (a2/a0)*lp1_y2;
+
     lp1_x2 = lp1_x1; lp1_x1 = sample;
     lp1_y2 = lp1_y1; lp1_y1 = y;
 
-    // --- AGC 1 ---
-    float absY = fabsf(y);
-    agcEnv1 += (absY - agcEnv1) * (absY > agcEnv1 ? agcAttack : agcRelease);
-    if (agcEnv1 > 0.0001f) agcGain1 = targetPeak / agcEnv1;
-    float scaledOutput = clamp(y * agcGain1 * 0.5f, -10.f, 10.f);
+    // --- normalize per mode to reduce internal gain differences ---
+    float normGain = 1.f;
+    switch (mode) {
+        case 0: normGain = 1.0f; break;   // LP
+        case 1: normGain = 0.5f; break;   // BP
+        case 2: normGain = 0.8f; break;   // Notch
+        case 3: normGain = 1.0f; break;   // HP
+    }
+    y *= normGain;
+
+    // soft limit before AGC (prevents overshoot)
+    y = tanhf(y * 0.8f) * 1.25f;
+}
+
+    // --- Fixed attenuator (replaces AGC) ---
+    // keeps consistent output level without dynamic gain riding
+    float scaledOutput = clamp(y, -10.f, 10.f);
 
     // --- Alias (sample rate reducer) ---
     float aliasKnob = 1.f - params[ALIAS_PARAM].getValue();
@@ -527,11 +570,10 @@ float gainControl = params[GAIN_PARAM].getValue();
 if (inputs[GAINCV_INPUT].isConnected())
     gainControl += inputs[GAINCV_INPUT].getVoltage() / 10.f;
 gainControl = clamp(gainControl, 0.f, 1.f);
-float gain = 1.f + gainControl * (100.f - 1.f);
+float gain = 19.f + gainControl * 100.f;
 
 // Apply gain and clip
 float clipped = clamp(finalOutput2 * gain, -10.f, 10.f);
-
 
 
 // --- LFO2 Tremolo (pre-volume) ---
@@ -553,7 +595,7 @@ if (inputs[VOLUMECV_INPUT].isConnected())
 volControl = clamp(volControl, 0.f, 1.f);
 
 // Apply final volume scaling
-float outputSignal = tremoloSignal * volControl * 0.5f;
+float outputSignal = tremoloSignal * volControl;
 
 outputs[OUT_OUTPUT].setVoltage(outputSignal);
 
