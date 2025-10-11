@@ -84,6 +84,9 @@ struct Stargazer : Module {
 		WAVE3_PARAM,
 		DEPTH1_PARAM,
 		FILTERMODE_PARAM,
+		RANGE1_PARAM,
+		RANGE2_PARAM,
+		RANGE3_PARAM, 
 		PARAMS_LEN
 	};
 	enum InputId {
@@ -161,6 +164,10 @@ struct Stargazer : Module {
 
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 100.f, 1.f); // Unity - 100x gain 
 		configParam(VOL_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
+
+		configSwitch(RANGE1_PARAM, 0.f, 2.f, 0.f, "LFO 1 Range", {"Low", "Medium", "High"});
+		configSwitch(RANGE2_PARAM, 0.f, 2.f, 0.f, "LFO 2 Range", {"Low", "Medium", "High"});
+		configSwitch(RANGE3_PARAM, 0.f, 2.f, 0.f, "LFO 3 Range", {"Low", "Medium", "High"});
 
 		configInput(PITCHCV_INPUT, "1v/Oct");
 		configInput(SUBCV_INPUT, "Sub CV");
@@ -622,6 +629,11 @@ struct StargazerWidget : ModuleWidget {
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(122.509, 27.037)), module, Stargazer::VOL_PARAM));
 
 		addParam(createParamCentered<_2Pos>(mm2px(Vec(40.889, 17.855)), module, Stargazer::SUB_PARAM));
+
+		addParam(createParamCentered<_3Pos>(mm2px(Vec(13.450, 113.833)), module, Stargazer::RANGE1_PARAM));
+		//addParam(createParamCentered<_2Pos>(mm2px(Vec(40.889, 17.855)), module, Stargazer::RANGE2_PARAM));
+		//addParam(createParamCentered<_2Pos>(mm2px(Vec(40.889, 17.855)), module, Stargazer::RANGE3_PARAM));
+
 
 		addParam(createParamCentered<MediumKnob>(mm2px(Vec(55.727, 21.557)), module, Stargazer::DETUNE_PARAM));
 		addParam(createParamCentered<MediumKnob>(mm2px(Vec(35.809, 36.884)), module, Stargazer::MIX_PARAM));
