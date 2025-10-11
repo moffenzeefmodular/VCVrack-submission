@@ -168,7 +168,7 @@ struct Stargazer : Module {
 		configParam(VOL_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
 
 		configSwitch(RANGE1_PARAM, 0.f, 2.f, 0.f, "LFO 1 Range", {"Slow", "Medium", "Fast"});
-		configSwitch(RANGE2_PARAM, 0.f, 2.f, 1.f, "LFO 2 Range", {"Slow", "Medium", "Fast"});
+		configSwitch(RANGE2_PARAM, 0.f, 2.f, 2.f, "LFO 2 Range", {"Slow", "Medium", "Fast"});
 		configSwitch(RANGE3_PARAM, 0.f, 2.f, 1.f, "LFO 3 Range", {"Slow", "Medium", "Fast"});
 
 		configInput(PITCHCV_INPUT, "1v/Oct");
@@ -563,23 +563,68 @@ if (mode != 4) {
     res2 = clamp(res2, 0.f, 1.f);
     float Q2 = 1.f + res2 * 4.f;
 
-    float w0_2 = 2.f * float(M_PI) * cutoffHz2 / sampleRate;
-    float alpha2 = sinf(w0_2) / (2.f * Q2);
-    float cos_w0_2 = cosf(w0_2);
-    float fb0_2 = (1.f - cos_w0_2) / 2.f;
-    float fb1_2 = 1.f - cos_w0_2;
-    float fb2_2 = (1.f - cos_w0_2) / 2.f;
-    float fa0_2 = 1.f + alpha2;
-    float fa1_2 = -2.f * cos_w0_2;
-    float fa2_2 = 1.f - alpha2;
+   // --- Filter 2 biquad with selectable mode + gain normalization ---
+int mode2 = (int) params[FILTERMODE2_PARAM].getValue(); 
+// 0 = Lowpass, 1 = Bandpass, 2 = Notch, 3 = Highpass, 4 = Off
 
-    float y2 = (fb0_2/fa0_2)*finalOutput + (fb1_2/fa0_2)*lp2_x1 + (fb2_2/fa0_2)*lp2_x2
-               - (fa1_2/fa0_2)*lp2_y1 - (fa2_2/fa0_2)*lp2_y2;
+float y2 = finalOutput; // default passthrough
+if (mode2 != 4) {
+    float w0_2 = 2.f * float(M_PI) * cutoffHz2 / sampleRate;
+    float cos_w0_2 = cosf(w0_2);
+    float sin_w0_2 = sinf(w0_2);
+    float alpha2 = sin_w0_2 / (2.f * Q2);
+
+    float b0, b1, b2, a0, a1, a2;
+    switch (mode2) {
+        case 0: // Lowpass
+            b0 = (1.f - cos_w0_2) / 2.f;
+            b1 = 1.f - cos_w0_2;
+            b2 = (1.f - cos_w0_2) / 2.f;
+            break;
+        case 1: // Bandpass
+            b0 = sin_w0_2 / 2.f;
+            b1 = 0.f;
+            b2 = -sin_w0_2 / 2.f;
+            break;
+        case 2: // Notch
+            b0 = 1.f;
+            b1 = -2.f * cos_w0_2;
+            b2 = 1.f;
+            break;
+        case 3: // Highpass
+            b0 = (1.f + cos_w0_2) / 2.f;
+            b1 = -(1.f + cos_w0_2);
+            b2 = (1.f + cos_w0_2) / 2.f;
+            break;
+    }
+
+    a0 = 1.f + alpha2;
+    a1 = -2.f * cos_w0_2;
+    a2 = 1.f - alpha2;
+
+    // biquad process
+    y2 = (b0/a0)*finalOutput + (b1/a0)*lp2_x1 + (b2/a0)*lp2_x2
+         - (a1/a0)*lp2_y1 - (a2/a0)*lp2_y2;
 
     lp2_x2 = lp2_x1; lp2_x1 = finalOutput;
     lp2_y2 = lp2_y1; lp2_y1 = y2;
 
-    float finalOutput2 = clamp(y2 * 0.5f, -10.f, 10.f);
+    // --- normalize per mode to reduce internal gain differences ---
+    float normGain2 = 1.f;
+    switch (mode2) {
+        case 0: normGain2 = 1.0f; break;   // LP
+        case 1: normGain2 = 0.5f; break;   // BP
+        case 2: normGain2 = 0.8f; break;   // Notch
+        case 3: normGain2 = 1.0f; break;   // HP
+    }
+    y2 *= normGain2;
+
+    // soft limit before fixed attenuator
+    y2 = tanhf(y2 * 0.8f) * 1.25f;
+}
+
+// --- Fixed attenuator (keeps output level consistent) ---
+float finalOutput2 = clamp(y2 * 0.5f, -10.f, 10.f);
 
 // --- Final gain stage with CV (same behavior as filter CV) ---
 float gainControl = params[GAIN_PARAM].getValue();

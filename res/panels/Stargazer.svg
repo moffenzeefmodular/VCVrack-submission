@@ -1938,8 +1938,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="9.7908984"
-     inkscape:cx="395.00972"
-     inkscape:cy="253.0922"
+     inkscape:cx="429.73585"
+     inkscape:cy="246.96406"
      inkscape:window-width="1920"
      inkscape:window-height="1027"
      inkscape:window-x="257"
@@ -2087,7 +2087,7 @@
        clip-path="url(#clipPath39)" />
     <path
        style="fill:#030303;stroke-width:0.953795;stroke-miterlimit:10"
-       d="m 124.67548,61.394927 -27.598313,-7.275508 0.0641,-0.241516 27.597833,7.275017 z"
+       d="m 124.52261,61.471361 -27.59831,-7.275508 0.0641,-0.241516 27.59783,7.275017 z"
        id="path40" />
     <path
        style="fill:#030303;stroke-width:0.953795;stroke-miterlimit:10"
@@ -3582,13 +3582,13 @@
        d="M 96.894973,53.979692 112.592,72.370525"
        id="path489-0-3-50-9" />
     <rect
-       style="opacity:1;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.200952;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-opacity:1"
+       style="opacity:1;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.200598;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-opacity:1"
        id="rect490"
-       width="7.2087936"
-       height="4.1565442"
-       x="90.25071"
-       y="92.518372"
-       transform="matrix(0.95184744,-0.30657211,0.17301113,0.98491987,0,0)" />
+       width="7.1692433"
+       height="3.9147863"
+       x="89.006401"
+       y="91.040497"
+       transform="matrix(0.95709845,-0.28976292,0.18369543,0.98298321,0,0)" />
     <g
        id="g492">
       <path
