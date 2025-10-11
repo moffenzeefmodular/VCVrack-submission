@@ -83,7 +83,8 @@ struct Stargazer : Module {
 		RATE3_PARAM,
 		WAVE3_PARAM,
 		DEPTH1_PARAM,
-		FILTERMODE_PARAM,
+		FILTERMODE1_PARAM,
+		FILTERMODE2_PARAM,
 		RANGE1_PARAM,
 		RANGE2_PARAM,
 		RANGE3_PARAM, 
@@ -142,7 +143,8 @@ struct Stargazer : Module {
 		configParam(FREQ1_PARAM, 0.f, 1.f, 1.f, "Filter 1 Cutoff", "hz", 200.f, 80.f); // 80hz - 16khz
 		configParam(RES1_PARAM, 0.f, 1.f, 0.f, "Filter 1 Resonance", "%", 0.f, 100.f); // Q 1-5
 
-		configSwitch(FILTERMODE_PARAM, 0.f, 4.f, 0.f, "Filter Mode", {"Lowpass", "Bandpass", "Notch", "Highpass", "Off"});
+		configSwitch(FILTERMODE1_PARAM, 0.f, 4.f, 0.f, "Filter Mode", {"Lowpass", "Bandpass", "Notch", "Highpass", "Off"});
+		configSwitch(FILTERMODE2_PARAM, 0.f, 4.f, 0.f, "Filter Mode", {"Lowpass", "Bandpass", "Notch", "Highpass", "Off"});
 
 		configParam(ALIAS_PARAM, 1.f, 0.f, 1.f, "Sample Rate", "hz", 878.04f, 20.5f); // 18khz - 1hz 
 		configSwitch(REDUX_PARAM, 0.f, 12.f, 0.f, "Bit Depth", {"16", "15", "14", "13", "12", "11", "10", "9", "8", "7", "6", "5", "4"});
@@ -458,7 +460,7 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     float Q = 1.f + res * 4.f;
 
 // --- Filter 1 biquad with selectable mode + gain normalization ---
-int mode = (int) params[FILTERMODE_PARAM].getValue(); 
+int mode = (int) params[FILTERMODE1_PARAM].getValue(); 
 // 0 = Lowpass, 1 = Bandpass, 2 = Notch, 3 = Highpass, 4 = Off
 
 float y = sample; // default passthrough
@@ -649,7 +651,8 @@ struct StargazerWidget : ModuleWidget {
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(16.256, 53.107)), module, Stargazer::FREQ1_PARAM));
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(96.873, 53.957)), module, Stargazer::FREQ2_PARAM));
 
-		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(25.744, 70.211)), module, Stargazer::FILTERMODE_PARAM));
+		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(25.744, 70.211)), module, Stargazer::FILTERMODE1_PARAM));
+		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(112.163, 71.889)), module, Stargazer::FILTERMODE2_PARAM));
 
 		addParam(createParamCentered<BefacoBigKnobBlack>(mm2px(Vec(60.422, 55.071)), module, Stargazer::ALIAS_PARAM));
 
