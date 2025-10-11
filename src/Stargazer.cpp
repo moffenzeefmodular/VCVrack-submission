@@ -274,24 +274,7 @@ auto processLFO = [&](int rateParam, int depthParam, int waveParam,
     if (inputs[rateCV].isConnected()) rate += inputs[rateCV].getVoltage() / 10.f;
     rate = clamp(rate, 0.f, 1.f);
 float freq;
-if (rateParam == RATE1_PARAM) {
-    // Determine LFO1 waveform (0 = sine, 1 = tri, 2 = ramp up, 3 = ramp down, 4 = square, 5 = random)
-    int currentWave = clamp((int)roundf(params[waveParam].getValue() +
-                      (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 5);
-
-    if (currentWave == 4 || currentWave == 5) {
-        // Square or random → normal fast range (0.05–50 Hz)
-        freq = 0.05f * powf(50.f / 0.05f, rate);
-        lfo1SlowRange = false;
-    } else {
-        // All other shapes → slow range (0.01–0.1 Hz)
-        freq = 0.01f * powf(0.1f / 0.01f, rate);
-        lfo1SlowRange = true;
-    }
-} else {
-    // LFO2 and LFO3 normal range (0.05–50 Hz)
     freq = 0.05f * powf(50.f / 0.05f, rate);
-}
 
     float depth = params[depthParam].getValue();
     if (inputs[depthCV].isConnected()) depth += inputs[depthCV].getVoltage() / 10.f;
@@ -336,20 +319,6 @@ processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM,
            LFO1RATECV_INPUT, LFO1DEPTHCV_INPUT, LFO1WAVECV_INPUT,
            lfo1Phase, lfo1StepCounter, lfo1RandValue,
            LFO1OUT_OUTPUT, LFO1LEDRED_LIGHT, LFO1LEDGREEN_LIGHT, &lfo1Value);
-
-// --- Dynamically update LFO1 frequency display scaling ---
-if (paramQuantities.size() > RATE1_PARAM) {
-    auto* q = paramQuantities[RATE1_PARAM];
-    if (lfo1SlowRange) {
-		q->displayBase = 10.f; 
-		q->displayMultiplier = 0.01f;  
-    } else {
-        // Fast range: 0.05–50 Hz
-		q->displayBase = 1000.f; 
-        q->displayMultiplier = 0.05f;  
-    }
-}
-
 
 processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM,
            LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT,
