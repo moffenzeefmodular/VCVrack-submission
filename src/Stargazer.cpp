@@ -272,8 +272,11 @@ float lfo3StepCounter = 1.f;    // for stepped random waveform
 float lfo3RandValue = 0.f;      // for stepped random waveform
 float lfo3Value = 0.f;
 
-// GUI
-bool lfo1SlowRange = true;
+// --- Simple delay state ---
+std::vector<float> delayBuffer;
+int delayIndex = 0;
+float delayMs = 20.f; // adjustable delay time in milliseconds
+
 
 void process(const ProcessArgs& args) override {
 
@@ -663,19 +666,42 @@ lfo2Depth = clamp(lfo2Depth, 0.f, 1.f);
 float tremolo = 0.5f * (1.f + (lfo2Value / 5.f) * lfo2Depth);
 tremolo = clamp(tremolo, 0.f, 1.f);
 
-float tremoloSignal = clipped * tremolo;
+// Stereo width 
+float delayMs = 20.f;
+int delaySamples = (int)(delayMs * 0.001f * args.sampleRate);
+if ((int)delayBuffer.size() < delaySamples + 1)
+    delayBuffer.assign(delaySamples + 1, 0.f);
 
-// --- Master volume with CV (same behavior as filter CV) ---
+float delayedSample = delayBuffer[delayIndex];
+delayBuffer[delayIndex] = clipped;
+delayIndex++;
+if (delayIndex >= delaySamples)
+    delayIndex = 0;
+
+float drySignal = clipped * tremolo;
+float wetSignal = delayedSample * tremolo;
+
 float volControl = params[VOL_PARAM].getValue();
 if (inputs[VOLUMECV_INPUT].isConnected())
     volControl += inputs[VOLUMECV_INPUT].getVoltage() / 10.f;
 volControl = clamp(volControl, 0.f, 1.f);
+drySignal *= volControl;
+wetSignal *= volControl;
 
-// Apply final volume scaling
-float outputSignal = tremoloSignal * volControl;
+float width = params[WIDTH_PARAM].getValue();
+if (inputs[WIDTHCV_INPUT].isConnected())
+    width += inputs[WIDTHCV_INPUT].getVoltage() / 10.f;
+width = clamp(width, 0.f, 1.f);
 
-outputs[OUTL_OUTPUT].setVoltage(outputSignal);
+// crossfade wet signal for first 5% of knob, keep overall volume constant
+float wetFade = (width <= 0.05f) ? (width / 0.05f) : 1.f;
+float scale = (width <= 0.05f) ? 1.f / (0.5f + 0.5f * wetFade) : 1.f;
 
+float leftOut  = scale * ((1.f - width) * 0.5f * (drySignal + wetSignal * wetFade) + width * drySignal);
+float rightOut = scale * ((1.f - width) * 0.5f * (drySignal + wetSignal * wetFade) + width * (wetSignal * wetFade));
+
+outputs[OUTL_OUTPUT].setVoltage(leftOut);
+outputs[OUTR_OUTPUT].setVoltage(rightOut);
 }
 };
 
