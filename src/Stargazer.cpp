@@ -171,7 +171,7 @@ struct Stargazer : Module {
 		configParam(RATE3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Depth", "%", 0.f, 100.f);
 
-        configParam(WIDTH_PARAM, 0.f, 1.f, 0.f, "Width", "%", 0.f, 100.f); // Unity - 100x gain 
+        configParam(WIDTH_PARAM, 0.f, 1.f, 0.f, "Spread", "%", 0.f, 100.f); // Unity - 100x gain 
 		configParam(GAIN_PARAM, 0.f, 1.f, 0.f, "Gain", "x", 100.f, 1.f); // Unity - 100x gain 
 		configParam(VOL_PARAM, 0.f, 1.f, 1.f, "Volume", "%", 0.f, 100.f);
 
@@ -200,7 +200,7 @@ struct Stargazer : Module {
 		configInput(LFO3WAVECV_INPUT, "LFO 3 Waveshape CV");
 		configInput(LFO3RATECV_INPUT, "LFO 3 Rate CV");
 		configInput(LFO3DEPTHCV_INPUT, "LFO 3 Depth CV");
-        configInput(WIDTHCV_INPUT, "Width CV");
+        configInput(WIDTHCV_INPUT, "Spread CV");
 		configInput(GAINCV_INPUT, "Gain CV");
 		configInput(VOLUMECV_INPUT, "Volume CV");
 		configOutput(OUTL_OUTPUT, "Audio Left");
