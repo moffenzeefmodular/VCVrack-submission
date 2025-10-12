@@ -389,7 +389,17 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
     float baseFreqParam = params[PITCH_PARAM].getValue();
     float baseFreq = 1.f + baseFreqParam * (500.f - 1.f);
     float pitchCV = inputs[PITCHCV_INPUT].isConnected() ? inputs[PITCHCV_INPUT].getVoltage() : 0.f;
-    float freq = clamp(baseFreq * std::pow(2.f, pitchCV), 1.f, 500.f);
+    // FM input (normalized to LFO3)
+    float fmCV = inputs[FMCV_INPUT].isConnected() ? inputs[FMCV_INPUT].getVoltage() : (lfo3Value * 0.2f);
+
+    // FM knob acts as attenuator
+    fmCV *= params[FM_PARAM].getValue();
+
+    // total pitch = 1V/oct + FM
+    float totalPitchCV = pitchCV + fmCV;
+
+    // final frequency (1–500 Hz)
+    float freq = clamp(baseFreq * std::pow(2.f, totalPitchCV), 1.f, 500.f);
 
 	float waveCV = inputs[WAVECV_INPUT].isConnected() ? inputs[WAVECV_INPUT].getVoltage() : lfo1Value;
 	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f +
