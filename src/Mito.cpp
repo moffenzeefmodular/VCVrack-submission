@@ -448,10 +448,10 @@ struct MitoWidget : ModuleWidget {
 		));
 
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(12.796, 16.559)), module, Mito::KNOB1_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(35.224, 16.574)), module, Mito::KNOB2_PARAM));
@@ -470,26 +470,26 @@ struct MitoWidget : ModuleWidget {
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(80.008, 16.459)), module, Mito::SWING_PARAM));
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(80.031, 56.722)), module, Mito::WIDTH_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.445, 109.559)), module, Mito::RESET_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.409, 95.354)), module, Mito::BANG_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.445, 109.559)), module, Mito::RESET_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.409, 95.354)), module, Mito::BANG_INPUT));
 
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(79.851, 37.084)), module, Mito::SWING_CVINPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(79.861, 77.246)), module, Mito::WIDTH_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(79.851, 37.084)), module, Mito::SWING_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(79.861, 77.246)), module, Mito::WIDTH_CVINPUT));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(22.511, 95.33)), module, Mito::CH1_CVINPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(34.579, 95.307)), module, Mito::CH2_CVINPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(46.552, 95.248)), module, Mito::CH3_CVINPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(22.524, 109.592)), module, Mito::CH4_CVINPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(34.523, 109.492)), module, Mito::CH5_CVINPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(46.516, 109.492)), module, Mito::CH6_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(22.511, 95.33)), module, Mito::CH1_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(34.579, 95.307)), module, Mito::CH2_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(46.552, 95.248)), module, Mito::CH3_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(22.524, 109.592)), module, Mito::CH4_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(34.523, 109.492)), module, Mito::CH5_CVINPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(46.516, 109.492)), module, Mito::CH6_CVINPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(58.531, 95.207)), module, Mito::CH1_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(70.506, 95.225)), module, Mito::CH2_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(82.597, 95.238)), module, Mito::CH3_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(58.553, 109.546)), module, Mito::CH4_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(70.572, 109.502)), module, Mito::CH5_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(82.584, 109.502)), module, Mito::CH6_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(58.531, 95.207)), module, Mito::CH1_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(70.506, 95.225)), module, Mito::CH2_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(82.597, 95.238)), module, Mito::CH3_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(58.553, 109.546)), module, Mito::CH4_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(70.572, 109.502)), module, Mito::CH5_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(82.584, 109.502)), module, Mito::CH6_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(12.754, 27.761)), module, Mito::LED1_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(35.154, 27.7)), module, Mito::LED2_LIGHT));

@@ -208,10 +208,10 @@ struct TheRunnerWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/TheRunner-dark.svg")
 		));
         
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(28.141, 108.921)), module, TheRunner::PITCH_PARAM));
 
@@ -227,16 +227,16 @@ struct TheRunnerWidget : ModuleWidget {
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(40.936, 79.116)), module, TheRunner::CUTOFF_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(66.526, 79.116)), module, TheRunner::RESONANCE_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 23.525)), module, TheRunner::VOLUMECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 36.908)), module, TheRunner::GAINCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 50.298)), module, TheRunner::ANIMATECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 63.691)), module, TheRunner::CHORUSCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 77.098)), module, TheRunner::HARMONICSCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 90.488)), module, TheRunner::CUTOFFCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.068, 103.882)), module, TheRunner::RESONANCECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.134, 117.265)), module, TheRunner::PITCHCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 23.525)), module, TheRunner::VOLUMECVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 36.908)), module, TheRunner::GAINCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 50.298)), module, TheRunner::ANIMATECVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 63.691)), module, TheRunner::CHORUSCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 77.098)), module, TheRunner::HARMONICSCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 90.488)), module, TheRunner::CUTOFFCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 103.882)), module, TheRunner::RESONANCECVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.134, 117.265)), module, TheRunner::PITCHCVIN_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(66.45, 19.704)), module, TheRunner::AUDIOOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(66.45, 19.704)), module, TheRunner::AUDIOOUT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(28.085, 33.711)), module, TheRunner::ANIMATELED_LIGHT));
 	}

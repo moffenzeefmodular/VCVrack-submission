@@ -192,10 +192,10 @@ struct MoffenmixWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/Moffenmix-dark.svg")
 		));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(13.6, 16.838)), module, Moffenmix::GAIN_1_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(13.6, 34.796)), module, Moffenmix::GAIN_2_PARAM));
@@ -218,14 +218,14 @@ struct MoffenmixWidget : ModuleWidget {
 		addParam(createParamCentered<CKSS>(mm2px(Vec(36.731, 88.384)), module, Moffenmix::MUTE_3_PARAM));
 		addParam(createParamCentered<CKSS>(mm2px(Vec(48.007, 88.384)), module, Moffenmix::MUTE_4_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(12.91, 101.869)), module, Moffenmix::CH_1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.479, 101.869)), module, Moffenmix::CH_2_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(12.864, 112.987)), module, Moffenmix::CH_3_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(12.91, 101.869)), module, Moffenmix::CH_1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.479, 101.869)), module, Moffenmix::CH_2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(12.864, 112.987)), module, Moffenmix::CH_3_INPUT));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.432, 112.987)), module, Moffenmix::CH_4_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(48, 101.869)), module, Moffenmix::LINK_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.432, 112.987)), module, Moffenmix::CH_4_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(48, 101.869)), module, Moffenmix::LINK_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(48, 112.987)), module, Moffenmix::MIX_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(48, 112.987)), module, Moffenmix::MIX_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.488, 23.247)), module, Moffenmix::LED_1_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.488, 41.122)), module, Moffenmix::LED_2_LIGHT));

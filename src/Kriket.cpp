@@ -206,23 +206,23 @@ struct KriketWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/Kriket-dark.svg")
 		));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(27.34, 17.91)), module, Kriket::PITCH1_PARAM));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(27.241, 40.866)), module, Kriket::PITCH2_PARAM));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(27.246, 63.777)), module, Kriket::PITCH3_PARAM));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(27.359, 86.644)), module, Kriket::PITCH4_PARAM));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.704, 17.947)), module, Kriket::BANG1_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.747, 41.098)), module, Kriket::BANG2_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.596, 64.098)), module, Kriket::BANG3_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.369, 86.966)), module, Kriket::BANG4_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.596, 109.399)), module, Kriket::CVIN_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.704, 17.947)), module, Kriket::BANG1_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.747, 41.098)), module, Kriket::BANG2_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.596, 64.098)), module, Kriket::BANG3_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.369, 86.966)), module, Kriket::BANG4_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.596, 109.399)), module, Kriket::CVIN_INPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(29.698, 109.658)), module, Kriket::OUT_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(29.698, 109.658)), module, Kriket::OUT_OUTPUT));
 
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(29.887, 99.326)), module, Kriket::LED_LIGHT));
     }

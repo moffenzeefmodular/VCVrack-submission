@@ -304,10 +304,10 @@ struct BobcatWidget : ModuleWidget {
 		));
 
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<CKSSHorizontal>(mm2px(Vec(30.981, 46.558)), module, Bobcat::SNARL_PARAM));
 
@@ -316,14 +316,14 @@ struct BobcatWidget : ModuleWidget {
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(13.055, 61.672)), module, Bobcat::TAIL_2_PARAM));
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(49.088, 61.755)), module, Bobcat::HISS_2__PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.194, 95.853)), module, Bobcat::BANG_1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.061, 95.853)), module, Bobcat::TAIL_1_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.761, 95.87)), module, Bobcat::HISS_1_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.194, 109.016)), module, Bobcat::BANG_2_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.077, 109.066)), module, Bobcat::TAIL_2_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.695, 108.967)), module, Bobcat::HISS_2_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.194, 95.853)), module, Bobcat::BANG_1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(25.061, 95.853)), module, Bobcat::TAIL_1_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.761, 95.87)), module, Bobcat::HISS_1_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.194, 109.016)), module, Bobcat::BANG_2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(25.077, 109.066)), module, Bobcat::TAIL_2_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.695, 108.967)), module, Bobcat::HISS_2_CV_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(51.916, 103.013)), module, Bobcat::BOBCAT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(51.916, 103.013)), module, Bobcat::BOBCAT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.733, 22.497)), module, Bobcat::LED_LIGHT));
 	}

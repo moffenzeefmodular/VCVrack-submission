@@ -229,10 +229,10 @@ struct INTENSIFIESWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/INTENSIFIES-dark.svg")
 		));
         
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(22.855, 39.741)), module, INTENSIFIES::CARRIER_PARAM));
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(35.823, 87.83)), module, INTENSIFIES::MODULATOR_PARAM));
@@ -248,17 +248,17 @@ struct INTENSIFIESWidget : ModuleWidget {
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(67.346, 59.976)), module, INTENSIFIES::GAIN_PARAM));
 		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(98.918, 97.521)), module, INTENSIFIES::SYNTHVOLUME_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(26.707, 11.585)), module, INTENSIFIES::CARRIERCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(97.418, 26.501)), module, INTENSIFIES::FXVOLUMECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(63.064, 35.057)), module, INTENSIFIES::GAINCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(89.588, 50.638)), module, INTENSIFIES::BYPASSCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(48.824, 58.053)), module, INTENSIFIES::ENGAGECV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(53.375, 76.187)), module, INTENSIFIES::MODULATORCV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(107.078, 76.864)), module, INTENSIFIES::AUDIOIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(80.75, 101.603)), module, INTENSIFIES::SYNTHVOLUMECV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(26.707, 11.585)), module, INTENSIFIES::CARRIERCV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(97.418, 26.501)), module, INTENSIFIES::FXVOLUMECV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(63.064, 35.057)), module, INTENSIFIES::GAINCV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(89.588, 50.638)), module, INTENSIFIES::BYPASSCV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(48.824, 58.053)), module, INTENSIFIES::ENGAGECV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(53.375, 76.187)), module, INTENSIFIES::MODULATORCV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.078, 76.864)), module, INTENSIFIES::AUDIOIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(80.75, 101.603)), module, INTENSIFIES::SYNTHVOLUMECV_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::FXOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.251, 104.885)), module, INTENSIFIES::SYNTHOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::FXOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(10.251, 104.885)), module, INTENSIFIES::SYNTHOUT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(109.201, 35.91)), module, INTENSIFIES::MAINOUTLED_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(79.581, 52.375)), module, INTENSIFIES::GAINLED_LIGHT));

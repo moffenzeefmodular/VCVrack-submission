@@ -178,17 +178,17 @@ struct DialUpWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/DialUp-dark.svg")
 		));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.15, 17.569)), module, DialUp::TAIL_PARAM));
         addParam(createParamCentered<CKSSThreeHorizontal>(mm2px(Vec(10.15, 35.230)), module, DialUp::RANGE_PARAM));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.15, 52.693)), module, DialUp::MODEM_PARAM));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.15, 85.071)), module, DialUp::BANG_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.15, 99.656)), module, DialUp::MODEM_CV_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.15, 85.071)), module, DialUp::BANG_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.15, 99.656)), module, DialUp::MODEM_CV_INPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.15, 113.171)), module, DialUp::DIAL_UP_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(10.15, 113.171)), module, DialUp::DIAL_UP_OUTPUT));
 
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(10.15, 75.116)), module, DialUp::LED_LIGHT));
     }

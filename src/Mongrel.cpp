@@ -167,10 +167,10 @@ struct MongrelWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/Mongrel-dark.svg")
 		));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<CKSSHorizontal>(mm2px(Vec(31.163, 46.546)), module, Mongrel::SNARL__PARAM));
 
@@ -179,14 +179,14 @@ struct MongrelWidget : ModuleWidget {
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(13.304, 61.674)), module, Mongrel::GROWL_PARAM));
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(49.116, 61.737)), module, Mongrel::YAP_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.3, 95.604)), module, Mongrel::BANG_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.194, 95.487)), module, Mongrel::TAIL_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.863, 95.487)), module, Mongrel::YIP_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.155, 108.731)), module, Mongrel::GROWL_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.198, 108.957)), module, Mongrel::SNARL_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.822, 108.669)), module, Mongrel::YAP_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.3, 95.604)), module, Mongrel::BANG_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(25.194, 95.487)), module, Mongrel::TAIL_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.863, 95.487)), module, Mongrel::YIP_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(25.155, 108.731)), module, Mongrel::GROWL_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.198, 108.957)), module, Mongrel::SNARL_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.822, 108.669)), module, Mongrel::YAP_CV_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(51.807, 101.759)), module, Mongrel::MONGREL_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(51.807, 101.759)), module, Mongrel::MONGREL_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.867, 22.525)), module, Mongrel::LED_LIGHT));
 	}

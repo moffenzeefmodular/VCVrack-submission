@@ -123,15 +123,15 @@ struct BadIdea9Widget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/BadIdea9-dark.svg")
 		));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.29, 17.153)), module, BadIdea9::RUH_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.224, 46.111)), module, BadIdea9::ROH_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.231, 87.118)), module, BadIdea9::PWR_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.231, 87.118)), module, BadIdea9::PWR_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.217, 110.056)), module, BadIdea9::AUDIO_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(10.217, 110.056)), module, BadIdea9::AUDIO_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(10.175, 76.098)), module, BadIdea9::LED_LIGHT));
 	}

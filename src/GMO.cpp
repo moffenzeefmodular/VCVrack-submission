@@ -6489,10 +6489,10 @@ struct GMOWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/GMO-dark.svg")
 		));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<CKSSHorizontal>(mm2px(Vec(30.519, 46.169)), module, GMO::LOOP_PARAM));
 
@@ -6501,14 +6501,14 @@ struct GMOWidget : ModuleWidget {
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(12.512, 61.331)), module, GMO::HEAD_PARAM));
 		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(48.79, 61.43)), module, GMO::TAIL_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(9.566, 95.811)), module, GMO::BANG_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(24.557, 95.904)), module, GMO::SPECIMEN_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.539, 95.895)), module, GMO::SPEED_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(9.596, 109.169)), module, GMO::LOOP_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(24.548, 109.124)), module, GMO::HEAD_CV_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.584, 109.146)), module, GMO::TAIL_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(9.566, 95.811)), module, GMO::BANG_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(24.557, 95.904)), module, GMO::SPECIMEN_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.539, 95.895)), module, GMO::SPEED_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(9.596, 109.169)), module, GMO::LOOP_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(24.548, 109.124)), module, GMO::HEAD_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.584, 109.146)), module, GMO::TAIL_CV_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(51.68, 103.12)), module, GMO::GMO_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(51.68, 103.12)), module, GMO::GMO_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.309, 21.827)), module, GMO::LED_LIGHT));
 	}

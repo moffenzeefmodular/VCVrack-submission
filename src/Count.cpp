@@ -296,10 +296,10 @@ setPanel(createPanel(
 		asset::plugin(pluginInstance, "res/panels/Count-dark.svg")
 		));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // Knobs for controls
         addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(20.702, 16.846)), module, ClockModule::COARSE_PARAM));
@@ -314,17 +314,17 @@ setPanel(createPanel(
         addParam(createParamCentered<CKSS>(mm2px(Vec(35.094, 73.63)), module, ClockModule::LEFT_RIGHT_PARAM));
 
         // Input ports for external control
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(5.698, 27.387)), module, ClockModule::TIME_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(5.755, 53.671)), module, ClockModule::WIDTH_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.698, 27.387)), module, ClockModule::TIME_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.755, 53.671)), module, ClockModule::WIDTH_INPUT));
 
         // Output ports for divided clock signals and main output
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.845, 92.355)), module, ClockModule::START_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.783, 109.865)), module, ClockModule::MAIN_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.845, 92.355)), module, ClockModule::START_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.783, 109.865)), module, ClockModule::MAIN_OUTPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(20.689, 92.499)), module, ClockModule::DIVIDED_1_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(35.299, 92.459)), module, ClockModule::DIVIDED_2_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(20.653, 109.86)), module, ClockModule::DIVIDED_3_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(35.335, 109.842)), module, ClockModule::DIVIDED_4_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(20.689, 92.499)), module, ClockModule::DIVIDED_1_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(35.299, 92.459)), module, ClockModule::DIVIDED_2_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(20.653, 109.86)), module, ClockModule::DIVIDED_3_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(35.335, 109.842)), module, ClockModule::DIVIDED_4_OUTPUT));
 
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(5.755, 84)), module, ClockModule::LED_1_LIGHT));
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(20.689, 84)), module, ClockModule::LED_2_LIGHT));

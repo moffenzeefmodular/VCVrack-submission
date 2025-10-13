@@ -1321,12 +1321,10 @@ struct MuskratWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/Muskrat-dark.svg")
 		));
         
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		    addChild(createWidget<ScrewSilver>(Vec(box.size.x - 6 * RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 6 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 3 * RACK_GRID_WIDTH, 0)));
-		    addChild(createWidget<ScrewSilver>(Vec(box.size.x - 3 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		    addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<CKSSThree>(mm2px(Vec(24.513, 20.315)), module, Muskrat::RANGE_PARAM));
         addParam(createParamCentered<CKSS>(mm2px(Vec(24.478, 108.396)), module, Muskrat::RATSWITCH_PARAM));
@@ -1337,13 +1335,13 @@ struct MuskratWidget : ModuleWidget {
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.3, 86.273)), module, Muskrat::CHEW_PARAM));
 		    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(62, 50)), module, Muskrat::SELECT_PARAM));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 19.244)), module, Muskrat::BANG_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 41.872)), module, Muskrat::SCRATCH_CV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 64.291)), module, Muskrat::DIG_CV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 86.24)), module, Muskrat::CHEW_CV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.5, 108.196)), module, Muskrat::MUSKRAT_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.5, 19.244)), module, Muskrat::BANG_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.5, 41.872)), module, Muskrat::SCRATCH_CV_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.5, 64.291)), module, Muskrat::DIG_CV_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.5, 86.24)), module, Muskrat::CHEW_CV_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.5, 108.196)), module, Muskrat::MUSKRAT_INPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(38.325, 108.226)), module, Muskrat::AUDIO_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(38.325, 108.226)), module, Muskrat::AUDIO_OUTPUT));
 
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(38.295, 98.285)), module, Muskrat::LED_LIGHT));
 	}

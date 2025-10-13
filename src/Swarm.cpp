@@ -173,10 +173,10 @@ struct SwarmWidget : ModuleWidget {
             asset::plugin(pluginInstance, "res/panels/Swarm-dark.svg")
         ));
         
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(20.616, 16.629)), module, Swarm::TIMECOARSE_PARAM));
         addParam(createParamCentered<CKSS>(mm2px(Vec(35.099, 27.847)), module, Swarm::RANGESWITCH_PARAM));
@@ -187,15 +187,15 @@ struct SwarmWidget : ModuleWidget {
         addParam(createParamCentered<CKSS>(mm2px(Vec(25.351, 72.999)), module, Swarm::LOOPTHREE_PARAM));
         addParam(createParamCentered<CKSS>(mm2px(Vec(35.099, 72.999)), module, Swarm::LOOPFOUR_PARAM));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(5.702, 27.246)), module, Swarm::TIMECVIN_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(5.702, 53.463)), module, Swarm::WIDTHCVIN_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.702, 27.246)), module, Swarm::TIMECVIN_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.702, 53.463)), module, Swarm::WIDTHCVIN_INPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.702, 92.263)), module, Swarm::VCOOUT_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(20.616, 92.263)), module, Swarm::ONEOUT_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(35.378, 92.263)), module, Swarm::TWOOUT_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.702, 109.747)), module, Swarm::CLOCKOUT_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(20.616, 109.747)), module, Swarm::THREEOUT_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(35.378, 109.747)), module, Swarm::FOUROUT_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.702, 92.263)), module, Swarm::VCOOUT_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(20.616, 92.263)), module, Swarm::ONEOUT_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(35.378, 92.263)), module, Swarm::TWOOUT_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.702, 109.747)), module, Swarm::CLOCKOUT_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(20.616, 109.747)), module, Swarm::THREEOUT_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(35.378, 109.747)), module, Swarm::FOUROUT_OUTPUT));
 
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(5.702, 84.018)), module, Swarm::VCOLED_LIGHT));
         addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(20.602, 84.018)), module, Swarm::ONELED_LIGHT));

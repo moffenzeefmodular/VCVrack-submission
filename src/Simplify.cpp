@@ -250,16 +250,16 @@ struct SimplifyWidget : ModuleWidget {
 		asset::plugin(pluginInstance, "res/panels/Simplify-dark.svg")
 		));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.162, 32.667)), module, Simplify::SELECT_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.162, 76.56)), module, Simplify::BANG_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.122, 88.66)), module, Simplify::RESET_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.149, 100.567)), module, Simplify::SELECT_CV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.162, 76.56)), module, Simplify::BANG_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.122, 88.66)), module, Simplify::RESET_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(10.149, 100.567)), module, Simplify::SELECT_CV_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.149, 112.654)), module, Simplify::SIMPLIFY_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(10.149, 112.654)), module, Simplify::SIMPLIFY_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(10.133, 19.544)), module, Simplify::LED_LIGHT));
 	}

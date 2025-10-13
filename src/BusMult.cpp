@@ -56,17 +56,17 @@ setPanel(createPanel(
 		asset::plugin(pluginInstance, "res/panels/BusMult-dark.svg")
 		));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(5.141, 17.9)), module, BusMult::IN1_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(5.125, 78.549)), module, BusMult::IN2_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.141, 17.9)), module, BusMult::IN1_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.125, 78.549)), module, BusMult::IN2_INPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.106, 33.007)), module, BusMult::OUT1_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.157, 48.234)), module, BusMult::OUT2_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.152, 63.351)), module, BusMult::OUT3_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.132, 93.763)), module, BusMult::OUT4_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(5.134, 108.915)), module, BusMult::OUT5_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.106, 33.007)), module, BusMult::OUT1_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.157, 48.234)), module, BusMult::OUT2_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.152, 63.351)), module, BusMult::OUT3_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.132, 93.763)), module, BusMult::OUT4_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.134, 108.915)), module, BusMult::OUT5_OUTPUT));
     }
 };
 

@@ -165,10 +165,10 @@ setPanel(createPanel(
 		asset::plugin(pluginInstance, "res/panels/Deviant-dark.svg")
 		));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(11.061, 24.335)), module, Deviant::TOP_1__PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(39.798, 24.372)), module, Deviant::TOP_2_PARAM));
@@ -177,15 +177,15 @@ setPanel(createPanel(
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.988, 71.799)), module, Deviant::SMOOTH_1_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(39.769, 71.777)), module, Deviant::SMOOTH_2_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.813, 97.162)), module, Deviant::BANG_1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(19.771, 97.058)), module, Deviant::CH__1_TOP_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.906, 97.007)), module, Deviant::CH__1_BOTTOM_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.835, 112.448)), module, Deviant::BANG_2_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(19.727, 112.435)), module, Deviant::CH__2_TOP_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.927, 112.369)), module, Deviant::CH__2_BOTTOM_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.813, 97.162)), module, Deviant::BANG_1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(19.771, 97.058)), module, Deviant::CH__1_TOP_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.906, 97.007)), module, Deviant::CH__1_BOTTOM_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.835, 112.448)), module, Deviant::BANG_2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(19.727, 112.435)), module, Deviant::CH__2_TOP_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.927, 112.369)), module, Deviant::CH__2_BOTTOM_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(41.812, 97.073)), module, Deviant::CH__1_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(41.899, 112.441)), module, Deviant::CH__2_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(41.812, 97.073)), module, Deviant::CH__1_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(41.899, 112.441)), module, Deviant::CH__2_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.57, 13.957)), module, Deviant::LED_NEG_1_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(13.575, 13.957)), module, Deviant::LED_POS_1_LIGHT));
