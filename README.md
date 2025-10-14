@@ -30,3 +30,6 @@ By Ross Fish Feb 2025
 
 ## v2.2.0 
 - Added The Runner
+
+## v2.3.0 
+- Added Stargazer
