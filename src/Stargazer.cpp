@@ -719,11 +719,12 @@ struct StargazerWidget : ModuleWidget {
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(26.918, 12.382)), module, Stargazer::PITCH_PARAM));
+        addParam(createParamCentered<_9mmKnob>(mm2px(Vec(25.744, 70.211)), module, Stargazer::FILTERMODE1_PARAM));
+		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(112.163, 71.889)), module, Stargazer::FILTERMODE2_PARAM));
         addParam(createParamCentered<_9mmKnob>(mm2px(Vec(47.715, 8.739)), module, Stargazer::FM_PARAM));
-
         addParam(createParamCentered<_9mmKnob>(mm2px(Vec(78.869, 10.580)), module, Stargazer::WIDTH_PARAM));
 
+        addParam(createParamCentered<StargazerDavies>(mm2px(Vec(26.918, 12.382)), module, Stargazer::PITCH_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(96.236, 14.975)), module, Stargazer::GAIN_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(10.681, 32.195)), module, Stargazer::MAINWAVE_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(122.509, 27.037)), module, Stargazer::VOL_PARAM));
@@ -741,9 +742,6 @@ struct StargazerWidget : ModuleWidget {
 
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(16.256, 53.107)), module, Stargazer::FREQ1_PARAM));
 		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(96.873, 53.957)), module, Stargazer::FREQ2_PARAM));
-
-		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(25.744, 70.211)), module, Stargazer::FILTERMODE1_PARAM));
-		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(112.163, 71.889)), module, Stargazer::FILTERMODE2_PARAM));
 
 		addParam(createParamCentered<BefacoBigKnobBlack>(mm2px(Vec(60.422, 55.071)), module, Stargazer::ALIAS_PARAM));
 
