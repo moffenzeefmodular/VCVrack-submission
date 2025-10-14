@@ -110,7 +110,11 @@ struct StargazerDavies : SvgKnob {
 	StargazerDavies() {
 		minAngle = -0.85 * M_PI;
 		maxAngle = 0.85 * M_PI;
-		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/StargazerDavies.svg")));
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Davies1900hBlack.svg")));
+
+		bg = new widget::SvgWidget;
+		fb->addChildBelow(bg, tw);
+		bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Davies1900hBlack_bg.svg")));
 	}
 };
 
