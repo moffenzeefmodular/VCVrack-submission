@@ -258,6 +258,17 @@
         "LFO",
         "Random"
       ]
+    },
+    {
+      "slug": "DitDit",
+      "name": "DitDit",
+      "description": "Morse code gate sequencer",
+      "tags": [
+        "Clock Modulator",
+        "Trigger",
+        "Utility",
+        "Sequencer"
+      ]
     }
   ]
 }
