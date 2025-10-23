@@ -34,3 +34,6 @@ By Ross Fish Feb 2025
 ## v2.3.0 
 - Added Stargazer
 - Themed jacks and screws updated for all modules
+
+## v2.4.0 
+- Added DitDit
