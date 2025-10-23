@@ -258,6 +258,14 @@
         "LFO",
         "Random"
       ]
+    },
+    {
+      "slug": "Kleztizer",
+      "name": "Kleztizer",
+      "description": "A Klezmer quantizer and chord generator",
+      "tags": [
+        "quantizer"
+      ]
     }
   ]
 }
