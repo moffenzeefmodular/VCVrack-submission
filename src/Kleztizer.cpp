@@ -63,7 +63,7 @@ struct Kleztizer : Module {
 
 	Kleztizer() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configSwitch(KEY_PARAM, 0.f, 11.f, 0.f, "Key", {"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"});
+		configSwitch(KEY_PARAM, 0.f, 11.f, 2.f, "Key", {"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"});
 		configSwitch(MODE_PARAM, 0.f, 4.f, 0.f, "Mode", {"Freygish", "Adonai Malakh", "Mi Sheberach", "Magein Avot", "Harmonic Minor"});
 		configSwitch(CHORDBUTTON1_PARAM, 0.f, 1.f, 0.f, "Chord 1");
 		configSwitch(CHORDBUTTON2_PARAM, 0.f, 1.f, 0.f, "Chord 2");
@@ -74,13 +74,13 @@ struct Kleztizer : Module {
 		configSwitch(CHORDBUTTON7_PARAM, 0.f, 1.f, 0.f, "Chord 7");
 		configSwitch(CHORDVOICING_PARAM, 0.f, 3.f, 0.f, "Voicing", {"Close", "Drop 2", "Drop 3", "Open"});
 		configSwitch(INVERSION_PARAM, 0.f, 3.f, 0.f, "Inversion", {"Root", "1st", "2nd", "3rd"});
-		configParam(LEADCV1_PARAM, 0.f, 1.f, 0.f, "Lead 1 CV Amount", "%", 0.f, 100.f);
+		configParam(LEADCV1_PARAM, 0.f, 1.f, 1.f, "Lead 1 CV Amount", "%", 0.f, 100.f);
 		configSwitch(LEADOCTAVE1_PARAM, 0.f, 4.f, 2.f, "Lead 1 Octave", {"-2", "-1", "0", "+1", "+2"});
-		configParam(LEADCV2_PARAM, 0.f, 1.f, 0.f, "Lead 2 CV Amount", "%", 0.f, 100.f);
+		configParam(LEADCV2_PARAM, 0.f, 1.f, 1.f, "Lead 2 CV Amount", "%", 0.f, 100.f);
 		configSwitch(LEADOCTAVE2_PARAM, 0.f, 4.f, 2.f, "Lead 2 Octave", {"-2", "-1", "0", "+1", "+2"});
-		configParam(LEADOFFSET1_PARAM, 0.f, 1.f, 0.f, "Lead 1 Note Offset");
+		configParam(LEADOFFSET1_PARAM, -2.f, 2.f, 0.f, "Lead 1 Note Offset", "v");
 		configParam(LEADGATE1_PARAM, 0.f, 1.f, 0.f, "Lead 1 Gate");
-		configParam(LEADOFFSET2_PARAM, 0.f, 1.f, 0.f, "Lead 2 Note Offset");
+		configParam(LEADOFFSET2_PARAM, -2.f, 2.f, 0.f, "Lead 2 Note Offset", "v");
 		configParam(LEADGATE2_PARAM, 0.f, 1.f, 0.f, "Lead 2 Gate");
 		configInput(KEYCV_INPUT, "Key CV");
 		configInput(MODECV_INPUT, "Mode CV");
