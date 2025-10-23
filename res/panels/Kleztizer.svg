@@ -1,0 +1,867 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="101.6mm"
+   height="128.5mm"
+   viewBox="0 0 101.6 128.5"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   sodipodi:docname="Kleztizer.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.2711951"
+     inkscape:cx="128.22579"
+     inkscape:cy="269.43149"
+     inkscape:window-width="1936"
+     inkscape:window-height="1326"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="art"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="opacity:1;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       id="rect15"
+       width="115.82706"
+       height="146.14517"
+       x="-5.5926657"
+       y="-8.5361748"
+       inkscape:label="panel"
+       sodipodi:insensitive="true" />
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="37.474133"
+       y="23.496454"
+       id="text8-8-6"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-5"
+         style="font-size:4.23333px;fill:#1a1a1a;stroke-width:0.2"
+         x="37.474133"
+         y="23.496454">key</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="7.3888807"
+       y="106.44468"
+       id="text9"><tspan
+         sodipodi:role="line"
+         id="tspan9"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="7.3888807"
+         y="106.44468">pedal</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="7.3888807"
+         y="109.97246"
+         id="tspan11">out</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="20.296713"
+       y="110.34233"
+       id="text9-9"><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="20.296713"
+         y="110.34233"
+         id="tspan10">root</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="31.949337"
+       y="110.35617"
+       id="text9-9-1"><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="31.949337"
+         y="110.35617"
+         id="tspan10-4">1/poly</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="43.667175"
+       y="110.37622"
+       id="text9-9-1-0"><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="43.667175"
+         y="110.37622"
+         id="tspan10-4-5">2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="56.136116"
+       y="110.37902"
+       id="text9-9-1-0-6"><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="56.136116"
+         y="110.37902"
+         id="tspan10-4-5-1">3</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="68.042366"
+       y="110.36885"
+       id="text9-9-1-0-3"><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="68.042366"
+         y="110.36885"
+         id="tspan10-4-5-3">4</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="80.223602"
+       y="110.35617"
+       id="text9-9-1-0-3-0"><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="80.223602"
+         y="110.35617"
+         id="tspan10-4-5-3-2">1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="92.351707"
+       y="110.37622"
+       id="text9-9-1-0-3-0-4"><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#000000;stroke-width:0.2"
+         x="92.351707"
+         y="110.37622"
+         id="tspan10-4-5-3-2-9">2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="14.31849"
+       y="34.736252"
+       id="text4"><tspan
+         sodipodi:role="line"
+         id="tspan4"
+         style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';fill:#000000;stroke-width:0.2"
+         x="14.31849"
+         y="34.736252">1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="22.895123"
+       y="41.835632"
+       id="text5"><tspan
+         sodipodi:role="line"
+         id="tspan5"
+         style="stroke-width:0.2"
+         x="22.895123"
+         y="41.835632" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="26.553989"
+       y="34.786407"
+       id="text6"><tspan
+         sodipodi:role="line"
+         id="tspan6"
+         style="stroke-width:0.2"
+         x="26.553989"
+         y="34.786407">2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="38.768154"
+       y="34.7934"
+       id="text6-5"><tspan
+         sodipodi:role="line"
+         id="tspan6-0"
+         style="stroke-width:0.2"
+         x="38.768154"
+         y="34.7934">3</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="50.940075"
+       y="34.768002"
+       id="text6-3"><tspan
+         sodipodi:role="line"
+         id="tspan6-05"
+         style="stroke-width:0.2"
+         x="50.940075"
+         y="34.768002">4</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="63.164791"
+       y="34.683598"
+       id="text6-7"><tspan
+         sodipodi:role="line"
+         id="tspan6-8"
+         style="stroke-width:0.2"
+         x="63.164791"
+         y="34.683598">5</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="74.980339"
+       y="34.648319"
+       id="text6-71"><tspan
+         sodipodi:role="line"
+         id="tspan6-06"
+         style="stroke-width:0.2"
+         x="74.980339"
+         y="34.648319">6</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="87.471031"
+       y="34.796928"
+       id="text6-50"><tspan
+         sodipodi:role="line"
+         id="tspan6-2"
+         style="stroke-width:0.2"
+         x="87.471031"
+         y="34.796928">7</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="40.69088"
+       y="38.401363"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan7"
+         style="stroke-width:0.2"
+         x="40.69088"
+         y="38.401363" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="51.267189"
+       y="55.910004"
+       id="text8"><tspan
+         sodipodi:role="line"
+         id="tspan8"
+         style="fill:#1a1a1a;stroke-width:0.2"
+         x="51.267189"
+         y="55.910004">Chords</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="43.920048"
+       y="104.75957"
+       id="text8-7"><tspan
+         sodipodi:role="line"
+         id="tspan8-5"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="43.920048"
+         y="104.75957">Chord outputs</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="86.489105"
+       y="104.75957"
+       id="text8-7-2"><tspan
+         sodipodi:role="line"
+         id="tspan8-5-1"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="86.489105"
+         y="104.75957">lead outputs</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="63.241573"
+       y="23.496454"
+       id="text8-8"><tspan
+         sodipodi:role="line"
+         id="tspan8-6"
+         style="font-size:4.23333px;fill:#1a1a1a;stroke-width:0.2"
+         x="63.241573"
+         y="23.496454">mode</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="87.113708"
+       y="66.027786"
+       id="text8-8-2"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4"
+         style="font-size:4.23333px;fill:#1a1a1a;stroke-width:0.2"
+         x="87.113708"
+         y="66.027786">Inversion</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="14.47368"
+       y="66.025665"
+       id="text8-8-2-9-7-5"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4-6-0-8"
+         style="font-size:4.23333px;fill:#1a1a1a;stroke-width:0.2"
+         x="14.47368"
+         y="66.025665">Voicing</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:Kanisah;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;display:inline;opacity:1;mix-blend-mode:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="50.835983"
+       y="5.1338081"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="font-size:4.23333px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2"
+         x="50.835983"
+         y="5.1338081">Kleztizer</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:Kanisah;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="50.848232"
+       y="125.9761"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:'Century Gothic';-inkscape-font-specification:'Century Gothic Bold Italic';fill:#1a1a1a;stroke-width:0.2"
+         x="50.848232"
+         y="125.9761">MØFFENZEEF MØDULAR</tspan></text>
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-opacity:1"
+       d="M 32.157238,12.88764 H 42.564113"
+       id="path15" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-opacity:1"
+       d="M 9.5549756,54.851669 H 19.961851"
+       id="path15-23" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-opacity:1"
+       d="M 82.064654,54.851669 H 92.471529"
+       id="path15-23-6" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-opacity:1"
+       d="M 58.230696,12.88764 H 68.637571"
+       id="path15-2" />
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="7.9032297"
+       y="94.271103"
+       id="text8-6-5"><tspan
+         sodipodi:role="line"
+         id="tspan8-66-2"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="7.9032297"
+         y="94.271103">note</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="7.9032292"
+         y="97.798882"
+         id="tspan13">offset</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="18.612848"
+       y="73.614754"
+       id="text8-6-0"><tspan
+         sodipodi:role="line"
+         id="tspan8-66-5"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="18.612848"
+         y="73.614754">cv</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="30.085085"
+       y="73.614754"
+       id="text8-8-2-9"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4-6"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="30.085085"
+         y="73.614754">oct.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="38.517006"
+       y="81.894737"
+       id="text8-8-2-9-7"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4-6-6"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="38.517006"
+         y="81.894737">trig</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="38.411171"
+       y="93.212944"
+       id="text8-8-2-9-7-8"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4-6-6-2"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="38.411171"
+         y="93.212944">Gate</tspan></text>
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="m 38.49849,86.759909 h 7.83709 v -7.653123"
+       id="path13" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 30.072698,79.217167 V 95.038525"
+       id="path14" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 18.669744,79.251849 V 95.073207"
+       id="path14-9" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 7.285381,86.154287 18.954379,94.86929"
+       id="path14-9-0" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 8.6003819,86.11577 19.090856,79.087721"
+       id="path14-9-0-2" />
+    <rect
+       style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       id="rect14"
+       width="15.089966"
+       height="5.5156426"
+       x="16.701759"
+       y="83.938187" />
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="24.422388"
+       y="88.283768"
+       id="text8-6"><tspan
+         sodipodi:role="line"
+         id="tspan8-66"
+         style="font-size:4.23333px;fill:#1a1a1a;stroke-width:0.2"
+         x="24.422388"
+         y="88.283768">lead 1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="58.87772"
+       y="94.271103"
+       id="text8-6-5-5"><tspan
+         sodipodi:role="line"
+         id="tspan8-66-2-6"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="58.87772"
+         y="94.271103">note</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="58.87772"
+         y="97.798882"
+         id="tspan13-4">offset</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="69.587341"
+       y="73.614754"
+       id="text8-6-0-1"><tspan
+         sodipodi:role="line"
+         id="tspan8-66-5-1"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="69.587341"
+         y="73.614754">cv</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="81.059578"
+       y="73.614754"
+       id="text8-8-2-9-0"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4-6-69"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="81.059578"
+         y="73.614754">oct.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="89.491493"
+       y="81.894737"
+       id="text8-8-2-9-7-7"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4-6-6-7"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="89.491493"
+         y="81.894737">trig</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.82222px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="89.385658"
+       y="93.212944"
+       id="text8-8-2-9-7-8-9"><tspan
+         sodipodi:role="line"
+         id="tspan8-6-4-6-6-2-3"
+         style="font-size:2.82222px;fill:#1a1a1a;stroke-width:0.2"
+         x="89.385658"
+         y="93.212944">Gate</tspan></text>
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="m 89.472981,86.759909 h 7.83709 v -7.653123"
+       id="path13-2" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 81.047189,79.217167 V 95.038525"
+       id="path14-5" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 69.644235,79.251849 V 95.073207"
+       id="path14-9-9" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 58.259872,86.154287 69.92887,94.86929"
+       id="path14-9-0-9" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       d="M 59.574873,86.11577 70.065347,79.087721"
+       id="path14-9-0-2-0" />
+    <rect
+       style="fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       id="rect14-2"
+       width="15.089966"
+       height="5.5156426"
+       x="67.676254"
+       y="83.938187" />
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Kanisah;-inkscape-font-specification:'Kanisah Bold Italic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       x="75.396881"
+       y="88.283768"
+       id="text8-6-8"><tspan
+         sodipodi:role="line"
+         id="tspan8-66-3"
+         style="font-size:4.23333px;fill:#1a1a1a;stroke-width:0.2"
+         x="75.396881"
+         y="88.283768">lead 2</tspan></text>
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.200001;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       id="rect11"
+       width="58.943752"
+       height="15.844442"
+       x="14.496778"
+       y="106.12024"
+       ry="2.8699193"
+       rx="2.8699188" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.200002;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       id="rect11-7"
+       width="98.489868"
+       height="42.109806"
+       x="1.5550652"
+       y="26.230499"
+       ry="2.8699193"
+       rx="2.8699188" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.200001;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       id="rect11-2"
+       width="24.705139"
+       height="15.844442"
+       x="74.185143"
+       y="106.12024"
+       ry="2.8699193"
+       rx="2.8699188" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="components"
+     style="display:inline">
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0"
+       cx="81.708328"
+       cy="54.851669"
+       r="1.5"
+       inkscape:label="Inversion" />
+    <circle
+       style="opacity:1;fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1"
+       cx="87.415474"
+       cy="43.157669"
+       r="1.5"
+       inkscape:label="ChordButton7" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-3"
+       cx="75.22728"
+       cy="43.157669"
+       r="1.5"
+       inkscape:label="ChordButton6" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-8"
+       cx="63.039093"
+       cy="43.157669"
+       r="1.5"
+       inkscape:label="ChordButton5" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1"
+       cx="50.850903"
+       cy="43.157669"
+       r="1.5"
+       inkscape:label="ChordButton4" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-80"
+       cx="38.662708"
+       cy="43.157669"
+       r="1.5"
+       inkscape:label="ChordButton3" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-32"
+       cx="26.47452"
+       cy="43.157669"
+       r="1.5"
+       inkscape:label="ChordButton2" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13"
+       cx="14.286327"
+       cy="43.157669"
+       r="1.5"
+       inkscape:label="ChordButton1" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4"
+       cx="31.774014"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="ChordOut1" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-8"
+       cx="43.883194"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="ChordOut2" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86"
+       cx="55.992378"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="ChordOut3" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86-1"
+       cx="68.101562"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="ChordOut4" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86-1-8"
+       cx="80.210739"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="LeadOut1" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86-1-8-2"
+       cx="92.319923"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="LeadOut2" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-5"
+       cx="19.664831"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="ChordRootOut" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-4"
+       cx="7.5556488"
+       cy="115.94719"
+       r="1.5"
+       inkscape:label="PedalOut" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-7"
+       cx="8.1820068"
+       cy="86.696007"
+       r="1.5"
+       inkscape:label="LeadOffset1" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0-2-4"
+       cx="18.669744"
+       cy="79.248726"
+       r="1.5"
+       inkscape:label="LeadCV1" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8"
+       cx="18.669744"
+       cy="94.80027"
+       r="1.5"
+       inkscape:label="LeadCV1" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0-2-3"
+       cx="38.490192"
+       cy="86.696007"
+       r="1.5"
+       inkscape:label="LeadGate1" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86-1-8-5"
+       cx="46.249554"
+       cy="86.696007"
+       r="1.5"
+       inkscape:label="LeadGateOut1" />
+    <circle
+       style="fill:#ff00ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86-1-8-5-5"
+       cx="46.379883"
+       cy="79.248726"
+       r="1.5"
+       inkscape:label="LeadLED1" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0-2"
+       cx="30.072697"
+       cy="79.248726"
+       r="1.5"
+       inkscape:label="LeadOctave1" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-2"
+       cx="30.072697"
+       cy="94.80027"
+       r="1.5"
+       inkscape:label="LeadOctaveCV1" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-7-6"
+       cx="59.156498"
+       cy="86.696007"
+       r="1.5"
+       inkscape:label="LeadOffset2" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0-2-4-6"
+       cx="69.644234"
+       cy="79.248726"
+       r="1.5"
+       inkscape:label="LeadCV2" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-3"
+       cx="69.644234"
+       cy="94.80027"
+       r="1.5"
+       inkscape:label="LeadCV2" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0-2-3-7"
+       cx="89.464684"
+       cy="86.696007"
+       r="1.5"
+       inkscape:label="LeadGate2" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86-1-8-5-3"
+       cx="97.224045"
+       cy="86.696007"
+       r="1.5"
+       inkscape:label="LeadGateOut1" />
+    <circle
+       style="fill:#ff00ff;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-4-86-1-8-5-5-3"
+       cx="97.35437"
+       cy="79.248726"
+       r="1.5"
+       inkscape:label="LeadLED1" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0-2-8"
+       cx="81.047188"
+       cy="79.248726"
+       r="1.5"
+       inkscape:label="LeadOctave2" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-2-4"
+       cx="81.047188"
+       cy="94.80027"
+       r="1.5"
+       inkscape:label="LeadOctaveCV1" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-5-9"
+       cx="51.442749"
+       cy="62.876068"
+       r="1.5"
+       inkscape:label="ChordSelectCV" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-5-9-8"
+       cx="8.86693"
+       cy="54.851669"
+       r="1.5"
+       inkscape:label="ChordVoicing" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-5-9-8-2"
+       cx="92.502159"
+       cy="54.851669"
+       r="1.5"
+       inkscape:label="ChordInversionCV" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-5-9-8-2-9"
+       cx="32.234581"
+       cy="12.887641"
+       r="1.5"
+       inkscape:label="KeyCV" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-13-8-5-9-8-2-9-2"
+       cx="68.487633"
+       cy="12.887641"
+       r="1.5"
+       inkscape:label="Mode" />
+    <circle
+       style="fill:#ff0000;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-49"
+       cx="42.667114"
+       cy="12.887641"
+       r="1.5"
+       inkscape:label="Key" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6"
+       cx="57.910851"
+       cy="12.887641"
+       r="1.5"
+       inkscape:label="ModeCV" />
+    <circle
+       style="fill:#00ff00;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-1-6-0-2-1-1"
+       cx="20"
+       cy="54.851669"
+       r="1.5"
+       inkscape:label="ChordVoicingCV" />
+  </g>
+</svg>
