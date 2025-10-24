@@ -79,9 +79,9 @@ struct Kleztizer : Module {
 		configParam(LEADCV2_PARAM, 0.f, 1.f, 1.f, "Lead 2 CV Amount", "%", 0.f, 100.f);
 		configSwitch(LEADOCTAVE2_PARAM, 0.f, 4.f, 2.f, "Lead 2 Octave", {"-2", "-1", "0", "+1", "+2"});
 		configParam(LEADOFFSET1_PARAM, -2.f, 2.f, 0.f, "Lead 1 Note Offset", "v");
-		configParam(LEADGATE1_PARAM, 0.f, 1.f, 0.f, "Lead 1 Gate");
+		configSwitch(LEADGATE1_PARAM, 0.f, 1.f, 0.f, "Lead 1", {"Gate", "Trig"});
 		configParam(LEADOFFSET2_PARAM, -2.f, 2.f, 0.f, "Lead 2 Note Offset", "v");
-		configParam(LEADGATE2_PARAM, 0.f, 1.f, 0.f, "Lead 2 Gate");
+		configSwitch(LEADGATE2_PARAM, 0.f, 1.f, 0.f, "Lead 2", {"Gate", "Trig"});
 		configInput(KEYCV_INPUT, "Key CV");
 		configInput(MODECV_INPUT, "Mode CV");
 		configInput(CHORDVOICINGCV_INPUT, "Voicing CV");
@@ -134,6 +134,7 @@ const int freygishScale[7] = {0, 1, 4, 5, 7, 8, 10};  // Freygish scale in semit
 float tonicVoltage = 0.f;
  
 float lead1CVAttenuated = 0.f;  // After CV input attenuator
+float lead1LedTimer = 0.f; // countdown in seconds
 
 // --- Scales (semitone offsets relative to tonic) ---
 const int FREYGISH[7]       = {0, 1, 4, 5, 7, 8, 10};
@@ -141,6 +142,9 @@ const int MI_SHEBERACH[7]   = {0, 1, 3, 5, 7, 8, 10};  // swapped position
 const int ADONAI_MALAKH[7]  = {0, 2, 3, 5, 7, 8, 10};  // swapped position
 const int MAGEIN_AVOT[7]    = {0, 2, 4, 5, 7, 8, 10};
 const int HARMONIC_MINOR[7] = {0, 2, 3, 5, 7, 8, 11};
+
+int lastQuantizedNote = -999; // stores the last quantized note to detect changes
+
 
 void process(const ProcessArgs& args) override {
 
@@ -189,16 +193,37 @@ void process(const ProcessArgs& args) override {
         }
     }
 
-	float octaveParam = params[LEADOCTAVE1_PARAM].getValue(); // 0..4
-	if (inputs[LEADOCTAVECV1_INPUT].isConnected()) {
-		octaveParam += (inputs[LEADOCTAVECV1_INPUT].getVoltage() / 5.f) * 4.f; // -5V..5V -> -4..4
-	}
-	octaveParam = clamp(octaveParam, 0.f, 4.f);
-	int octaveShift = (int)roundf(octaveParam) - 2; // -2..+2
-	closestNote += octaveShift * 12;
-	
-	
+    float octaveParam = params[LEADOCTAVE1_PARAM].getValue();
+    if (inputs[LEADOCTAVECV1_INPUT].isConnected()) {
+        octaveParam += (inputs[LEADOCTAVECV1_INPUT].getVoltage() / 5.f) * 4.f; // -5..5V -> -4..4
+    }
+    octaveParam = clamp(octaveParam, 0.f, 4.f);
+    int octaveShift = (int)roundf(octaveParam) - 2;
+    closestNote += octaveShift * 12;
+
     outputs[LEADOUT1_OUTPUT].setVoltage(tonicVoltage + closestNote / 12.f);
+
+	float lead1GateTimer = 0.f;
+
+	if (closestNote != lastQuantizedNote) {
+		lastQuantizedNote = closestNote;
+		lead1GateTimer = 0.005f; // 5 ms
+		lead1LedTimer  = 0.005f; // 5 ms
+	}
+	
+	if (lead1GateTimer > 0.f) {
+		lead1GateTimer -= args.sampleTime;
+		outputs[LEADGATEOUT1_OUTPUT].setVoltage(5.f);
+	} else {
+		outputs[LEADGATEOUT1_OUTPUT].setVoltage(0.f);
+	}
+	
+	if (lead1LedTimer > 0.f) {
+		lead1LedTimer -= args.sampleTime;
+		lights[LEADLED1_LIGHT].setBrightnessSmooth(1.f, args.sampleTime);
+	} else {
+		lights[LEADLED1_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
+	}
 }
 };
 
@@ -274,7 +299,7 @@ struct KleztizerWidget : ModuleWidget {
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(92.32, 115.947)), module, Kleztizer::LEADOUT2_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(46.38, 79.249)), module, Kleztizer::LEADLED1_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(97.354, 79.249)), module, Kleztizer::LEADLED1_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(97.354, 79.249)), module, Kleztizer::LEADLED_LIGHT));
 	}
 };
 
