@@ -64,7 +64,7 @@ struct Kleztizer : Module {
 	Kleztizer() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configSwitch(KEY_PARAM, 0.f, 11.f, 2.f, "Key", {"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"});
-		configSwitch(MODE_PARAM, 0.f, 4.f, 0.f, "Mode", {"Freygish", "Adonai Malakh", "Mi Sheberach", "Magein Avot", "Harmonic Minor"});
+		configSwitch(MODE_PARAM, 0.f, 4.f, 0.f, "Mode", {"Freygish", "Mi Sheberach", "Adonai Malakh", "Magein Avot", "Harmonic Minor"});
 		configSwitch(CHORDBUTTON1_PARAM, 0.f, 1.f, 0.f, "Chord 1");
 		configSwitch(CHORDBUTTON2_PARAM, 0.f, 1.f, 0.f, "Chord 2");
 		configSwitch(CHORDBUTTON3_PARAM, 0.f, 1.f, 0.f, "Chord 3");
@@ -127,19 +127,79 @@ const int chordButtonLights[7] = {
     CHORDBUTTON7LED_LIGHT
 };
 
+// --- Lead 1 snapping / scale ---
+const int freygishScale[7] = {0, 1, 4, 5, 7, 8, 10};  // Freygish scale in semitones
 
-	void process(const ProcessArgs& args) override {
+// --- (Optional) Tonic voltage cache ---
+float tonicVoltage = 0.f;
+ 
+float lead1CVAttenuated = 0.f;  // After CV input attenuator
 
-for (int i = 0; i < 7; i++) {
-    if (chordButtonTriggers[i].process(params[chordButtonParams[i]].getValue())) {
-        for (int j = 0; j < 7; j++) {
-            chordButtonStates[j] = (i == j);
+// --- Scales (semitone offsets relative to tonic) ---
+const int FREYGISH[7]       = {0, 1, 4, 5, 7, 8, 10};
+const int MI_SHEBERACH[7]   = {0, 1, 3, 5, 7, 8, 10};  // swapped position
+const int ADONAI_MALAKH[7]  = {0, 2, 3, 5, 7, 8, 10};  // swapped position
+const int MAGEIN_AVOT[7]    = {0, 2, 4, 5, 7, 8, 10};
+const int HARMONIC_MINOR[7] = {0, 2, 3, 5, 7, 8, 11};
+
+void process(const ProcessArgs& args) override {
+
+    for (int i = 0; i < 7; i++) {
+        if (chordButtonTriggers[i].process(params[chordButtonParams[i]].getValue())) {
+            for (int j = 0; j < 7; j++) chordButtonStates[j] = (i == j);
+            chordSelect = i + 1;
         }
-        chordSelect = i + 1;
-    	}
-    lights[chordButtonLights[i]].setBrightnessSmooth(chordButtonStates[i] ? 1.f : 0.f, args.sampleTime);
+        lights[chordButtonLights[i]].setBrightnessSmooth(chordButtonStates[i] ? 1.f : 0.f, args.sampleTime);
+    }
+
+    float keyCV = inputs[KEYCV_INPUT].isConnected() ? inputs[KEYCV_INPUT].getVoltage() : 0.f;
+    float keyNorm = params[KEY_PARAM].getValue() / 11.f + keyCV / 10.f;
+    int keyIndex = clamp(int(roundf(keyNorm * 11.f)), 0, 11);
+    tonicVoltage = keyIndex / 12.f;
+    outputs[PEDALOUT_OUTPUT].setVoltage(tonicVoltage - 1.f);
+
+    float rawCV = inputs[LEADCV1_INPUT].isConnected() ? inputs[LEADCV1_INPUT].getVoltage() : 0.f;
+    float lead1CVAtt = rawCV * params[LEADCV1_PARAM].getValue();
+    float totalCV = lead1CVAtt + params[LEADOFFSET1_PARAM].getValue();
+    float semitoneOffset = totalCV * 12.f;
+
+    float modeCV = inputs[MODECV_INPUT].isConnected() ? inputs[MODECV_INPUT].getVoltage() : 0.f;
+    float modeNorm = params[MODE_PARAM].getValue() / 4.f + modeCV / 10.f;
+    int modeIndex = clamp(int(roundf(modeNorm * 4.f)), 0, 4);
+
+    const int* currentScale = nullptr;
+    switch(modeIndex) {
+        case 0: currentScale = FREYGISH; break;
+        case 1: currentScale = MI_SHEBERACH; break;
+        case 2: currentScale = ADONAI_MALAKH; break;
+        case 3: currentScale = MAGEIN_AVOT; break;
+        case 4: currentScale = HARMONIC_MINOR; break;
+    }
+
+    int closestNote = currentScale[0];
+    float minDiff = fabs(semitoneOffset - currentScale[0]);
+    for (int octave = -2; octave <= 2; octave++) {
+        for (int i = 0; i < 7; i++) {
+            float candidate = currentScale[i] + octave * 12;
+            float diff = fabs(semitoneOffset - candidate);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestNote = candidate;
+            }
+        }
+    }
+
+	float octaveParam = params[LEADOCTAVE1_PARAM].getValue(); // 0..4
+	if (inputs[LEADOCTAVECV1_INPUT].isConnected()) {
+		octaveParam += (inputs[LEADOCTAVECV1_INPUT].getVoltage() / 5.f) * 4.f; // -5V..5V -> -4..4
 	}
- }
+	octaveParam = clamp(octaveParam, 0.f, 4.f);
+	int octaveShift = (int)roundf(octaveParam) - 2; // -2..+2
+	closestNote += octaveShift * 12;
+	
+	
+    outputs[LEADOUT1_OUTPUT].setVoltage(tonicVoltage + closestNote / 12.f);
+}
 };
 
 
