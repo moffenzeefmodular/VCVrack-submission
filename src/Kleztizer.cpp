@@ -385,15 +385,15 @@ struct KleztizerWidget : ModuleWidget {
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(69.644, 94.8)), module, Kleztizer::LEADCV2_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.047, 94.8)), module, Kleztizer::LEADOCTAVECV2_INPUT));
 
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(46.25, 86.696)), module, Kleztizer::LEADGATEOUT1_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(97.224, 86.696)), module, Kleztizer::LEADGATEOUT2_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(7.556, 115.947)), module, Kleztizer::PEDALOUT_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(19.665, 115.947)), module, Kleztizer::CHORDROOTOUT_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(31.774, 115.947)), module, Kleztizer::CHORDOUT1_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(43.883, 115.947)), module, Kleztizer::CHORDOUT2_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(55.992, 115.947)), module, Kleztizer::CHORDOUT3_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(80.211, 115.947)), module, Kleztizer::LEADOUT1_OUTPUT));
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(92.32, 115.947)), module, Kleztizer::LEADOUT2_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(46.25, 86.696)), module, Kleztizer::LEADGATEOUT1_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(97.224, 86.696)), module, Kleztizer::LEADGATEOUT2_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.867, 115.947)), module, Kleztizer::PEDALOUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(25.486, 115.947)), module, Kleztizer::CHORDROOTOUT_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(37.595, 115.947)), module, Kleztizer::CHORDOUT1_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(49.704, 115.947)), module, Kleztizer::CHORDOUT2_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(61.813, 115.947)), module, Kleztizer::CHORDOUT3_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(79.682, 115.947)), module, Kleztizer::LEADOUT1_OUTPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(91.791, 115.947)), module, Kleztizer::LEADOUT2_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(46.38, 79.249)), module, Kleztizer::LEADLED1_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(97.354, 79.249)), module, Kleztizer::LEADLED_LIGHT));
