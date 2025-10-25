@@ -210,7 +210,11 @@ if (chordSelect > 0 && chordTable) {
     int chordIndex = chordSelect - 1;
 
     // --- Root (always first note of chord table, no inversion/voicing) ---
-    float rootVoltage = tonicVoltage + chordTable[chordIndex][0] / 12.f;
+    float rootVoltage = tonicVoltage + chordTable[chordIndex][0] / 12.f - 2.f; // Two octaves below chord
+	// --- Drop an additional octave if Chord 7 is selected ---
+	if (chordSelect == 7) {
+    rootVoltage -= 1.f; // minus 1V = 1 octave
+	}
     outputs[CHORDROOTOUT_OUTPUT].setVoltage(rootVoltage);
 
     // --- Inversion knob + CV ---
