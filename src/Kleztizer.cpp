@@ -127,15 +127,8 @@ const int chordButtonLights[7] = {
     CHORDBUTTON7LED_LIGHT
 };
 
-// --- Lead 1 snapping / scale ---
-const int freygishScale[7] = {0, 1, 4, 5, 7, 8, 10};  // Freygish scale in semitones
-
 // --- (Optional) Tonic voltage cache ---
 float tonicVoltage = 0.f;
- 
-float lead1CVAttenuated = 0.f;  // After CV input attenuator
-float lead1LedTimer = 0.f; // countdown in seconds
-float lead1GateTimer = 0.f; // persistent gate timer
 
 // --- Scales (semitone offsets relative to tonic) ---
 const int FREYGISH[7]       = {0, 1, 4, 5, 7, 8, 10};
@@ -144,11 +137,14 @@ const int ADONAI_MALAKH[7]  = {0, 2, 3, 5, 7, 8, 10};  // swapped position
 const int MAGEIN_AVOT[7]    = {0, 2, 4, 5, 7, 8, 10};
 const int HARMONIC_MINOR[7] = {0, 2, 3, 5, 7, 8, 11};
 
-int lastQuantizedNote = -999; // stores the last quantized note to detect changes
-
+// --- Lead processing state ---
+float leadGateTimer[2] = {0.f, 0.f};
+float leadLedTimer[2]  = {0.f, 0.f};
+int   lastQuantizedNote[2] = {-999, -999};
 
 void process(const ProcessArgs& args) override {
 
+	// Chord buttons
     for (int i = 0; i < 7; i++) {
         if (chordButtonTriggers[i].process(params[chordButtonParams[i]].getValue())) {
             for (int j = 0; j < 7; j++) chordButtonStates[j] = (i == j);
@@ -157,16 +153,12 @@ void process(const ProcessArgs& args) override {
         lights[chordButtonLights[i]].setBrightnessSmooth(chordButtonStates[i] ? 1.f : 0.f, args.sampleTime);
     }
 
+	// Key and mode 
     float keyCV = inputs[KEYCV_INPUT].isConnected() ? inputs[KEYCV_INPUT].getVoltage() : 0.f;
     float keyNorm = params[KEY_PARAM].getValue() / 11.f + keyCV / 10.f;
     int keyIndex = clamp(int(roundf(keyNorm * 11.f)), 0, 11);
     tonicVoltage = keyIndex / 12.f;
-    outputs[PEDALOUT_OUTPUT].setVoltage(tonicVoltage - 1.f);
-
-    float rawCV = inputs[LEADCV1_INPUT].isConnected() ? inputs[LEADCV1_INPUT].getVoltage() : 0.f;
-    float lead1CVAtt = rawCV * params[LEADCV1_PARAM].getValue();
-    float totalCV = lead1CVAtt + params[LEADOFFSET1_PARAM].getValue();
-    float semitoneOffset = totalCV * 12.f;
+    outputs[PEDALOUT_OUTPUT].setVoltage(tonicVoltage - 2.f); // 2 octaves down
 
     float modeCV = inputs[MODECV_INPUT].isConnected() ? inputs[MODECV_INPUT].getVoltage() : 0.f;
     float modeNorm = params[MODE_PARAM].getValue() / 4.f + modeCV / 10.f;
@@ -180,74 +172,76 @@ void process(const ProcessArgs& args) override {
         case 3: currentScale = MAGEIN_AVOT; break;
         case 4: currentScale = HARMONIC_MINOR; break;
     }
+// --- Lead processing loop (Lead 1 + Lead 2) ---
+for (int lead = 0; lead < 2; lead++) {
+	// Map per-lead params/IO
+	int LEADCV_INPUT_ID       = (lead == 0) ? LEADCV1_INPUT       : LEADCV2_INPUT;
+	int LEADOCTAVECV_INPUT_ID = (lead == 0) ? LEADOCTAVECV1_INPUT : LEADOCTAVECV2_INPUT;
+	int LEADCV_PARAM_ID       = (lead == 0) ? LEADCV1_PARAM       : LEADCV2_PARAM;
+	int LEADOCTAVE_PARAM_ID   = (lead == 0) ? LEADOCTAVE1_PARAM   : LEADOCTAVE2_PARAM;
+	int LEADOFFSET_PARAM_ID   = (lead == 0) ? LEADOFFSET1_PARAM   : LEADOFFSET2_PARAM;
+	int LEADGATE_PARAM_ID     = (lead == 0) ? LEADGATE1_PARAM     : LEADGATE2_PARAM;
+	int LEADOUT_OUTPUT_ID     = (lead == 0) ? LEADOUT1_OUTPUT     : LEADOUT2_OUTPUT;
+	int LEADGATEOUT_OUTPUT_ID = (lead == 0) ? LEADGATEOUT1_OUTPUT : LEADGATEOUT2_OUTPUT;
+	int LEADLED_LIGHT_ID      = (lead == 0) ? LEADLED1_LIGHT      : LEADLED_LIGHT;
 
-    int closestNote = currentScale[0];
-    float minDiff = fabs(semitoneOffset - currentScale[0]);
-    for (int octave = -2; octave <= 2; octave++) {
-        for (int i = 0; i < 7; i++) {
-            float candidate = currentScale[i] + octave * 12;
-            float diff = fabs(semitoneOffset - candidate);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closestNote = candidate;
-            }
-        }
-    }
+	// --- CV + quantization ---
+	float rawCV = inputs[LEADCV_INPUT_ID].isConnected() ? inputs[LEADCV_INPUT_ID].getVoltage() : 0.f;
+	float leadCVAtt = rawCV * params[LEADCV_PARAM_ID].getValue();
+	float totalCV = leadCVAtt + params[LEADOFFSET_PARAM_ID].getValue();
+	float semitoneOffset = totalCV * 12.f;
 
-    float octaveParam = params[LEADOCTAVE1_PARAM].getValue();
-    if (inputs[LEADOCTAVECV1_INPUT].isConnected()) {
-        octaveParam += (inputs[LEADOCTAVECV1_INPUT].getVoltage() / 5.f) * 4.f; // -5..5V -> -4..4
-    }
-    octaveParam = clamp(octaveParam, 0.f, 4.f);
-    int octaveShift = (int)roundf(octaveParam) - 2;
-    closestNote += octaveShift * 12;
-
-    outputs[LEADOUT1_OUTPUT].setVoltage(tonicVoltage + closestNote / 12.f);
-
-bool leadGate1IsTrigMode = (params[LEADGATE1_PARAM].getValue() > 0.5f);
-
-if (leadGate1IsTrigMode) {
-	// --- TRIG MODE: short 5ms pulse ---
-	if (closestNote != lastQuantizedNote) {
-		lastQuantizedNote = closestNote;
-		lead1GateTimer = 0.005f; // 5 ms pulse
-		lead1LedTimer  = 0.005f;
+	// Find closest scale degree
+	int closestNote = 0;
+	float minDiff = 9999.f;
+	for (int octave = -2; octave <= 2; octave++) {
+		for (int i = 0; i < 7; i++) {
+			float candidate = currentScale[i] + octave * 12;
+			float diff = fabs(semitoneOffset - candidate);
+			if (diff < minDiff) {
+				minDiff = diff;
+				closestNote = candidate;
+			}
+		}
 	}
 
-	if (lead1GateTimer > 0.f) {
-		lead1GateTimer -= args.sampleTime;
-		outputs[LEADGATEOUT1_OUTPUT].setVoltage(5.f);
+	// Octave shift
+	float octaveParam = params[LEADOCTAVE_PARAM_ID].getValue();
+	if (inputs[LEADOCTAVECV_INPUT_ID].isConnected()) {
+		octaveParam += (inputs[LEADOCTAVECV_INPUT_ID].getVoltage() / 5.f) * 4.f;
+	}
+	octaveParam = clamp(octaveParam, 0.f, 4.f);
+	int octaveShift = (int)roundf(octaveParam) - 2;
+	closestNote += octaveShift * 12;
+
+	// Output quantized pitch
+	outputs[LEADOUT_OUTPUT_ID].setVoltage(tonicVoltage + closestNote / 12.f);
+
+	// --- Gate / LED timing ---
+	bool isTrigMode = (params[LEADGATE_PARAM_ID].getValue() > 0.5f);
+	float trigDur  = 0.005f;
+	float gateDur  = 0.5f;
+
+	if (closestNote != lastQuantizedNote[lead]) {
+		lastQuantizedNote[lead] = closestNote;
+		leadGateTimer[lead] = isTrigMode ? trigDur : gateDur;
+		leadLedTimer[lead]  = isTrigMode ? trigDur : gateDur;
+	}
+
+	// Gate output
+	if (leadGateTimer[lead] > 0.f) {
+		leadGateTimer[lead] -= args.sampleTime;
+		outputs[LEADGATEOUT_OUTPUT_ID].setVoltage(5.f);
 	} else {
-		outputs[LEADGATEOUT1_OUTPUT].setVoltage(0.f);
+		outputs[LEADGATEOUT_OUTPUT_ID].setVoltage(0.f);
 	}
 
-	if (lead1LedTimer > 0.f) {
-		lead1LedTimer -= args.sampleTime;
-		lights[LEADLED1_LIGHT].setBrightnessSmooth(1.f, args.sampleTime);
+	// LED output
+	if (leadLedTimer[lead] > 0.f) {
+		leadLedTimer[lead] -= args.sampleTime;
+		lights[LEADLED_LIGHT_ID].setBrightnessSmooth(1.f, args.sampleTime);
 	} else {
-		lights[LEADLED1_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
-	}
-}
-else {
-	// --- GATE MODE: long 100ms pulse ---
-	if (closestNote != lastQuantizedNote) {
-		lastQuantizedNote = closestNote;
-		lead1GateTimer = 0.5f; // 500 ms gate
-		lead1LedTimer  = 0.5f;
-	}
-
-	if (lead1GateTimer > 0.f) {
-		lead1GateTimer -= args.sampleTime;
-		outputs[LEADGATEOUT1_OUTPUT].setVoltage(5.f);
-	} else {
-		outputs[LEADGATEOUT1_OUTPUT].setVoltage(0.f);
-	}
-
-	if (lead1LedTimer > 0.f) {
-		lead1LedTimer -= args.sampleTime;
-		lights[LEADLED1_LIGHT].setBrightnessSmooth(1.f, args.sampleTime);
-	} else {
-		lights[LEADLED1_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
+		lights[LEADLED_LIGHT_ID].setBrightnessSmooth(0.f, args.sampleTime);
 	}
 }
 }
