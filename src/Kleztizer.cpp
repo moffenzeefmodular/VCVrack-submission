@@ -93,7 +93,7 @@ struct Kleztizer : Module {
 		configOutput(LEADGATEOUT1_OUTPUT, "Lead 1 Gate");
 		configOutput(LEADGATEOUT2_OUTPUT, "Lead 2 Gate");
 		configOutput(PEDALOUT_OUTPUT, "Pedal");
-		configOutput(CHORDROOTOUT_OUTPUT, "Chord Root");
+		configOutput(CHORDROOTOUT_OUTPUT, "Bass");
 		configOutput(CHORDOUT1_OUTPUT, "Voice 1");
 		configOutput(CHORDOUT2_OUTPUT, "Voice 2");
 		configOutput(CHORDOUT3_OUTPUT, "Voice 3");
@@ -136,7 +136,7 @@ struct Kleztizer : Module {
 	// --- Chords tables now have only 3 voices each ---
 	const int FREYGISH_CHORDS[7][3] = {
 		{0, 4, 7}, {1, 5, 8}, {4, 7, 10},
-		{5, 8, 0}, {7, 10, 2}, {0, 0, 0}, {10, 1, 5}
+		{5, 8, 0}, {7, 10, 2}, {5, 0, 2}, {10, 1, 5}
 	};
 	const int MI_SHEBERACH_CHORDS[7][3] = {
 		{0, 3, 7}, {2, 6, 9}, {3, 6, 10},
@@ -206,8 +206,7 @@ struct Kleztizer : Module {
 			case 3: chordTable = MAGEIN_AVOT_CHORDS; break;
 			case 4: chordTable = HARMONIC_MINOR_CHORDS; break;
 		}
-
-		if (chordSelect > 0 && chordTable) {
+if (chordSelect > 0 && chordTable) {
     int chordIndex = chordSelect - 1;
 
     // --- Root (always first note of chord table, no inversion/voicing) ---
@@ -244,19 +243,18 @@ struct Kleztizer : Module {
     for (int v = 0; v < 3; v++)
         outputs[CHORDOUT1_OUTPUT + v].setVoltage(tonicVoltage + finalVoices[v] / 12.f);
 
-    // --- CHORDOUT1 as polyphonic output: root + 3 voices ---
-    outputs[CHORDOUT1_OUTPUT].setChannels(4);
-    outputs[CHORDOUT1_OUTPUT].setVoltage(rootVoltage, 0);
+    // --- CHORDOUT1 as polyphonic output: 3 voices only ---
+    outputs[CHORDOUT1_OUTPUT].setChannels(3);
     for (int v = 0; v < 3; v++)
-        outputs[CHORDOUT1_OUTPUT].setVoltage(tonicVoltage + finalVoices[v] / 12.f, v + 1);
+        outputs[CHORDOUT1_OUTPUT].setVoltage(tonicVoltage + finalVoices[v] / 12.f, v);
 
 } else {
     outputs[CHORDROOTOUT_OUTPUT].setVoltage(0.f);
     for (int v = 0; v < 3; v++)
         outputs[CHORDOUT1_OUTPUT + v].setVoltage(0.f);
 
-    outputs[CHORDOUT1_OUTPUT].setChannels(4);
-    for (int i = 0; i < 4; i++)
+    outputs[CHORDOUT1_OUTPUT].setChannels(3);
+    for (int i = 0; i < 3; i++)
         outputs[CHORDOUT1_OUTPUT].setVoltage(0.f, i);
 }
 
