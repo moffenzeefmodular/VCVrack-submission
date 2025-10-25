@@ -103,9 +103,9 @@ struct Kleztizer : Module {
 		configOutput(LEADOUT2_OUTPUT, "Lead 2");
 	}
 
-	bool chordButtonStates[7] = {false};
+	bool chordButtonStates[7] = {true};
 	dsp::SchmittTrigger chordButtonTriggers[7];
-	int chordSelect = 0; 
+	int chordSelect = 1; 
 
 	const int chordButtonParams[7] = {
     CHORDBUTTON1_PARAM,
@@ -131,27 +131,101 @@ const int chordButtonLights[7] = {
 float tonicVoltage = 0.f;
 
 // --- Scales (semitone offsets relative to tonic) ---
-const int FREYGISH[7]       = {0, 1, 4, 5, 7, 8, 10};
-const int MI_SHEBERACH[7]   = {0, 1, 3, 5, 7, 8, 10};  // swapped position
-const int ADONAI_MALAKH[7]  = {0, 2, 3, 5, 7, 8, 10};  // swapped position
-const int MAGEIN_AVOT[7]    = {0, 2, 4, 5, 7, 8, 10};
-const int HARMONIC_MINOR[7] = {0, 2, 3, 5, 7, 8, 11};
+const int FREYGISH[7]       = {0, 1, 4, 5, 7, 8, 10};   // C – Db – E – F – G – Ab – Bb
+const int MI_SHEBERACH[7]   = {0, 2, 3, 6, 7, 9, 10};   // C – D – Eb – F# – G – A – Bb
+const int ADONAI_MALAKH[7]  = {0, 2, 4, 5, 7, 9, 10};   // C – D – E – F – G – A – Bb
+const int MAGEIN_AVOT[7]    = {0, 2, 5, 6, 7, 9, 10};   // C – D – F – F# – G – A – Bb
+const int HARMONIC_MINOR[7] = {0, 2, 3, 5, 7, 8, 11};   // C – D – Eb – F – G – Ab – B
+
+// --- FREYGISH chords in C ---
+const int FREYGISH_CHORDS[7][4] = {
+    {0, 4, 7, 10},   // I: C7 (C E G Bb) – tonic dominant 7th
+    {1, 5, 8, 0},    // ♭II: Dbmaj (Db F Ab C) – predominant
+    {4, 7, 10, 2},   // #III dim: E° (E G Bb C) – rare diminished
+    {5, 8, 0, 3},    // iv: Fm (F Ab C Eb) – predominant minor
+    {7, 10, 2, 5},   // v dim: G° (G Bb D F) – dominant diminished
+    {0, 0, 0, 0},    // VI+ skipped
+    {10, 1, 5, 8}    // ♭VII: Bb minor (Bb Db F Ab) – dominant function
+};
+
+// --- MI SHEBERACH chords in C ---
+const int MI_SHEBERACH_CHORDS[7][4] = {
+    {0, 3, 7, 0},    // I: Cm (C Eb G C) – tonic minor
+    {2, 6, 9, 0},    // II dom: D7 (D F# A C) – dominant 7th
+    {3, 6, 10, 0},   // III: Ebmaj (Eb G Bb C) – major
+    {6, 9, 0, 3},    // IV: F#m7b5 (F# A C E) – minor 7 flat 5
+    {7, 10, 2, 5},   // V: Gm (G Bb D F) – minor predominant
+    {9, 0, 4, 7},    // VI: Am (A C E G) – minor tonic
+    {10, 2, 5, 9}    // VII: Bbmaj (Bb D F A) – major dominant
+};
+
+// --- ADONAI MALAKH chords in C ---
+const int ADONAI_MALAKH_CHORDS[7][4] = {
+    {0, 4, 7, 10},   // I: C7 (C E G Bb) – tonic dominant 7th
+    {2, 5, 9, 0},    // II: Dm (D F A C) – minor predominant
+    {4, 8, 11, 0},   // III: Edim (E G# B D) – diminished
+    {5, 9, 12, 0},   // IV: Fmaj (F A C E) – major
+    {7, 11, 14, 0},  // V: G7 (G B D F) – dominant 7th
+    {9, 0, 4, 7},    // VI: Am (A C E G) – minor
+    {10, 2, 5, 9}    // VII: Bbmaj (Bb D F A) – major
+};
+
+// --- MAGEIN AVOT chords in C ---
+const int MAGEIN_AVOT_CHORDS[7][4] = {
+    {0, 3, 7, 10},   // I: Cm7 (C Eb G Bb) – minor 7th
+    {2, 5, 9, 0},    // II: Dm (D F A C) – minor
+    {5, 8, 0, 3},    // III: Fdim (F Ab C Eb) – diminished
+    {6, 9, 0, 3},    // IV: F#m7b5 (F# A C E) – minor 7 flat 5
+    {7, 11, 14, 0},  // V: G7 (G B D F) – dominant 7th
+    {9, 0, 4, 7},    // VI: Am (A C E G) – minor
+    {10, 2, 5, 9}    // VII: Bbmaj (Bb D F A) – major
+};
+
+// --- HARMONIC MINOR chords in C ---
+const int HARMONIC_MINOR_CHORDS[7][4] = {
+    {0, 3, 7, 0},    // I: Cm (C Eb G C) – tonic minor
+    {2, 5, 9, 0},    // II dim: Ddim (D F Ab C) – diminished
+    {4, 8, 11, 0},   // III+: E+ (E G# B D) – augmented
+    {5, 8, 12, 0},   // IV: Fm (F Ab C F) – minor
+    {7, 11, 14, 0},  // V7: G7 (G B D F) – dominant 7th
+    {9, 0, 4, 7},    // VI: Abmaj (Ab C Eb G) – major
+    {11, 2, 5, 9}    // VII dim: Bdim (B D F A) – diminished
+};
+
 
 // --- Lead processing state ---
 float leadGateTimer[2] = {0.f, 0.f};
 float leadLedTimer[2]  = {0.f, 0.f};
 int   lastQuantizedNote[2] = {-999, -999};
 
+
+
 void process(const ProcessArgs& args) override {
 
-	// Chord buttons
-    for (int i = 0; i < 7; i++) {
-        if (chordButtonTriggers[i].process(params[chordButtonParams[i]].getValue())) {
-            for (int j = 0; j < 7; j++) chordButtonStates[j] = (i == j);
-            chordSelect = i + 1;
-        }
-        lights[chordButtonLights[i]].setBrightnessSmooth(chordButtonStates[i] ? 1.f : 0.f, args.sampleTime);
+// --- Chord buttons + CV ---
+for (int i = 0; i < 7; i++) {
+    // Handle physical button presses
+    if (chordButtonTriggers[i].process(params[chordButtonParams[i]].getValue())) {
+        for (int j = 0; j < 7; j++) chordButtonStates[j] = (i == j);
+        chordSelect = i + 1;
     }
+}
+
+// Handle CV input (overrides buttons if connected)
+if (inputs[CHORDSELECTCV_INPUT].isConnected()) {
+    float cv = clamp(inputs[CHORDSELECTCV_INPUT].getVoltage(), -5.f, 5.f);
+    // Map -5..+5 → 1..7 manually
+    int cvChord = int(roundf(((cv + 5.f) / 10.f) * 6.f)) + 1; // ((cv+5)/10)*6 → 0..6, +1 → 1..7
+    chordSelect = clamp(cvChord, 1, 7);
+    for (int j = 0; j < 7; j++)
+        chordButtonStates[j] = (j == chordSelect - 1);
+}
+
+// Update button LEDs
+for (int i = 0; i < 7; i++) {
+    lights[chordButtonLights[i]].setBrightnessSmooth(chordButtonStates[i] ? 1.f : 0.f, args.sampleTime);
+}
+
 
 	// Key and mode 
     float keyCV = inputs[KEYCV_INPUT].isConnected() ? inputs[KEYCV_INPUT].getVoltage() : 0.f;
@@ -172,6 +246,78 @@ void process(const ProcessArgs& args) override {
         case 3: currentScale = MAGEIN_AVOT; break;
         case 4: currentScale = HARMONIC_MINOR; break;
     }
+
+// --- Chord output based on selected button + inversion + voicing ---
+const int (*chordTable)[4] = nullptr;
+switch (modeIndex) {
+    case 0: chordTable = FREYGISH_CHORDS; break;
+    case 1: chordTable = MI_SHEBERACH_CHORDS; break;
+    case 2: chordTable = ADONAI_MALAKH_CHORDS; break;
+    case 3: chordTable = MAGEIN_AVOT_CHORDS; break;
+    case 4: chordTable = HARMONIC_MINOR_CHORDS; break;
+}
+
+if (chordSelect > 0 && chordTable) {
+    int chordIndex = chordSelect - 1;
+
+    // --- Inversion knob + CV ---
+    float invParam = params[INVERSION_PARAM].getValue();
+    if (inputs[CHORDINVERSIONCV_INPUT].isConnected()) {
+        invParam += (inputs[CHORDINVERSIONCV_INPUT].getVoltage() / 5.f) * 3.f;
+    }
+    int inversion = clamp((int)roundf(invParam), 0, 3);  // 0 = root, 1 = 1st, 2 = 2nd, 3 = 3rd
+
+    // --- Voicing knob + CV ---
+    float voiceParam = params[CHORDVOICING_PARAM].getValue();
+    if (inputs[CHORDVOICINGCV_INPUT].isConnected()) {
+        voiceParam += (inputs[CHORDVOICINGCV_INPUT].getVoltage() / 5.f) * 3.f;
+    }
+    int voicing = clamp((int)roundf(voiceParam), 0, 3); // 0=Close,1=Drop2,2=Drop3,3=Open
+
+    // --- Apply inversion first: rotate chord voices ---
+    int chordVoices[4];
+    for (int v = 0; v < 4; v++) {
+        int voiceIndex = (v + inversion) % 4;
+        chordVoices[v] = chordTable[chordIndex][voiceIndex];
+    }
+
+    // --- Apply voicing: reorder notes ---
+    int finalVoices[4];
+    switch (voicing) {
+        case 0: // Close (no change)
+            for (int v = 0; v < 4; v++) finalVoices[v] = chordVoices[v];
+            break;
+        case 1: // Drop 2: second highest note down an octave
+            finalVoices[0] = chordVoices[1] - 12;
+            finalVoices[1] = chordVoices[0];
+            finalVoices[2] = chordVoices[2];
+            finalVoices[3] = chordVoices[3];
+            break;
+        case 2: // Drop 3: third highest note down an octave
+            finalVoices[0] = chordVoices[2] - 12;
+            finalVoices[1] = chordVoices[0];
+            finalVoices[2] = chordVoices[1];
+            finalVoices[3] = chordVoices[3];
+            break;
+        case 3: // Open: first and third note down an octave
+            finalVoices[0] = chordVoices[0] - 12;
+            finalVoices[1] = chordVoices[1];
+            finalVoices[2] = chordVoices[2] - 12;
+            finalVoices[3] = chordVoices[3];
+            break;
+    }
+
+    // --- Output chord voices ---
+    for (int v = 0; v < 4; v++) {
+        float chordVoltage = tonicVoltage + finalVoices[v] / 12.f;
+        outputs[CHORDOUT1_OUTPUT + v].setVoltage(chordVoltage);
+    }
+
+} else {
+    // No button pressed: clear chord outputs
+    for (int v = 0; v < 4; v++) outputs[CHORDOUT1_OUTPUT + v].setVoltage(0.f);
+}
+
 // --- Lead processing loop (Lead 1 + Lead 2) ---
 for (int lead = 0; lead < 2; lead++) {
 	// Map per-lead params/IO
