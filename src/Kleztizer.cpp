@@ -135,6 +135,7 @@ float tonicVoltage = 0.f;
  
 float lead1CVAttenuated = 0.f;  // After CV input attenuator
 float lead1LedTimer = 0.f; // countdown in seconds
+float lead1GateTimer = 0.f; // persistent gate timer
 
 // --- Scales (semitone offsets relative to tonic) ---
 const int FREYGISH[7]       = {0, 1, 4, 5, 7, 8, 10};
@@ -203,27 +204,52 @@ void process(const ProcessArgs& args) override {
 
     outputs[LEADOUT1_OUTPUT].setVoltage(tonicVoltage + closestNote / 12.f);
 
-	float lead1GateTimer = 0.f;
+bool leadGate1IsTrigMode = (params[LEADGATE1_PARAM].getValue() > 0.5f);
 
+if (leadGate1IsTrigMode) {
+	// --- TRIG MODE: short 5ms pulse ---
 	if (closestNote != lastQuantizedNote) {
 		lastQuantizedNote = closestNote;
-		lead1GateTimer = 0.005f; // 5 ms
-		lead1LedTimer  = 0.005f; // 5 ms
+		lead1GateTimer = 0.005f; // 5 ms pulse
+		lead1LedTimer  = 0.005f;
 	}
-	
+
 	if (lead1GateTimer > 0.f) {
 		lead1GateTimer -= args.sampleTime;
 		outputs[LEADGATEOUT1_OUTPUT].setVoltage(5.f);
 	} else {
 		outputs[LEADGATEOUT1_OUTPUT].setVoltage(0.f);
 	}
-	
+
 	if (lead1LedTimer > 0.f) {
 		lead1LedTimer -= args.sampleTime;
 		lights[LEADLED1_LIGHT].setBrightnessSmooth(1.f, args.sampleTime);
 	} else {
 		lights[LEADLED1_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
 	}
+}
+else {
+	// --- GATE MODE: long 100ms pulse ---
+	if (closestNote != lastQuantizedNote) {
+		lastQuantizedNote = closestNote;
+		lead1GateTimer = 0.5f; // 500 ms gate
+		lead1LedTimer  = 0.5f;
+	}
+
+	if (lead1GateTimer > 0.f) {
+		lead1GateTimer -= args.sampleTime;
+		outputs[LEADGATEOUT1_OUTPUT].setVoltage(5.f);
+	} else {
+		outputs[LEADGATEOUT1_OUTPUT].setVoltage(0.f);
+	}
+
+	if (lead1LedTimer > 0.f) {
+		lead1LedTimer -= args.sampleTime;
+		lights[LEADLED1_LIGHT].setBrightnessSmooth(1.f, args.sampleTime);
+	} else {
+		lights[LEADLED1_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
+	}
+}
 }
 };
 
