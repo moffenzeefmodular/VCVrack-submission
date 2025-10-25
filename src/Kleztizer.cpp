@@ -206,10 +206,11 @@ struct Kleztizer : Module {
 			case 3: chordTable = MAGEIN_AVOT_CHORDS; break;
 			case 4: chordTable = HARMONIC_MINOR_CHORDS; break;
 		}
-if (chordSelect > 0 && chordTable) {
+
+		if (chordSelect > 0 && chordTable) {
     int chordIndex = chordSelect - 1;
 
-    // --- Output root (always first note of chord table, no inversion/voicing) ---
+    // --- Root (always first note of chord table, no inversion/voicing) ---
     float rootVoltage = tonicVoltage + chordTable[chordIndex][0] / 12.f;
     outputs[CHORDROOTOUT_OUTPUT].setVoltage(rootVoltage);
 
@@ -239,15 +240,25 @@ if (chordSelect > 0 && chordTable) {
         case 3: finalVoices[0] = chordVoices[0] - 12; finalVoices[1] = chordVoices[1]; finalVoices[2] = chordVoices[2] - 12; break;
     }
 
-    // --- Output chord voices ---
+    // --- Output chord voices (mono) ---
     for (int v = 0; v < 3; v++)
         outputs[CHORDOUT1_OUTPUT + v].setVoltage(tonicVoltage + finalVoices[v] / 12.f);
 
+    // --- CHORDOUT1 as polyphonic output: root + 3 voices ---
+    outputs[CHORDOUT1_OUTPUT].setChannels(4);
+    outputs[CHORDOUT1_OUTPUT].setVoltage(rootVoltage, 0);
+    for (int v = 0; v < 3; v++)
+        outputs[CHORDOUT1_OUTPUT].setVoltage(tonicVoltage + finalVoices[v] / 12.f, v + 1);
+
 } else {
     outputs[CHORDROOTOUT_OUTPUT].setVoltage(0.f);
-    for (int v = 0; v < 3; v++) outputs[CHORDOUT1_OUTPUT + v].setVoltage(0.f);
-}
+    for (int v = 0; v < 3; v++)
+        outputs[CHORDOUT1_OUTPUT + v].setVoltage(0.f);
 
+    outputs[CHORDOUT1_OUTPUT].setChannels(4);
+    for (int i = 0; i < 4; i++)
+        outputs[CHORDOUT1_OUTPUT].setVoltage(0.f, i);
+}
 
 		// --- Lead processing (unchanged) ---
 		for (int lead = 0; lead < 2; lead++) {
