@@ -141,6 +141,16 @@ void process(const ProcessArgs& args) override {
 	lastRunCV = runCV;
 	lights[RUNLED_LIGHT].setBrightnessSmooth(runState ? 1.0f : 0.0f, dt);
 
+	if (!runState) {
+    currentStep = 0;
+    for (int d = 0; d < RhythmData::NUM_DRUMS; d++) gateTimers[d] = 0.0f;
+    resetGateTimer = 0.0f;
+    for (int d = 0; d < RhythmData::NUM_DRUMS; d++)
+        lights[KICKLED_LIGHT + d].setBrightness(0.0f);
+    lights[RESETLED_LIGHT].setBrightness(0.0f);
+    return;
+}
+
     // --- Pulsewidth ---
     float pwKnob = params[PW_PARAM].getValue() * 5.f;
     float pwCV = (inputs[PWCVIN_INPUT].isConnected() ? inputs[PWCVIN_INPUT].getVoltage() : 0.0f);
