@@ -54,7 +54,7 @@ struct Tantz : Module {
 		configSwitch(PERC2_PARAM, 0.f, 7.f, 0.f, "Perc 2", {"Pattern 1", "Pattern 2", "Pattern 3", "Pattern 4", "Pattern 5", "Pattern 6", "Pattern 7", "Pattern 8"});
 		configSwitch(ROTATE_PARAM, 0.f, 5.f, 0.f, "Rotate");
 		configParam(SWING_PARAM, 0.f, 1.f, 0.f, "Swing", "%", 0.f, 100.f);
-		configParam(PW_PARAM, 0.f, 1.f, 0.f, "Pulsewidth", "%", 0.f, 100.f);
+		configParam(PW_PARAM, 0.f, 1.f, 0.5f, "Pulsewidth", "%", 0.f, 100.f);
 		configSwitch(STYLE_PARAM, 0.f, 7.f, 0.f, "Rhythm Style", {"Bulgar", "Sher", "Khosidl", "Skotshne", "Hora", "Zhok", "Araber", "Terkisher", "In Zibn"});
 		configInput(ROTATECVIN_INPUT, "Rotate CV");
 		configInput(SWINGCVIN_INPUT, "Swing CV");
