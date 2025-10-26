@@ -11,7 +11,6 @@ struct Tantz : Module {
 		KICKMUTE_PARAM,
 		SNAREMUTE_PARAM,
 		HHCLOSEDMUTE_PARAM,
-		ROTATE_PARAM,
 		HHOPEN_PARAM,
 		PERC1_PARAM,
 		PERC2_PARAM,
@@ -25,7 +24,6 @@ struct Tantz : Module {
 	enum InputId {
 		RUNCVIN_INPUT,
 		STYLECVIN_INPUT,
-		ROTATECVIN_INPUT,
 		SWINGCVIN_INPUT,
 		PWCVIN_INPUT,
 		KICKCVIN_INPUT,
@@ -69,12 +67,10 @@ struct Tantz : Module {
 		configSwitch(PERC2_PARAM, 0.f, 7.f, 0.f, "Percussion 2", {"Pattern 1", "Pattern 2", "Pattern 3", "Pattern 4", "Pattern 5", "Pattern 6", "Pattern 7", "Pattern 8"});
 		
 		configSwitch(RUN_PARAM, 0.f, 1.f, 0.f, "Run", {"Start", "Stop"});
-		configSwitch(ROTATE_PARAM, 0.f, 5.f, 0.f, "Rotate");
 		configParam(SWING_PARAM, 0.f, 1.f, 0.f, "Swing", "%", 0.f, 100.f);
 		configParam(PW_PARAM, 0.f, 1.f, 0.5f, "Pulsewidth", "%", 0.f, 100.f);
 		configSwitch(STYLE_PARAM, 0.f, 7.f, 0.f, "Rhythm Style", {"Bulgar", "Sher", "Khosidl", "Skotshne", "Hora", "Zhok", "Araber", "Terkisher", "In Zibn"});
 		
-		configInput(ROTATECVIN_INPUT, "Rotate CV");
 		configInput(SWINGCVIN_INPUT, "Swing CV");
 		configInput(PWCVIN_INPUT, "Pulsewidth CV");
 		configInput(CLOCKIN_INPUT, "Clock");
@@ -106,13 +102,50 @@ struct Tantz : Module {
 // Rhythm storage
 	RhythmData rhythmData;
 
-	InputId drumCVInputs[RhythmData::NUM_DRUMS] = {
+// --- Drum channel mappings ---
+InputId drumCVInputs[RhythmData::NUM_DRUMS] = {
     KICKCVIN_INPUT,
     SNARECVIN_INPUT,
     HHCLOSEDCVIN_INPUT,
     HHOPENCVIN_INPUT,
     PERC1CVIN_INPUT,
     PERC2CVIN_INPUT
+};
+
+ParamId drumParamIds[RhythmData::NUM_DRUMS] = {
+    KICK_PARAM,
+    SNARE_PARAM,
+    HHCLOSED_PARAM,
+    HHOPEN_PARAM,
+    PERC1_PARAM,
+    PERC2_PARAM
+};
+
+ParamId drumMuteIds[RhythmData::NUM_DRUMS] = {
+    KICKMUTE_PARAM,
+    SNAREMUTE_PARAM,
+    HHCLOSEDMUTE_PARAM,
+    HHOPENMUTE_PARAM,
+    PERC1MUTE_PARAM,
+    PERC2MUTE_PARAM
+};
+
+OutputId drumOutputIds[RhythmData::NUM_DRUMS] = {
+    KICKOUT_OUTPUT,
+    SNAREOUT_OUTPUT,
+    HHCLOSEDOUT_OUTPUT,
+    HHOPENOUT_OUTPUT,
+    PERC1OUT_OUTPUT,
+    PERC2OUT_OUTPUT
+};
+
+LightId drumLightIds[RhythmData::NUM_DRUMS] = {
+    KICKLED_LIGHT,
+    SNARELED_LIGHT,
+    HHCLOSEDLED_LIGHT,
+    HHOPENLED_LIGHT,
+    PERC1LED_LIGHT,
+    PERC2LED_LIGHT
 };
 
 	// Sequencer state
@@ -137,108 +170,87 @@ struct Tantz : Module {
 void process(const ProcessArgs& args) override {
     float dt = args.sampleTime;
 
-	// --- Run button + CV toggle ---
-	bool runButton = params[RUN_PARAM].getValue() > 0.5f;
-	bool runCV = inputs[RUNCVIN_INPUT].isConnected() && inputs[RUNCVIN_INPUT].getVoltage() > 1.0f;
-	if (runButton && !lastRunButton) {
-	    runState = !runState; // toggle
-	}
-	if (runCV && !lastRunCV) {
-	    runState = !runState; // toggle
-	}
-	lastRunButton = runButton;
-	lastRunCV = runCV;
-	lights[RUNLED_LIGHT].setBrightnessSmooth(runState ? 1.0f : 0.0f, dt);
+    // --- Run toggle ---
+    bool runButton = params[RUN_PARAM].getValue() > 0.5f;
+    bool runCV = inputs[RUNCVIN_INPUT].isConnected() && inputs[RUNCVIN_INPUT].getVoltage() > 1.0f;
+    if (runButton && !lastRunButton) runState = !runState;
+    if (runCV && !lastRunCV) runState = !runState;
+    lastRunButton = runButton;
+    lastRunCV = runCV;
+    lights[RUNLED_LIGHT].setBrightnessSmooth(runState ? 1.0f : 0.0f, dt);
 
-	if (!runState) {
-    currentStep = 0;
-    for (int d = 0; d < RhythmData::NUM_DRUMS; d++) gateTimers[d] = 0.0f;
-    resetGateTimer = 0.0f;
-    for (int d = 0; d < RhythmData::NUM_DRUMS; d++)
-        lights[KICKLED_LIGHT + d].setBrightness(0.0f);
-    lights[RESETLED_LIGHT].setBrightness(0.0f);
-    return;
-}
+    if (!runState) {
+        currentStep = 0;
+        for (int d = 0; d < RhythmData::NUM_DRUMS; d++) gateTimers[d] = 0.0f;
+        resetGateTimer = 0.0f;
+        for (int d = 0; d < RhythmData::NUM_DRUMS; d++)
+            lights[drumLightIds[d]].setBrightness(0.0f);
+        lights[RESETLED_LIGHT].setBrightness(0.0f);
+        return;
+    }
 
     // --- Pulsewidth ---
     float pwKnob = params[PW_PARAM].getValue() * 5.f;
-    float pwCV = (inputs[PWCVIN_INPUT].isConnected() ? inputs[PWCVIN_INPUT].getVoltage() : 0.0f);
-    float pwSum = (pwKnob + pwCV) / 5.f;
-    float pwFinal = clamp(pwSum, 0.0f, 1.0f);
+    float pwCV = inputs[PWCVIN_INPUT].isConnected() ? inputs[PWCVIN_INPUT].getVoltage() : 0.0f;
+    float pwFinal = clamp((pwKnob + pwCV) / 5.f, 0.0f, 1.0f);
 
     // --- Swing ---
-    float swingKnob = params[SWING_PARAM].getValue();       // 0..1
-    float swingCV = (inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 5.0f : 0.0f);
-    float swingAmount = clamp(swingKnob + swingCV, 0.0f, 1.0f) * 0.5f;  // 0..0.5 (0–50%)
+    float swingKnob = params[SWING_PARAM].getValue();
+    float swingCV = inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 5.0f : 0.0f;
+    float swingAmount = clamp(swingKnob + swingCV, 0.0f, 1.0f) * 0.5f;
 
-    // --- Rotation ---
-    float rotateKnob = params[ROTATE_PARAM].getValue();
-    float rotateCV = (inputs[ROTATECVIN_INPUT].isConnected() ? inputs[ROTATECVIN_INPUT].getVoltage() / 5.f: 0.0f);
-    int rotateSteps = (int)round(clamp(rotateKnob + rotateCV, 0.0f, 5.0f)) % RhythmData::NUM_DRUMS;
-
-    // --- Clock input ---
+    // --- Clock ---
     float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
     static float lastClock = 0.0f;
-    static float currentStepTime = 0.0f;   // Time since last step
-    static float stepInterval = 0.0f;      // Last measured interval
-    static bool stepPending = false;       // True if waiting for swing delay
+    static float currentStepTime = 0.0f;
+    static float stepInterval = 0.0f;
+    static bool stepPending = false;
 
     currentStepTime += dt;
-
     if (clock > 1.0f && lastClock <= 1.0f) {
-        // New rising edge
-        stepInterval = currentStepTime; // measure last step interval
+        stepInterval = currentStepTime;
         currentStepTime = 0.0f;
-
-        // Schedule swing delay for odd steps
         stepPending = true;
     }
-
     lastClock = clock;
 
     if (stepPending) {
-        // Compute delay for this step
         float delay = (currentStep % 2 == 1) ? swingAmount * stepInterval : 0.0f;
         if (currentStepTime >= delay) {
-            // Advance step
             currentStep++;
             int style = (int)params[STYLE_PARAM].getValue();
             int seqLength = rhythmData.sequenceLengths[style];
             if (currentStep >= seqLength) currentStep = 0;
 
-       // Reset on final step
-			if (currentStep == seqLength - 1)
-     		resetGateTimer = getGateLength(pwFinal);
+            // Reset on final step
+            if (currentStep == seqLength - 1) resetGateTimer = getGateLength(pwFinal);
 
-for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-    int pattern = (int)round(clamp(params[KICK_PARAM + d].getValue(), 0.0f, 7.0f));
-    bool trigger = rhythmData.rhythms[style][d][pattern][currentStep];
-    if (trigger) {
-        int rotatedIndex = (d + rotateSteps) % RhythmData::NUM_DRUMS;
-        gateTimers[rotatedIndex] = getGateLength(pwFinal);
-    }
-}
+            // --- Step triggers per channel ---
+            for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+                int pattern = (int)round(clamp(params[drumParamIds[d]].getValue(), 0.0f, 7.0f));
+                if (rhythmData.rhythms[style][d][pattern][currentStep])
+                    gateTimers[d] = getGateLength(pwFinal);
+            }
 
-            // Step fired
             stepPending = false;
         }
     }
 
-    // --- Output gates ---
+    // --- Write outputs and LEDs with final mute ---
     for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-        if (gateTimers[d] > 0.0f) {
-            outputs[KICKOUT_OUTPUT + d].setVoltage(5.0f);
+        bool muted = params[drumMuteIds[d]].getValue() <= 0.5f;
+
+        if (gateTimers[d] > 0.0f && !muted) {
+            outputs[drumOutputIds[d]].setVoltage(5.0f);
+            lights[drumLightIds[d]].setBrightnessSmooth(1.0f, dt);
             gateTimers[d] -= dt;
         } else {
-            outputs[KICKOUT_OUTPUT + d].setVoltage(0.0f);
+            outputs[drumOutputIds[d]].setVoltage(0.0f);
+            lights[drumLightIds[d]].setBrightnessSmooth(0.0f, dt);
         }
     }
 
-    // --- Drum LEDs ---
-    for (int d = 0; d < RhythmData::NUM_DRUMS; d++)
-        lights[KICKLED_LIGHT + d].setBrightnessSmooth(gateTimers[d] > 0.0f ? 1.0f : 0.0f, dt);
-
-    // --- Reset output and LED ---
+    // --- Reset output ---
     if (resetGateTimer > 0.0f) {
         outputs[RESET_OUTPUT].setVoltage(5.0f);
         lights[RESETLED_LIGHT].setBrightnessSmooth(1.0f, dt);
@@ -268,7 +280,6 @@ setPanel(createPanel(
    	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(75.202, 17.812)), module, Tantz::RUN_PARAM, Tantz::RUNLED_LIGHT));
 
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 17.812)), module, Tantz::STYLE_PARAM));
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(83.988, 42.871)), module, Tantz::ROTATE_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 66.929)), module, Tantz::PW_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(75.682, 66.929)), module, Tantz::SWING_PARAM));
 
@@ -288,7 +299,6 @@ setPanel(createPanel(
 
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(75.202, 29.812)), module, Tantz::RUNCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.647, 29.812)), module, Tantz::STYLECVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(83.988, 54.871)), module, Tantz::ROTATECVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(75.682, 78.929)), module, Tantz::SWINGCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.647, 78.929)), module, Tantz::PWCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(23.94, 100.566)), module, Tantz::KICKCVIN_INPUT));
