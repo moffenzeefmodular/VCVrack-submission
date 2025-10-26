@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-#include "Rhythms.hpp"
+#include "../res/sequences/TantzSequences.hpp"
 
 struct Tantz : Module {
 	enum ParamId {
