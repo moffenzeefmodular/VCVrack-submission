@@ -361,9 +361,8 @@ struct KleztizerWidget : ModuleWidget {
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(42.667, 12.888)), module, Kleztizer::KEY_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(68.488, 12.888)), module, Kleztizer::MODE_PARAM));
-
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(42.667, 12.888)), module, Kleztizer::KEY_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(68.488, 12.888)), module, Kleztizer::MODE_PARAM));
 
 		addParam(createParamCentered<VCVBezel>(mm2px(Vec(14.26, 46.862)), module, Kleztizer::CHORDBUTTON1_PARAM));
    	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(14.26, 46.862)), module, Kleztizer::CHORDBUTTON1_PARAM,Kleztizer::CHORDBUTTON1LED_LIGHT));
@@ -394,9 +393,9 @@ struct KleztizerWidget : ModuleWidget {
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(30.073, 80.836)), module, Kleztizer::LEADOCTAVE1_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(69.644, 80.836)), module, Kleztizer::LEADCV2_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(81.047, 80.836)), module, Kleztizer::LEADOCTAVE2_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(8.867, 58.556)), module, Kleztizer::CHORDVOICING_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(81.708, 58.556)), module, Kleztizer::INVERSION_PARAM));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.867, 58.556)), module, Kleztizer::CHORDVOICING_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(81.708, 58.556)), module, Kleztizer::INVERSION_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.182, 88.284)), module, Kleztizer::LEADOFFSET1_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(59.156, 88.284)), module, Kleztizer::LEADOFFSET2_PARAM));
 
