@@ -106,6 +106,15 @@ struct Tantz : Module {
 // Rhythm storage
 	RhythmData rhythmData;
 
+	InputId drumCVInputs[RhythmData::NUM_DRUMS] = {
+    KICKCVIN_INPUT,
+    SNARECVIN_INPUT,
+    HHCLOSEDCVIN_INPUT,
+    HHOPENCVIN_INPUT,
+    PERC1CVIN_INPUT,
+    PERC2CVIN_INPUT
+};
+
 	// Sequencer state
 	int currentStep = 0;
 	float lastClock = 0.0f;
@@ -159,12 +168,12 @@ void process(const ProcessArgs& args) override {
 
     // --- Swing ---
     float swingKnob = params[SWING_PARAM].getValue();       // 0..1
-    float swingCV = (inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 10.0f : 0.0f);
+    float swingCV = (inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 5.0f : 0.0f);
     float swingAmount = clamp(swingKnob + swingCV, 0.0f, 1.0f) * 0.5f;  // 0..0.5 (0–50%)
 
     // --- Rotation ---
     float rotateKnob = params[ROTATE_PARAM].getValue();
-    float rotateCV = (inputs[ROTATECVIN_INPUT].isConnected() ? inputs[ROTATECVIN_INPUT].getVoltage() : 0.0f);
+    float rotateCV = (inputs[ROTATECVIN_INPUT].isConnected() ? inputs[ROTATECVIN_INPUT].getVoltage() / 5.f: 0.0f);
     int rotateSteps = (int)round(clamp(rotateKnob + rotateCV, 0.0f, 5.0f)) % RhythmData::NUM_DRUMS;
 
     // --- Clock input ---
@@ -201,15 +210,14 @@ void process(const ProcessArgs& args) override {
 			if (currentStep == seqLength - 1)
      		resetGateTimer = getGateLength(pwFinal);
 
-            // Trigger drum gates with rotation
-            for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-                int pattern = (int)params[KICK_PARAM + d].getValue();
-                bool trigger = rhythmData.rhythms[style][d][pattern][currentStep];
-                if (trigger) {
-                    int rotatedIndex = (d + rotateSteps) % RhythmData::NUM_DRUMS;
-                    gateTimers[rotatedIndex] = getGateLength(pwFinal);
-                }
-            }
+for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+    int pattern = (int)round(clamp(params[KICK_PARAM + d].getValue(), 0.0f, 7.0f));
+    bool trigger = rhythmData.rhythms[style][d][pattern][currentStep];
+    if (trigger) {
+        int rotatedIndex = (d + rotateSteps) % RhythmData::NUM_DRUMS;
+        gateTimers[rotatedIndex] = getGateLength(pwFinal);
+    }
+}
 
             // Step fired
             stepPending = false;
