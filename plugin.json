@@ -267,6 +267,16 @@
         "quantizer",
         "sequencer"
       ]
+    },
+    {
+      "slug": "Tantz",
+      "name": "Tantz!",
+      "description": "Klezmer preset drum sequencer",
+      "tags": [
+        "sequencer",
+        "trigger",
+        "gate"
+      ]
     }
   ]
 }
