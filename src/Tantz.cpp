@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-
+#include "Rhythms.hpp"
 
 struct Tantz : Module {
 	enum ParamId {
@@ -70,8 +70,93 @@ struct Tantz : Module {
 		configOutput(RESET_OUTPUT, "Reset Gate");
 	}
 
-	void process(const ProcessArgs& args) override {
+// Rhythm storage
+	RhythmData rhythmData;
+
+	// Sequencer state
+	int currentStep = 0;
+	float lastClock = 0.0f;
+	float gateTimers[RhythmData::NUM_DRUMS] = {};
+	float resetGateTimer = 0.0f;
+
+	// Pulsewidth limits (seconds)
+	float minGateSec = 0.005f; // 5ms
+	float maxGateSec = 0.1f; // 1-0ms
+
+	// Convert PW knob 0–1 to 5–50ms gate length (seconds)
+	float getGateLength(float pw) {
+		return minGateSec + pw * (maxGateSec - minGateSec);
 	}
+
+	void process(const ProcessArgs& args) override {
+		float dt = args.sampleTime;
+
+		// PW knob 
+		float pwKnob = params[PW_PARAM].getValue() * 5.f;       // 0–1 from knob
+		float pwCV = (inputs[PWCVIN_INPUT].isConnected() ? inputs[PWCVIN_INPUT].getVoltage() : 0.0f);
+		float pwSum = (pwKnob + pwCV) / 5.f;
+		float pwFinal = clamp(pwSum, 0.0f, 1.0f);
+
+		// --- Clock input ---
+		float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
+
+		// Rising edge detection
+		if (clock > 1.0f && lastClock <= 1.0f) {
+			currentStep++;
+			int style = (int)params[STYLE_PARAM].getValue();
+			int seqLength = rhythmData.sequenceLengths[style];
+
+			if (currentStep >= seqLength) currentStep = 0;
+
+			// Reset output on downbeat
+			if (currentStep == 0) {
+				resetGateTimer = getGateLength(pwFinal);
+			}
+
+			// Trigger drum gates
+			for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+				int pattern = (int)params[KICK_PARAM + d].getValue();
+				if (rhythmData.rhythms[style][d][pattern][currentStep]) {
+					gateTimers[d] = getGateLength(pwFinal);
+				}
+			}
+		}
+		lastClock = clock;
+
+	// --- Output gates ---
+for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+    if (gateTimers[d] > 0.0f) {
+        outputs[KICKOUT_OUTPUT + d].setVoltage(5.0f);
+        gateTimers[d] -= dt;
+    } else {
+        outputs[KICKOUT_OUTPUT + d].setVoltage(0.0f);
+    }
+}
+
+// --- Drum LEDs ---
+for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+    if (gateTimers[d] > 0.0f) {
+        lights[KICKLED_LIGHT + d].setBrightnessSmooth(1.0f, args.sampleTime);
+    } else {
+        lights[KICKLED_LIGHT + d].setBrightnessSmooth(0.0f, args.sampleTime);
+    }
+}
+
+// --- Reset output ---
+if (resetGateTimer > 0.0f) {
+    outputs[RESET_OUTPUT].setVoltage(5.0f);
+    resetGateTimer -= dt;
+} else {
+    outputs[RESET_OUTPUT].setVoltage(0.0f);
+}
+
+// --- Reset LED ---
+if (resetGateTimer > 0.0f) {
+    lights[RESETLED_LIGHT].setBrightnessSmooth(1.0f, args.sampleTime);
+} else {
+    lights[RESETLED_LIGHT].setBrightnessSmooth(0.0f, args.sampleTime);
+}
+}
 };
 
 
