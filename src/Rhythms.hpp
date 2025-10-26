@@ -10,7 +10,7 @@ struct RhythmData {
 
     // rhythms[style][drum][pattern][step]
     bool rhythms[NUM_STYLES][NUM_DRUMS][NUM_PATTERNS][MAX_STEPS] = {};
-    int sequenceLengths[NUM_STYLES] = {16, 16, 16, 16, 16, 16, 16, 16};
+    int sequenceLengths[NUM_STYLES] = {16, 16, 16, 16, 16, 16, 16, 16}; // Sequence step length 
 
     RhythmData() {
         initRhythms();
