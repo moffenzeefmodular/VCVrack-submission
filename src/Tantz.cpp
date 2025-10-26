@@ -225,9 +225,24 @@ void process(const ProcessArgs& args) override {
             // Reset on final step
             if (currentStep == seqLength - 1) resetGateTimer = getGateLength(pwFinal);
 
-            // --- Step triggers per channel ---
+            // --- Step triggers per channel with CV integration ---
             for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-                int pattern = (int)round(clamp(params[drumParamIds[d]].getValue(), 0.0f, 7.0f));
+                // Knob value 0-7
+                float knobVal = params[drumParamIds[d]].getValue();
+
+                // CV value ±5V scaled to -1..+1
+                float cvVal = 0.0f;
+                if (inputs[drumCVInputs[d]].isConnected()) {
+                    cvVal = clamp(inputs[drumCVInputs[d]].getVoltage() / 5.0f, -1.0f, 1.0f);
+                }
+
+                // Sum knob + CV and clamp
+                float sumVal = clamp(knobVal + cvVal * 7.0f, 0.0f, 7.0f);
+
+                // Determine pattern index
+                int pattern = (int)round(sumVal);
+
+                // Trigger gate
                 if (rhythmData.rhythms[style][d][pattern][currentStep])
                     gateTimers[d] = getGateLength(pwFinal);
             }
