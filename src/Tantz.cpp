@@ -137,9 +137,9 @@ void process(const ProcessArgs& args) override {
             int seqLength = rhythmData.sequenceLengths[style];
             if (currentStep >= seqLength) currentStep = 0;
 
-            // Reset downbeat
-            if (currentStep == 0)
-                resetGateTimer = getGateLength(pwFinal);
+       // Reset on final step
+			if (currentStep == seqLength - 1)
+     		resetGateTimer = getGateLength(pwFinal);
 
             // Trigger drum gates with rotation
             for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
