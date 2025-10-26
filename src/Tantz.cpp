@@ -88,50 +88,73 @@ struct Tantz : Module {
 		return minGateSec + pw * (maxGateSec - minGateSec);
 	}
 
-	void process(const ProcessArgs& args) override {
+void process(const ProcessArgs& args) override {
     float dt = args.sampleTime;
 
     // --- Pulsewidth ---
-    float pwKnob = params[PW_PARAM].getValue() * 5.f;       
+    float pwKnob = params[PW_PARAM].getValue() * 5.f;
     float pwCV = (inputs[PWCVIN_INPUT].isConnected() ? inputs[PWCVIN_INPUT].getVoltage() : 0.0f);
     float pwSum = (pwKnob + pwCV) / 5.f;
     float pwFinal = clamp(pwSum, 0.0f, 1.0f);
 
-    // --- Clock input ---
-    float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
+    // --- Swing ---
+    float swingKnob = params[SWING_PARAM].getValue();       // 0..1
+    float swingCV = (inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 10.0f : 0.0f);
+    float swingAmount = clamp(swingKnob + swingCV, 0.0f, 1.0f) * 0.5f;  // 0..0.5 (0–50%)
 
     // --- Rotation ---
-    float rotateKnob = params[ROTATE_PARAM].getValue();  // 0..5
+    float rotateKnob = params[ROTATE_PARAM].getValue();
     float rotateCV = (inputs[ROTATECVIN_INPUT].isConnected() ? inputs[ROTATECVIN_INPUT].getVoltage() : 0.0f);
-    float rotateSum = clamp(rotateKnob + rotateCV, 0.0f, 5.0f);
-    int rotateSteps = (int)round(rotateSum) % RhythmData::NUM_DRUMS;  // 0..5, wraps circularly
+    int rotateSteps = (int)round(clamp(rotateKnob + rotateCV, 0.0f, 5.0f)) % RhythmData::NUM_DRUMS;
 
-    // Rising edge detection
+    // --- Clock input ---
+    float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
+    static float lastClock = 0.0f;
+    static float currentStepTime = 0.0f;   // Time since last step
+    static float stepInterval = 0.0f;      // Last measured interval
+    static bool stepPending = false;       // True if waiting for swing delay
+
+    currentStepTime += dt;
+
     if (clock > 1.0f && lastClock <= 1.0f) {
-        currentStep++;
-        int style = (int)params[STYLE_PARAM].getValue();
-        int seqLength = rhythmData.sequenceLengths[style];
+        // New rising edge
+        stepInterval = currentStepTime; // measure last step interval
+        currentStepTime = 0.0f;
 
-        if (currentStep >= seqLength) currentStep = 0;
+        // Schedule swing delay for odd steps
+        stepPending = true;
+    }
 
-        // Reset output on downbeat
-        if (currentStep == 0) {
-            resetGateTimer = getGateLength(pwFinal);
-        }
+    lastClock = clock;
 
-        // Trigger drum gates with rotation
-        for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-            int pattern = (int)params[KICK_PARAM + d].getValue();
-            bool trigger = rhythmData.rhythms[style][d][pattern][currentStep];
+    if (stepPending) {
+        // Compute delay for this step
+        float delay = (currentStep % 2 == 1) ? swingAmount * stepInterval : 0.0f;
+        if (currentStepTime >= delay) {
+            // Advance step
+            currentStep++;
+            int style = (int)params[STYLE_PARAM].getValue();
+            int seqLength = rhythmData.sequenceLengths[style];
+            if (currentStep >= seqLength) currentStep = 0;
 
-            if (trigger) {
-                // Circular shift: drum d output is shifted by rotateSteps
-                int rotatedIndex = (d + rotateSteps) % RhythmData::NUM_DRUMS;
-                gateTimers[rotatedIndex] = getGateLength(pwFinal);
+            // Reset downbeat
+            if (currentStep == 0)
+                resetGateTimer = getGateLength(pwFinal);
+
+            // Trigger drum gates with rotation
+            for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+                int pattern = (int)params[KICK_PARAM + d].getValue();
+                bool trigger = rhythmData.rhythms[style][d][pattern][currentStep];
+                if (trigger) {
+                    int rotatedIndex = (d + rotateSteps) % RhythmData::NUM_DRUMS;
+                    gateTimers[rotatedIndex] = getGateLength(pwFinal);
+                }
             }
+
+            // Step fired
+            stepPending = false;
         }
     }
-    lastClock = clock;
 
     // --- Output gates ---
     for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
@@ -144,18 +167,17 @@ struct Tantz : Module {
     }
 
     // --- Drum LEDs ---
-    for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-        lights[KICKLED_LIGHT + d].setBrightnessSmooth(gateTimers[d] > 0.0f ? 1.0f : 0.0f, args.sampleTime);
-    }
+    for (int d = 0; d < RhythmData::NUM_DRUMS; d++)
+        lights[KICKLED_LIGHT + d].setBrightnessSmooth(gateTimers[d] > 0.0f ? 1.0f : 0.0f, dt);
 
     // --- Reset output and LED ---
     if (resetGateTimer > 0.0f) {
         outputs[RESET_OUTPUT].setVoltage(5.0f);
-        lights[RESETLED_LIGHT].setBrightnessSmooth(1.0f, args.sampleTime);
+        lights[RESETLED_LIGHT].setBrightnessSmooth(1.0f, dt);
         resetGateTimer -= dt;
     } else {
         outputs[RESET_OUTPUT].setVoltage(0.0f);
-        lights[RESETLED_LIGHT].setBrightnessSmooth(0.0f, args.sampleTime);
+        lights[RESETLED_LIGHT].setBrightnessSmooth(0.0f, dt);
     }
 }
 };
