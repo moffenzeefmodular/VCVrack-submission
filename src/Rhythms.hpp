@@ -73,7 +73,6 @@ struct RhythmData {
         // ============================
         // Example: Style 0 (Bulgar)
         // ============================
-
         // Kick
         loadRhythmFromString(0, 0, 0, "1000100010001000");
         loadRhythmFromString(0, 0, 1, "1001001001001001");

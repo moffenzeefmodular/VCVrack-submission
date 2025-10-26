@@ -89,73 +89,74 @@ struct Tantz : Module {
 	}
 
 	void process(const ProcessArgs& args) override {
-		float dt = args.sampleTime;
+    float dt = args.sampleTime;
 
-		// PW knob 
-		float pwKnob = params[PW_PARAM].getValue() * 5.f;       // 0–1 from knob
-		float pwCV = (inputs[PWCVIN_INPUT].isConnected() ? inputs[PWCVIN_INPUT].getVoltage() : 0.0f);
-		float pwSum = (pwKnob + pwCV) / 5.f;
-		float pwFinal = clamp(pwSum, 0.0f, 1.0f);
+    // --- Pulsewidth ---
+    float pwKnob = params[PW_PARAM].getValue() * 5.f;       
+    float pwCV = (inputs[PWCVIN_INPUT].isConnected() ? inputs[PWCVIN_INPUT].getVoltage() : 0.0f);
+    float pwSum = (pwKnob + pwCV) / 5.f;
+    float pwFinal = clamp(pwSum, 0.0f, 1.0f);
 
-		// --- Clock input ---
-		float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
+    // --- Clock input ---
+    float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
 
-		// Rising edge detection
-		if (clock > 1.0f && lastClock <= 1.0f) {
-			currentStep++;
-			int style = (int)params[STYLE_PARAM].getValue();
-			int seqLength = rhythmData.sequenceLengths[style];
+    // --- Rotation ---
+    float rotateKnob = params[ROTATE_PARAM].getValue();  // 0..5
+    float rotateCV = (inputs[ROTATECVIN_INPUT].isConnected() ? inputs[ROTATECVIN_INPUT].getVoltage() : 0.0f);
+    float rotateSum = clamp(rotateKnob + rotateCV, 0.0f, 5.0f);
+    int rotateSteps = (int)round(rotateSum) % RhythmData::NUM_DRUMS;  // 0..5, wraps circularly
 
-			if (currentStep >= seqLength) currentStep = 0;
+    // Rising edge detection
+    if (clock > 1.0f && lastClock <= 1.0f) {
+        currentStep++;
+        int style = (int)params[STYLE_PARAM].getValue();
+        int seqLength = rhythmData.sequenceLengths[style];
 
-			// Reset output on downbeat
-			if (currentStep == 0) {
-				resetGateTimer = getGateLength(pwFinal);
-			}
+        if (currentStep >= seqLength) currentStep = 0;
 
-			// Trigger drum gates
-			for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-				int pattern = (int)params[KICK_PARAM + d].getValue();
-				if (rhythmData.rhythms[style][d][pattern][currentStep]) {
-					gateTimers[d] = getGateLength(pwFinal);
-				}
-			}
-		}
-		lastClock = clock;
+        // Reset output on downbeat
+        if (currentStep == 0) {
+            resetGateTimer = getGateLength(pwFinal);
+        }
 
-	// --- Output gates ---
-for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-    if (gateTimers[d] > 0.0f) {
-        outputs[KICKOUT_OUTPUT + d].setVoltage(5.0f);
-        gateTimers[d] -= dt;
-    } else {
-        outputs[KICKOUT_OUTPUT + d].setVoltage(0.0f);
+        // Trigger drum gates with rotation
+        for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+            int pattern = (int)params[KICK_PARAM + d].getValue();
+            bool trigger = rhythmData.rhythms[style][d][pattern][currentStep];
+
+            if (trigger) {
+                // Circular shift: drum d output is shifted by rotateSteps
+                int rotatedIndex = (d + rotateSteps) % RhythmData::NUM_DRUMS;
+                gateTimers[rotatedIndex] = getGateLength(pwFinal);
+            }
+        }
     }
-}
+    lastClock = clock;
 
-// --- Drum LEDs ---
-for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-    if (gateTimers[d] > 0.0f) {
-        lights[KICKLED_LIGHT + d].setBrightnessSmooth(1.0f, args.sampleTime);
-    } else {
-        lights[KICKLED_LIGHT + d].setBrightnessSmooth(0.0f, args.sampleTime);
+    // --- Output gates ---
+    for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+        if (gateTimers[d] > 0.0f) {
+            outputs[KICKOUT_OUTPUT + d].setVoltage(5.0f);
+            gateTimers[d] -= dt;
+        } else {
+            outputs[KICKOUT_OUTPUT + d].setVoltage(0.0f);
+        }
     }
-}
 
-// --- Reset output ---
-if (resetGateTimer > 0.0f) {
-    outputs[RESET_OUTPUT].setVoltage(5.0f);
-    resetGateTimer -= dt;
-} else {
-    outputs[RESET_OUTPUT].setVoltage(0.0f);
-}
+    // --- Drum LEDs ---
+    for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
+        lights[KICKLED_LIGHT + d].setBrightnessSmooth(gateTimers[d] > 0.0f ? 1.0f : 0.0f, args.sampleTime);
+    }
 
-// --- Reset LED ---
-if (resetGateTimer > 0.0f) {
-    lights[RESETLED_LIGHT].setBrightnessSmooth(1.0f, args.sampleTime);
-} else {
-    lights[RESETLED_LIGHT].setBrightnessSmooth(0.0f, args.sampleTime);
-}
+    // --- Reset output and LED ---
+    if (resetGateTimer > 0.0f) {
+        outputs[RESET_OUTPUT].setVoltage(5.0f);
+        lights[RESETLED_LIGHT].setBrightnessSmooth(1.0f, args.sampleTime);
+        resetGateTimer -= dt;
+    } else {
+        outputs[RESET_OUTPUT].setVoltage(0.0f);
+        lights[RESETLED_LIGHT].setBrightnessSmooth(0.0f, args.sampleTime);
+    }
 }
 };
 
