@@ -116,6 +116,10 @@ struct Tantz : Module {
 	float minGateSec = 0.005f; // 5ms
 	float maxGateSec = 0.1f; // 1-0ms
 
+	bool runState = true;        // current on/off state
+	bool lastRunButton = false;   // last frame button value
+	bool lastRunCV = false;       // last frame CV value
+
 	// Convert PW knob 0–1 to 5–50ms gate length (seconds)
 	float getGateLength(float pw) {
 		return minGateSec + pw * (maxGateSec - minGateSec);
@@ -123,6 +127,19 @@ struct Tantz : Module {
 
 void process(const ProcessArgs& args) override {
     float dt = args.sampleTime;
+
+	// --- Run button + CV toggle ---
+	bool runButton = params[RUN_PARAM].getValue() > 0.5f;
+	bool runCV = inputs[RUNCVIN_INPUT].isConnected() && inputs[RUNCVIN_INPUT].getVoltage() > 1.0f;
+	if (runButton && !lastRunButton) {
+	    runState = !runState; // toggle
+	}
+	if (runCV && !lastRunCV) {
+	    runState = !runState; // toggle
+	}
+	lastRunButton = runButton;
+	lastRunCV = runCV;
+	lights[RUNLED_LIGHT].setBrightnessSmooth(runState ? 1.0f : 0.0f, dt);
 
     // --- Pulsewidth ---
     float pwKnob = params[PW_PARAM].getValue() * 5.f;
@@ -230,6 +247,8 @@ setPanel(createPanel(
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<VCVBezel>(mm2px(Vec(75.202, 17.812)), module, Tantz::RUN_PARAM));
+   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(75.202, 17.812)), module, Tantz::RUN_PARAM, Tantz::RUNLED_LIGHT));
+
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 17.812)), module, Tantz::STYLE_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(83.988, 42.871)), module, Tantz::ROTATE_PARAM));
 		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 66.929)), module, Tantz::PW_PARAM));
