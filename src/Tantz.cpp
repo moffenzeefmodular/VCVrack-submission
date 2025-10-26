@@ -291,12 +291,12 @@ setPanel(createPanel(
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(75.202, 17.812)), module, Tantz::RUN_PARAM));
-   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(75.202, 17.812)), module, Tantz::RUN_PARAM, Tantz::RUNLED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(75.202, 25.408)), module, Tantz::RUN_PARAM));
+   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(75.202, 25.408)), module, Tantz::RUN_PARAM, Tantz::RUNLED_LIGHT));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 25.408)), module, Tantz::STYLE_PARAM));
 
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 17.812)), module, Tantz::STYLE_PARAM));
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 66.929)), module, Tantz::PW_PARAM));
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(75.682, 66.929)), module, Tantz::SWING_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(91.647, 59.179)), module, Tantz::PW_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(75.682, 59.179)), module, Tantz::SWING_PARAM));
 
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(10.235, 30.086)), module, Tantz::KICK_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(34.665, 30.088)), module, Tantz::SNARE_PARAM));
@@ -312,10 +312,12 @@ setPanel(createPanel(
 		addParam(createParamCentered<CKSS>(mm2px(Vec(34.665, 40.626)), module, Tantz::SNAREMUTE_PARAM));
 		addParam(createParamCentered<CKSS>(mm2px(Vec(57.199, 40.63)), module, Tantz::HHCLOSEDMUTE_PARAM));
 
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(75.202, 29.812)), module, Tantz::RUNCVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.647, 29.812)), module, Tantz::STYLECVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(75.682, 78.929)), module, Tantz::SWINGCVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.647, 78.929)), module, Tantz::PWCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(75.202, 37.408)), module, Tantz::RUNCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.647, 37.408)), module, Tantz::STYLECVIN_INPUT));
+
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(75.682, 71.179)), module, Tantz::SWINGCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.647, 71.179)), module, Tantz::PWCVIN_INPUT));
+
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(23.94, 100.566)), module, Tantz::KICKCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(37.074, 100.566)), module, Tantz::SNARECVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(51.161, 100.566)), module, Tantz::HHCLOSEDCVIN_INPUT));
