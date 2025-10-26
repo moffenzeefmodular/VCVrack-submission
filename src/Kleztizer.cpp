@@ -45,6 +45,13 @@ struct Kleztizer : Module {
 		CHORDOUT3_OUTPUT,
 		LEADOUT1_OUTPUT,
 		LEADOUT2_OUTPUT,
+		CHORDBUTTONGATEOUT1_OUTPUT,
+		CHORDBUTTONGATEOUT2_OUTPUT,
+		CHORDBUTTONGATEOUT3_OUTPUT,
+		CHORDBUTTONGATEOUT4_OUTPUT,
+		CHORDBUTTONGATEOUT5_OUTPUT,
+		CHORDBUTTONGATEOUT6_OUTPUT,
+		CHORDBUTTONGATEOUT7_OUTPUT,
 		OUTPUTS_LEN
 	};
 	enum LightId {
@@ -99,6 +106,15 @@ struct Kleztizer : Module {
 		configOutput(CHORDOUT3_OUTPUT, "Voice 3");
 		configOutput(LEADOUT1_OUTPUT, "Lead 1");
 		configOutput(LEADOUT2_OUTPUT, "Lead 2");
+		configOutput(CHORDBUTTONGATEOUT1_OUTPUT, "Button 1 Gate");
+		configOutput(CHORDBUTTONGATEOUT2_OUTPUT, "Button 2 Gate");
+		configOutput(CHORDBUTTONGATEOUT3_OUTPUT, "Button 3 Gate");
+		configOutput(CHORDBUTTONGATEOUT4_OUTPUT, "Button 4 Gate");
+		configOutput(CHORDBUTTONGATEOUT5_OUTPUT, "Button 5 Gate");
+		configOutput(CHORDBUTTONGATEOUT6_OUTPUT, "Button 6 Gate");
+		configOutput(CHORDBUTTONGATEOUT7_OUTPUT, "Button 7 Gate");
+
+
 	}
 
 	bool chordButtonStates[7] = {true};
@@ -177,6 +193,10 @@ struct Kleztizer : Module {
 		for (int i = 0; i < 7; i++) {
 			lights[chordButtonLights[i]].setBrightnessSmooth(chordButtonStates[i] ? 1.f : 0.f, args.sampleTime);
 		}
+
+		for (int i = 0; i < 7; i++) {
+ 	   outputs[CHORDBUTTONGATEOUT1_OUTPUT + i].setVoltage(chordButtonStates[i] ? 5.f : 0.f);
+	   }
 
 		// --- Key & Mode ---
 		float keyCV = inputs[KEYCV_INPUT].isConnected() ? inputs[KEYCV_INPUT].getVoltage() : 0.f;
@@ -331,8 +351,11 @@ if (chordSelect > 0 && chordTable) {
 struct KleztizerWidget : ModuleWidget {
 	KleztizerWidget(Kleztizer* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Kleztizer.svg")));
-
+	setPanel(createPanel(
+		asset::plugin(pluginInstance, "res/panels/Kleztizer.svg"),
+		asset::plugin(pluginInstance, "res/panels/Kleztizer-dark.svg")
+		));
+        
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
@@ -342,63 +365,72 @@ struct KleztizerWidget : ModuleWidget {
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(68.488, 12.888)), module, Kleztizer::MODE_PARAM));
 
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(14.286, 43.158)), module, Kleztizer::CHORDBUTTON1_PARAM));
-   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(14.286, 43.158)), module, Kleztizer::CHORDBUTTON1_PARAM,Kleztizer::CHORDBUTTON1LED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(14.26, 46.862)), module, Kleztizer::CHORDBUTTON1_PARAM));
+   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(14.26, 46.862)), module, Kleztizer::CHORDBUTTON1_PARAM,Kleztizer::CHORDBUTTON1LED_LIGHT));
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(26.475, 43.158)), module, Kleztizer::CHORDBUTTON2_PARAM));
-		addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(26.475, 43.158)), module, Kleztizer::CHORDBUTTON2_PARAM,Kleztizer::CHORDBUTTON2LED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(26.475, 46.862)), module, Kleztizer::CHORDBUTTON2_PARAM));
+		addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(26.475, 46.862)), module, Kleztizer::CHORDBUTTON2_PARAM,Kleztizer::CHORDBUTTON2LED_LIGHT));
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(38.663, 43.158)), module, Kleztizer::CHORDBUTTON3_PARAM));
-   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(38.663, 43.158)), module, Kleztizer::CHORDBUTTON3_PARAM,Kleztizer::CHORDBUTTON3LED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(38.663, 46.862)), module, Kleztizer::CHORDBUTTON3_PARAM));
+   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(38.663, 46.862)), module, Kleztizer::CHORDBUTTON3_PARAM,Kleztizer::CHORDBUTTON3LED_LIGHT));
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(50.851, 43.158)), module, Kleztizer::CHORDBUTTON4_PARAM));
-   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(50.851, 43.158)), module, Kleztizer::CHORDBUTTON4_PARAM,Kleztizer::CHORDBUTTON4LED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(50.851, 46.862)), module, Kleztizer::CHORDBUTTON4_PARAM));
+   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(50.851, 46.862)), module, Kleztizer::CHORDBUTTON4_PARAM,Kleztizer::CHORDBUTTON4LED_LIGHT));
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(63.039, 43.158)), module, Kleztizer::CHORDBUTTON5_PARAM));
-   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(63.039, 43.158)), module, Kleztizer::CHORDBUTTON5_PARAM,Kleztizer::CHORDBUTTON5LED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(63.039, 46.862)), module, Kleztizer::CHORDBUTTON5_PARAM));
+   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(63.039, 46.862)), module, Kleztizer::CHORDBUTTON5_PARAM,Kleztizer::CHORDBUTTON5LED_LIGHT));
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(75.227, 43.158)), module, Kleztizer::CHORDBUTTON6_PARAM));
-   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(75.227, 43.158)), module, Kleztizer::CHORDBUTTON6_PARAM,Kleztizer::CHORDBUTTON6LED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(75.227, 46.862)), module, Kleztizer::CHORDBUTTON6_PARAM));
+   	    addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(75.227, 46.862)), module, Kleztizer::CHORDBUTTON6_PARAM,Kleztizer::CHORDBUTTON6LED_LIGHT));
 
-		addParam(createParamCentered<VCVBezel>(mm2px(Vec(87.415, 43.158)), module, Kleztizer::CHORDBUTTON7_PARAM));
-		addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(87.415, 43.158)), module, Kleztizer::CHORDBUTTON7_PARAM,Kleztizer::CHORDBUTTON7LED_LIGHT));
+		addParam(createParamCentered<VCVBezel>(mm2px(Vec(87.415, 46.862)), module, Kleztizer::CHORDBUTTON7_PARAM));
+		addParam(createLightParamCentered<VCVLightBezel<>>(mm2px(Vec(87.415, 46.862)), module, Kleztizer::CHORDBUTTON7_PARAM,Kleztizer::CHORDBUTTON7LED_LIGHT));
 
 
-		addParam(createParamCentered<CKSS>(mm2px(Vec(38.49, 86.696)), module, Kleztizer::LEADGATE1_PARAM));
-		addParam(createParamCentered<CKSS>(mm2px(Vec(89.465, 86.696)), module, Kleztizer::LEADGATE2_PARAM));
+		addParam(createParamCentered<CKSS>(mm2px(Vec(38.49, 88.284)), module, Kleztizer::LEADGATE1_PARAM));
+		addParam(createParamCentered<CKSS>(mm2px(Vec(89.465, 88.284)), module, Kleztizer::LEADGATE2_PARAM));
 
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(18.67, 79.249)), module, Kleztizer::LEADCV1_PARAM));
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(30.073, 79.249)), module, Kleztizer::LEADOCTAVE1_PARAM));
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(69.644, 79.249)), module, Kleztizer::LEADCV2_PARAM));
-		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(81.047, 79.249)), module, Kleztizer::LEADOCTAVE2_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(18.67, 80.836)), module, Kleztizer::LEADCV1_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(30.073, 80.836)), module, Kleztizer::LEADOCTAVE1_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(69.644, 80.836)), module, Kleztizer::LEADCV2_PARAM));
+		addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(81.047, 80.836)), module, Kleztizer::LEADOCTAVE2_PARAM));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.867, 54.852)), module, Kleztizer::CHORDVOICING_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(81.708, 54.852)), module, Kleztizer::INVERSION_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.182, 86.696)), module, Kleztizer::LEADOFFSET1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(59.156, 86.696)), module, Kleztizer::LEADOFFSET2_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.867, 58.556)), module, Kleztizer::CHORDVOICING_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(81.708, 58.556)), module, Kleztizer::INVERSION_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.182, 88.284)), module, Kleztizer::LEADOFFSET1_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(59.156, 88.284)), module, Kleztizer::LEADOFFSET2_PARAM));
 
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(32.235, 12.888)), module, Kleztizer::KEYCV_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(57.911, 12.888)), module, Kleztizer::MODECV_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(20.0, 54.852)), module, Kleztizer::CHORDVOICINGCV_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(92.502, 54.852)), module, Kleztizer::CHORDINVERSIONCV_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(51.443, 62.876)), module, Kleztizer::CHORDSELECTCV_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(18.67, 94.8)), module, Kleztizer::LEADCV1_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.073, 94.8)), module, Kleztizer::LEADOCTAVECV1_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(69.644, 94.8)), module, Kleztizer::LEADCV2_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.047, 94.8)), module, Kleztizer::LEADOCTAVECV2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(20.0, 58.556)), module, Kleztizer::CHORDVOICINGCV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(92.502, 58.556)), module, Kleztizer::CHORDINVERSIONCV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(51.443, 65.58)), module, Kleztizer::CHORDSELECTCV_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(18.67, 96.388)), module, Kleztizer::LEADCV1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.073, 96.388)), module, Kleztizer::LEADOCTAVECV1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(69.644, 96.388)), module, Kleztizer::LEADCV2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.047, 96.388)), module, Kleztizer::LEADOCTAVECV2_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(46.25, 86.696)), module, Kleztizer::LEADGATEOUT1_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(97.224, 86.696)), module, Kleztizer::LEADGATEOUT2_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.867, 115.947)), module, Kleztizer::PEDALOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(25.486, 115.947)), module, Kleztizer::CHORDROOTOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(37.595, 115.947)), module, Kleztizer::CHORDOUT1_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(49.704, 115.947)), module, Kleztizer::CHORDOUT2_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(61.813, 115.947)), module, Kleztizer::CHORDOUT3_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(79.682, 115.947)), module, Kleztizer::LEADOUT1_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(91.791, 115.947)), module, Kleztizer::LEADOUT2_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(46.25, 88.284)), module, Kleztizer::LEADGATEOUT1_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(97.224, 88.284)), module, Kleztizer::LEADGATEOUT2_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(46.38, 79.249)), module, Kleztizer::LEADLED1_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(97.354, 79.249)), module, Kleztizer::LEADLED_LIGHT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(8.867, 117.006)), module, Kleztizer::PEDALOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(25.486, 117.006)), module, Kleztizer::CHORDROOTOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(37.595, 117.006)), module, Kleztizer::CHORDOUT1_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(49.704, 117.006)), module, Kleztizer::CHORDOUT2_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(61.813, 117.006)), module, Kleztizer::CHORDOUT3_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(79.682, 117.006)), module, Kleztizer::LEADOUT1_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(91.791, 117.006)), module, Kleztizer::LEADOUT2_OUTPUT));
+
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.26, 37.16)), module, Kleztizer::CHORDBUTTONGATEOUT1_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(26.475, 37.16)), module, Kleztizer::CHORDBUTTONGATEOUT2_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(38.663, 37.16)), module, Kleztizer::CHORDBUTTONGATEOUT3_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(50.851, 37.16)), module, Kleztizer::CHORDBUTTONGATEOUT4_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(63.039, 37.16)), module, Kleztizer::CHORDBUTTONGATEOUT5_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(75.227, 37.16)), module, Kleztizer::CHORDBUTTONGATEOUT6_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(87.415, 37.16)), module, Kleztizer::CHORDBUTTONGATEOUT7_OUTPUT));
+
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(46.38, 80.836)), module, Kleztizer::LEADLED1_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(97.354, 80.836)), module, Kleztizer::LEADLED_LIGHT));
 	}
 };
 

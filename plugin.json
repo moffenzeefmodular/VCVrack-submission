@@ -262,9 +262,10 @@
     {
       "slug": "Kleztizer",
       "name": "Kleztizer",
-      "description": "A Klezmer quantizer and chord generator",
+      "description": "A quantizer that follows the harmonic structure of Klezmer modes",
       "tags": [
-        "quantizer"
+        "quantizer",
+        "sequencer"
       ]
     }
   ]
