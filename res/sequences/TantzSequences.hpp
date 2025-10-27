@@ -3,14 +3,16 @@
 #include <algorithm>
 
 struct RhythmData {
-    static const int NUM_STYLES = 8;
+    static const int NUM_STYLES = 5;
     static const int NUM_DRUMS = 6;
     static const int NUM_PATTERNS = 8;
     static const int MAX_STEPS = 16;
 
     // rhythms[style][drum][pattern][step]
+
+    //Styles order: Bulgar/Fraylach, Araber, Terkisher, Zhok/Hora, In Zibn
     bool rhythms[NUM_STYLES][NUM_DRUMS][NUM_PATTERNS][MAX_STEPS] = {};
-    int sequenceLengths[NUM_STYLES] = {16, 16, 16, 16, 16, 16, 16, 16}; // Sequence step length 
+    int sequenceLengths[NUM_STYLES] = {16, 16, 16, 16, 16}; // Sequence step length 
 
     RhythmData() {
         initRhythms();
@@ -30,14 +32,10 @@ struct RhythmData {
 
 	--- Styles (STYLE_PARAM) ---
 	0 = Bulgar
-	1 = Sher
-	2 = Khosidl
-	3 = Skotshne
-	4 = Hora
-	5 = Zhok
-	6 = Araber
-	7 = Terkisher
-	8 = In Zibn
+	1 = Araber
+    2 = Terkisher
+    3 = Hora
+    4 = 7/8
 
 	--- Drums ---
 	0 = Kick

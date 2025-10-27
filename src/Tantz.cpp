@@ -69,7 +69,7 @@ struct Tantz : Module {
 		configSwitch(RUN_PARAM, 0.f, 1.f, 0.f, "Run", {"Start", "Stop"});
 		configParam(SWING_PARAM, 0.f, 1.f, 0.f, "Swing", "%", 0.f, 100.f);
 		configParam(PW_PARAM, 0.f, 1.f, 0.5f, "Pulsewidth", "%", 0.f, 100.f);
-		configSwitch(STYLE_PARAM, 0.f, 7.f, 0.f, "Rhythm Style", {"Bulgar", "Sher", "Khosidl", "Skotshne", "Hora", "Zhok", "Araber", "Terkisher", "In Zibn"});
+		configSwitch(STYLE_PARAM, 0.f, 7.f, 0.f, "Rhythm Style", {"Bulgar/Fraylach", "Araber", "Terkisher", "Hora/Zhok", "In Zibn"});
 		
 		configInput(SWINGCVIN_INPUT, "Swing CV");
 		configInput(PWCVIN_INPUT, "Pulsewidth CV");
