@@ -199,7 +199,7 @@ void process(const ProcessArgs& args) override {
     float swingCV = inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 5.0f : 0.0f;
     float swingAmount = clamp(swingKnob + swingCV, 0.0f, 1.0f) * 0.5f;
 
-    // --- Clock ---
+    // --- Clock handling ---
     float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
     static float lastClock = 0.0f;
     static float currentStepTime = 0.0f;
@@ -216,36 +216,33 @@ void process(const ProcessArgs& args) override {
 
     if (stepPending) {
         float delay = (currentStep % 2 == 1) ? swingAmount * stepInterval : 0.0f;
+
         if (currentStepTime >= delay) {
-            currentStep++;
             int style = (int)params[STYLE_PARAM].getValue();
             int seqLength = rhythmData.sequenceLengths[style];
-            if (currentStep >= seqLength) currentStep = 0;
 
-            // Reset on final step
-            if (currentStep == seqLength - 1) resetGateTimer = getGateLength(pwFinal);
-
-            // --- Step triggers per channel with CV integration ---
+            // --- Step triggers per channel ---
             for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
-                // Knob value 0-7
                 float knobVal = params[drumParamIds[d]].getValue();
-
-                // CV value ±5V scaled to -1..+1
                 float cvVal = 0.0f;
                 if (inputs[drumCVInputs[d]].isConnected()) {
                     cvVal = clamp(inputs[drumCVInputs[d]].getVoltage() / 5.0f, -1.0f, 1.0f);
                 }
-
-                // Sum knob + CV and clamp
                 float sumVal = clamp(knobVal + cvVal * 7.0f, 0.0f, 7.0f);
-
-                // Determine pattern index
                 int pattern = (int)round(sumVal);
 
-                // Trigger gate
                 if (rhythmData.rhythms[style][d][pattern][currentStep])
                     gateTimers[d] = getGateLength(pwFinal);
             }
+
+            // Reset pulse on final step
+            if (currentStep == seqLength - 1)
+                resetGateTimer = getGateLength(pwFinal);
+
+            // --- Increment step after triggering ---
+            currentStep++;
+            if (currentStep >= seqLength)
+                currentStep = 0;
 
             stepPending = false;
         }
