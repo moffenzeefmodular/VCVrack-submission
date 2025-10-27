@@ -1,6 +1,5 @@
 #include "plugin.hpp"
 
-
 struct INTENSIFIES : Module {
 	enum ParamId {
 		CARRIERRANGE_PARAM,

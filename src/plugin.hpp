@@ -103,7 +103,7 @@ struct NineMMKnob : SvgKnob {
 	NineMMKnob() {
 		minAngle = -0.85 * M_PI;
 		maxAngle = 0.85 * M_PI;
-		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/9mm_Knob.svg")));
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/9mm_knob.svg")));
 	}
 };
 
