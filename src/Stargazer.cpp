@@ -719,21 +719,21 @@ struct StargazerWidget : ModuleWidget {
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<_9mmKnob>(mm2px(Vec(25.744, 70.211)), module, Stargazer::FILTERMODE1_PARAM));
-		addParam(createParamCentered<_9mmKnob>(mm2px(Vec(112.163, 71.889)), module, Stargazer::FILTERMODE2_PARAM));
-        addParam(createParamCentered<_9mmKnob>(mm2px(Vec(47.715, 8.739)), module, Stargazer::FM_PARAM));
-        addParam(createParamCentered<_9mmKnob>(mm2px(Vec(78.869, 10.580)), module, Stargazer::WIDTH_PARAM));
+        addParam(createParamCentered<NineMMKnob>(mm2px(Vec(25.744, 70.211)), module, Stargazer::FILTERMODE1_PARAM));
+		addParam(createParamCentered<NineMMKnob>(mm2px(Vec(112.163, 71.889)), module, Stargazer::FILTERMODE2_PARAM));
+        addParam(createParamCentered<NineMMKnob>(mm2px(Vec(47.715, 8.739)), module, Stargazer::FM_PARAM));
+        addParam(createParamCentered<NineMMKnob>(mm2px(Vec(78.869, 10.580)), module, Stargazer::WIDTH_PARAM));
 
         addParam(createParamCentered<StargazerDavies>(mm2px(Vec(26.918, 12.382)), module, Stargazer::PITCH_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(96.236, 14.975)), module, Stargazer::GAIN_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(10.681, 32.195)), module, Stargazer::MAINWAVE_PARAM));
 		addParam(createParamCentered<StargazerDavies>(mm2px(Vec(122.509, 27.037)), module, Stargazer::VOL_PARAM));
 
-		addParam(createParamCentered<_2Pos>(mm2px(Vec(40.613, 16.470)), module, Stargazer::SUB_PARAM));
+		addParam(createParamCentered<TwoPos>(mm2px(Vec(40.613, 16.470)), module, Stargazer::SUB_PARAM));
 
-		addParam(createParamCentered<_3Pos>(mm2px(Vec(13.450, 113.833)), module, Stargazer::RANGE1_PARAM));
-		addParam(createParamCentered<_3Pos>(mm2px(Vec(67.963, 101.533)), module, Stargazer::RANGE2_PARAM));
-		addParam(createParamCentered<_3Pos>(mm2px(Vec(102.129, 113.242)), module, Stargazer::RANGE3_PARAM));
+		addParam(createParamCentered<ThreePos>(mm2px(Vec(13.450, 113.833)), module, Stargazer::RANGE1_PARAM));
+		addParam(createParamCentered<ThreePos>(mm2px(Vec(67.963, 101.533)), module, Stargazer::RANGE2_PARAM));
+		addParam(createParamCentered<ThreePos>(mm2px(Vec(102.129, 113.242)), module, Stargazer::RANGE3_PARAM));
 
 
 		addParam(createParamCentered<MediumKnob>(mm2px(Vec(55.727, 21.557)), module, Stargazer::DETUNE_PARAM));

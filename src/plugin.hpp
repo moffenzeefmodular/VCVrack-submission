@@ -38,24 +38,24 @@ struct CKSSHorizontal : app::SvgSwitch {
 	}
 };
 
-struct _2Pos : SvgSwitch {
-    _2Pos() {
+struct TwoPos : SvgSwitch {
+    TwoPos() {
         momentary = false; // true for momentary behavior
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggle_0.svg")));
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggle_2.svg")));
     }
 };
 
-struct _2PosHorizontal : SvgSwitch {
-    _2PosHorizontal() {
+struct TwoPosHorizontal : SvgSwitch {
+    TwoPosHorizontal() {
         momentary = false; // true for momentary behavior
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggleH_0.svg")));
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggleH_2.svg")));
     }
 };
 
-struct _3Pos : SvgSwitch {
-    _3Pos() {
+struct ThreePos : SvgSwitch {
+    ThreePos() {
         momentary = false; // true for momentary behavior
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggle_0.svg")));
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggle_1.svg")));
@@ -63,8 +63,8 @@ struct _3Pos : SvgSwitch {
     }
 };
 
-struct _3PosHorizontal : SvgSwitch {
-    _3PosHorizontal() {
+struct ThreePosHorizontal : SvgSwitch {
+    ThreePosHorizontal() {
         momentary = false; // true for momentary behavior
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggleH_0.svg")));
         addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/SubMiniToggleH_1.svg")));
@@ -98,9 +98,9 @@ struct MediumKnob : SvgKnob {
 	}
 };
 
-struct _9mmKnob : SvgKnob {
+struct NineMMKnob : SvgKnob {
 	widget::SvgWidget* bg;
-	_9mmKnob() {
+	NineMMKnob() {
 		minAngle = -0.85 * M_PI;
 		maxAngle = 0.85 * M_PI;
 		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/9mm_Knob.svg")));
