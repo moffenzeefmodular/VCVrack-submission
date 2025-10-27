@@ -12,7 +12,7 @@ struct RhythmData {
 
     //Styles order: Bulgar/Fraylach, Araber, Terkisher, Zhok/Hora, In Zibn
     bool rhythms[NUM_STYLES][NUM_DRUMS][NUM_PATTERNS][MAX_STEPS] = {};
-    int sequenceLengths[NUM_STYLES] = {16, 16, 16, 16, 16}; // Sequence step length 
+    int sequenceLengths[NUM_STYLES] = {16, 16, 16, 12, 14}; // Sequence step length 
 
     RhythmData() {
         initRhythms();
@@ -181,8 +181,113 @@ struct RhythmData {
         loadRhythmFromString(1, 5, 6, "0010001000000011");
         loadRhythmFromString(1, 5, 7, "0010001000000111");
         
-        //Stle 2: Terkisher
+        //Style 2: Terkisher
+        //Kick
+        loadRhythmFromString(2, 0, 0, "1000000000000000");
+        loadRhythmFromString(2, 0, 1, "1000000010000000");
+        loadRhythmFromString(2, 0, 2, "0000000010001000");
+        loadRhythmFromString(2, 0, 3, "1000000010001000");
+        loadRhythmFromString(2, 0, 4, "1000001010001000");
+        loadRhythmFromString(2, 0, 5, "1000001010001010");
+        loadRhythmFromString(2, 0, 6, "1000001010101000");
+        loadRhythmFromString(2, 0, 7, "1000001010001001");
+        //Snare
+        loadRhythmFromString(2, 1, 0, "0000000000001000");
+        loadRhythmFromString(2, 1, 1, "0000000010000000");
+        loadRhythmFromString(2, 1, 2, "0000100000100000");
+        loadRhythmFromString(2, 1, 3, "0000100000000010");
+        loadRhythmFromString(2, 1, 4, "1000000010000000");
+        loadRhythmFromString(2, 1, 5, "1000001010000000");
+        loadRhythmFromString(2, 1, 6, "1000001010001000");
+        loadRhythmFromString(2, 1, 7, "1000001010001001");
+        //Closed Hat
+        loadRhythmFromString(2, 2, 0, "1000001010000010");
+        loadRhythmFromString(2, 2, 1, "1000101010000000");
+        loadRhythmFromString(2, 2, 2, "1000100010001000");
+        loadRhythmFromString(2, 2, 3, "1000101010001000");
+        loadRhythmFromString(2, 2, 4, "1000101010001010");
+        loadRhythmFromString(2, 2, 5, "1000001010101010");
+        loadRhythmFromString(2, 2, 6, "1000101010001100");
+        loadRhythmFromString(2, 2, 7, "1000101010001101"); 
+        //Open Hat
+        loadRhythmFromString(2, 3, 0, "0000000000001000");
+        loadRhythmFromString(2, 3, 1, "0000100000001000");
+        loadRhythmFromString(2, 3, 2, "1000000000001000");
+        loadRhythmFromString(2, 3, 3, "1000000010000000");
+        loadRhythmFromString(2, 3, 4, "1000000010001000");
+        loadRhythmFromString(2, 3, 5, "1000000010000010");
+        loadRhythmFromString(2, 3, 6, "1000001010001000");
+        loadRhythmFromString(2, 3, 7, "1000001010001010"); 
+        //Perc 1
+        loadRhythmFromString(2, 4, 0, "0000100000000000");
+        loadRhythmFromString(2, 4, 1, "0000001000000000");
+        loadRhythmFromString(2, 4, 2, "0000100000001000");
+        loadRhythmFromString(2, 4, 3, "0000001000001000");
+        loadRhythmFromString(2, 4, 4, "1000001000000000");
+        loadRhythmFromString(2, 4, 5, "1000001010000000");
+        loadRhythmFromString(2, 4, 6, "1000001010001000");
+        loadRhythmFromString(2, 4, 7, "1000001010001011");
+        //Perc 2 
+        loadRhythmFromString(2, 5, 0, "0000000000000010");
+        loadRhythmFromString(2, 5, 1, "0000000000100000");
+        loadRhythmFromString(2, 5, 2, "0000000000001000");
+        loadRhythmFromString(2, 5, 3, "0000001000000010");
+        loadRhythmFromString(2, 5, 4, "0010000000000000");
+        loadRhythmFromString(2, 5, 5, "0010000000000010");
+        loadRhythmFromString(2, 5, 6, "0010001000000010"); 
+        loadRhythmFromString(2, 5, 7, "0010000000000011"); 
+
         //Style 3: Hora/Zhok
+        //Kick  
+        loadRhythmFromString(3, 0, 0, "100000001000");  
+        loadRhythmFromString(3, 0, 3, "100000000100");  
+        loadRhythmFromString(3, 0, 1, "100000100000");  
+        loadRhythmFromString(3, 0, 7, "100000000101");  
+        loadRhythmFromString(3, 0, 2, "100000001100");  
+        loadRhythmFromString(3, 0, 5, "110000001000");  
+        loadRhythmFromString(3, 0, 6, "101000001000");  
+        loadRhythmFromString(3, 0, 4, "110000001100");  
+        //Snare  
+        loadRhythmFromString(3, 1, 0, "100000000000");  
+        loadRhythmFromString(3, 1, 1, "100000001000");  
+        loadRhythmFromString(3, 1, 5, "000010000100");  
+        loadRhythmFromString(3, 1, 4, "000010000001");  
+        loadRhythmFromString(3, 1, 2, "000010010000");  
+        loadRhythmFromString(3, 1, 3, "000010011000");  
+        loadRhythmFromString(3, 1, 7, "001000100010");  
+        loadRhythmFromString(3, 1, 6, "100010001000");  
+        //Closed Hat  
+        loadRhythmFromString(3, 2, 7, "001100110011");  
+        loadRhythmFromString(3, 2, 6, "100110011001");  
+        loadRhythmFromString(3, 2, 2, "110000001100");  
+        loadRhythmFromString(3, 2, 5, "110010101100");  
+        loadRhythmFromString(3, 2, 4, "110011001100");  
+        loadRhythmFromString(3, 2, 1, "101010101010");  
+        loadRhythmFromString(3, 2, 3, "111111111111");  
+        //Open Hat  
+        loadRhythmFromString(3, 3, 2, "100000000000");  
+        loadRhythmFromString(3, 3, 6, "000010000000");  
+        loadRhythmFromString(3, 3, 3, "000000100010");  
+        loadRhythmFromString(3, 3, 5, "001000000010");  
+        loadRhythmFromString(3, 3, 7, "000010001000");  
+        loadRhythmFromString(3, 3, 4, "001000100010");  
+        loadRhythmFromString(3, 3, 1, "100000001000");  
+        //Perc 1  
+        loadRhythmFromString(3, 4, 7, "000000100000");  
+        loadRhythmFromString(3, 4, 6, "000010000010");  
+        loadRhythmFromString(3, 4, 3, "000010001000");  
+        loadRhythmFromString(3, 4, 4, "100000001000");  
+        loadRhythmFromString(3, 4, 2, "001000100010");  
+        loadRhythmFromString(3, 4, 1, "101000001010");  
+        loadRhythmFromString(3, 4, 5, "001100000011");  
+        //Perc 2  
+        loadRhythmFromString(3, 5, 1, "000010000000");  
+        loadRhythmFromString(3, 5, 7, "001000000000");  
+        loadRhythmFromString(3, 5, 5, "000010001000");  
+        loadRhythmFromString(3, 5, 4, "010000000100");  
+        loadRhythmFromString(3, 5, 6, "100000100000");  
+        loadRhythmFromString(3, 5, 2, "100000001000");  
+        loadRhythmFromString(3, 5, 3, "001000100010");          
         //Style 4: In Zibn
     }
 };
