@@ -69,7 +69,7 @@ struct Tantz : Module {
 		configSwitch(RUN_PARAM, 0.f, 1.f, 0.f, "Run", {"Start", "Stop"});
 		configParam(SWING_PARAM, 0.f, 1.f, 0.f, "Swing", "%", 0.f, 100.f);
 		configParam(PW_PARAM, 0.f, 1.f, 0.5f, "Pulsewidth", "%", 0.f, 100.f);
-		configSwitch(STYLE_PARAM, 0.f, 4.f, 0.f, "Rhythm Style", {"Bulgar/Fraylach", "Araber", "Terkisher", "Hora/Zhok", "In Zibn"});
+		configSwitch(STYLE_PARAM, 0.f, 5.f, 0.f, "Rhythm Style", {"Bulgar #1", "Bulgar #2", "Araber", "Terkisher", "Hora/Zhok", "In Zibn"});
 		
 		configInput(SWINGCVIN_INPUT, "Swing CV");
 		configInput(PWCVIN_INPUT, "Pulsewidth CV");
@@ -204,12 +204,12 @@ void process(const ProcessArgs& args) override {
     float swingCV = inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 5.0f : 0.0f;
     float swingAmount = clamp(swingKnob + swingCV, 0.0f, 1.0f) * 0.5f;
 
-// --- Style (with CV modulation) ---
-float styleKnob = params[STYLE_PARAM].getValue(); // 0–4
-float styleCV = inputs[STYLECVIN_INPUT].isConnected() ? inputs[STYLECVIN_INPUT].getVoltage() : 0.0f;
-float styleValue = clamp(styleKnob + rescale(styleCV, -5.f, 5.f, -2.f, 2.f), 0.f, 4.f);
-int style = (int)round(styleValue);
-int seqLength = rhythmData.sequenceLengths[style];
+	// --- Style (with CV modulation) ---
+	float styleKnob = params[STYLE_PARAM].getValue(); // 0–4
+	float styleCV = inputs[STYLECVIN_INPUT].isConnected() ? inputs[STYLECVIN_INPUT].getVoltage() : 0.0f;
+	float styleValue = clamp(styleKnob + rescale(styleCV, -5.f, 5.f, -2.5f, 2.5f), 0.f, 5.f);
+	int style = (int)round(styleValue);
+	int seqLength = rhythmData.sequenceLengths[style];
 
     // --- Clock handling ---
     float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
