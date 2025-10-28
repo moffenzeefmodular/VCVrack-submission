@@ -199,6 +199,13 @@ void process(const ProcessArgs& args) override {
     float swingCV = inputs[SWINGCVIN_INPUT].isConnected() ? inputs[SWINGCVIN_INPUT].getVoltage() / 5.0f : 0.0f;
     float swingAmount = clamp(swingKnob + swingCV, 0.0f, 1.0f) * 0.5f;
 
+// --- Style (with CV modulation) ---
+float styleKnob = params[STYLE_PARAM].getValue(); // 0–4
+float styleCV = inputs[STYLECVIN_INPUT].isConnected() ? inputs[STYLECVIN_INPUT].getVoltage() : 0.0f;
+float styleValue = clamp(styleKnob + rescale(styleCV, -5.f, 5.f, -2.f, 2.f), 0.f, 4.f);
+int style = (int)round(styleValue);
+int seqLength = rhythmData.sequenceLengths[style];
+
     // --- Clock handling ---
     float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
     static float lastClock = 0.0f;
@@ -218,9 +225,6 @@ void process(const ProcessArgs& args) override {
         float delay = (currentStep % 2 == 1) ? swingAmount * stepInterval : 0.0f;
 
         if (currentStepTime >= delay) {
-            int style = (int)params[STYLE_PARAM].getValue();
-            int seqLength = rhythmData.sequenceLengths[style];
-
             // --- Step triggers per channel ---
             for (int d = 0; d < RhythmData::NUM_DRUMS; d++) {
                 float knobVal = params[drumParamIds[d]].getValue();
