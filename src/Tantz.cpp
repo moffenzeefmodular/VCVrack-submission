@@ -170,14 +170,19 @@ LightId drumLightIds[RhythmData::NUM_DRUMS] = {
 void process(const ProcessArgs& args) override {
     float dt = args.sampleTime;
 
-    // --- Run toggle ---
-    bool runButton = params[RUN_PARAM].getValue() > 0.5f;
-    bool runCV = inputs[RUNCVIN_INPUT].isConnected() && inputs[RUNCVIN_INPUT].getVoltage() > 1.0f;
-    if (runButton && !lastRunButton) runState = !runState;
-    if (runCV && !lastRunCV) runState = !runState;
-    lastRunButton = runButton;
-    lastRunCV = runCV;
-    lights[RUNLED_LIGHT].setBrightnessSmooth(runState ? 1.0f : 0.0f, dt);
+    // --- Run toggle (button OR CV) ---
+	bool runButton = params[RUN_PARAM].getValue() > 0.5f;
+	bool runCV = false;
+	if (inputs[RUNCVIN_INPUT].isConnected()) {
+	    float v = inputs[RUNCVIN_INPUT].getVoltage();
+	    runCV = v > 0.0f;  // positive voltage counts as "pressed"
+	}
+	if ((runButton && !lastRunButton) || (runCV && !lastRunCV))
+	    runState = !runState;
+	lastRunButton = runButton;
+	lastRunCV = runCV;
+	lights[RUNLED_LIGHT].setBrightnessSmooth(runState ? 1.0f : 0.0f, args.sampleTime);
+
 
     if (!runState) {
         currentStep = 0;
