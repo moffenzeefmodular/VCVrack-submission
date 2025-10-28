@@ -33,4 +33,8 @@ By Ross Fish Feb 2025
 
 ## v2.3.0 
 - Added Stargazer
+- Added Kleztizer
+- Added Tantz!
 - Themed jacks and screws updated for all modules
+- All wavetables and sequences moved to res folder
+- Renamed widgets to start with letters instead of numbers
