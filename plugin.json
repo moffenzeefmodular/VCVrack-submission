@@ -274,8 +274,7 @@
       "description": "Klezmer preset drum sequencer",
       "tags": [
         "sequencer",
-        "trigger",
-        "gate"
+        "clock modulator"
       ]
     }
   ]
