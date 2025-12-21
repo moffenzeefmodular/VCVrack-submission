@@ -188,9 +188,9 @@ setPanel(createPanel(
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(41.899, 112.441)), module, Deviant::CH__2_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.57, 13.957)), module, Deviant::LED_NEG_1_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(13.575, 13.957)), module, Deviant::LED_POS_1_LIGHT));
+		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(13.575, 13.957)), module, Deviant::LED_POS_1_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(37.226, 13.957)), module, Deviant::LED_NEG_2_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(42.238, 13.995)), module, Deviant::LED_POS_2_LIGHT));
+		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(42.238, 13.995)), module, Deviant::LED_POS_2_LIGHT));
 	}
 };
 
