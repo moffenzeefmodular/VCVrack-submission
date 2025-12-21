@@ -38,3 +38,8 @@ By Ross Fish Feb 2025
 - Themed jacks and screws updated for all modules
 - All wavetables and sequences moved to res folder
 - Renamed widgets to start with letters instead of numbers
+
+## v2.4.0 
+- Added Quad Deviant
+- Changed positive LED indicators on Deviant to green
+- Removed deprecated use of setBrightnessSmooth from BadIdea1800 
