@@ -3,6 +3,114 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <cctype>
+#include <cmath>
+
+// =====================
+// Pitch helpers
+// =====================
+static constexpr float MIN_HZ = 1.f;
+static constexpr float MAX_HZ = 500.f;
+static constexpr float REF_HZ = 440.f;
+
+// Runtime constants (C++17-safe)
+static const float MIN_V = std::log2(MIN_HZ / REF_HZ);
+static const float MAX_V = std::log2(MAX_HZ / REF_HZ);
+
+static inline float voltsToHz(float v) {
+	return REF_HZ * std::pow(2.f, v);
+}
+
+static inline float hzToVolts(float hz) {
+	return std::log2(hz / REF_HZ);
+}
+
+// =====================
+// Note parser (C0, C#1, Db3, etc)
+// =====================
+static bool parseNoteString(const std::string& s, float& outVolts) {
+	if (s.empty())
+		return false;
+
+	char n = std::toupper(s[0]);
+	int note = -1;
+
+	switch (n) {
+		case 'C': note = 0; break;
+		case 'D': note = 2; break;
+		case 'E': note = 4; break;
+		case 'F': note = 5; break;
+		case 'G': note = 7; break;
+		case 'A': note = 9; break;
+		case 'B': note = 11; break;
+		default: return false;
+	}
+
+	int i = 1;
+	if (i < (int)s.size()) {
+		if (s[i] == '#') { note++; i++; }
+		else if (s[i] == 'b') { note--; i++; }
+	}
+
+	// ✅ Default octave = 4 if none provided
+	int octave = 4;
+
+	if (i < (int)s.size()) {
+		try {
+			octave = std::stoi(s.substr(i));
+		}
+		catch (...) {
+			return false;
+		}
+	}
+
+	int midi = (octave + 1) * 12 + note;
+	outVolts = (midi - 69) / 12.f; // A4 = 440 Hz
+	return true;
+}
+
+// =====================
+// ParamQuantity
+// =====================
+struct PitchParamQuantity : rack::engine::ParamQuantity {
+
+    float getDisplayValue() override {
+        return clamp(voltsToHz(getValue()), MIN_HZ, MAX_HZ);
+    }
+
+    // ✅ Display string now includes "Hz"
+    std::string getDisplayValueString() override {
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.2f Hz", getDisplayValue());
+        return std::string(buf);
+    }
+
+    void setDisplayValueString(std::string s) override {
+        // Remove whitespace
+        s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
+        if (s.empty())
+            return;
+
+        // Try numeric Hz
+        try {
+            float hz = std::stof(s);
+            hz = clamp(hz, MIN_HZ, MAX_HZ);
+            setValue(hzToVolts(hz));
+            return;
+        }
+        catch (...) {}
+
+        // Try note name
+        float v;
+        if (parseNoteString(s, v)) {
+            v = clamp(v, MIN_V, MAX_V);
+            setValue(v);
+        }
+    }
+};
+
+
 
 // --- Minimal WAV file reader (mono, 16-bit or 32-bit float) ---
 static bool loadWavetableFile(const std::string& path, std::vector<float>& outSamples) {
@@ -139,7 +247,14 @@ struct Stargazer : Module {
 
 	Stargazer() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(PITCH_PARAM, 0.f, 1.f, 0.1f, "Pitch", "hz", 500.f, 1.f); // 1hz - 500hz
+configParam<PitchParamQuantity>(
+	PITCH_PARAM,
+	MIN_V,        // ≈ -8.03 (1 Hz)
+	MAX_V,        // ≈ +0.93 (500 Hz)
+	hzToVolts(110.f), // default ≈ A2
+	"Pitch"
+);        
+
         configParam(FM_PARAM, 0.f, 1.f, 0.f, "FM", "%", 0.f, 100.f); // FM Attenuator
 
 		configSwitch(SUB_PARAM, 0.f, 1.f, 0.f, "Sub Oscillator", {"Off", "On"}); // Turn osc2 into sub oscillator
@@ -388,21 +503,26 @@ processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
 	// START OF AUDIO SECTION 
     sampleRate = 1.f / args.sampleTime;
 
-    // --- Frequency control (1–500 Hz base + 1V/oct CV) ---
-    float baseFreqParam = params[PITCH_PARAM].getValue();
-    float baseFreq = 1.f + baseFreqParam * (500.f - 1.f);
-    float pitchCV = inputs[PITCHCV_INPUT].isConnected() ? inputs[PITCHCV_INPUT].getVoltage() : 0.f;
-    // FM input (normalized to LFO3)
-    float fmCV = inputs[FMCV_INPUT].isConnected() ? inputs[FMCV_INPUT].getVoltage() : (lfo3Value * 0.2f);
+// --- Pitch (true 1V/oct, clamped to 1–500 Hz) ---
+float pitchV = params[PITCH_PARAM].getValue();
 
-    // FM knob acts as attenuator
-    fmCV *= params[FM_PARAM].getValue();
+// 1V/oct CV
+if (inputs[PITCHCV_INPUT].isConnected())
+	pitchV += inputs[PITCHCV_INPUT].getVoltage();
 
-    // total pitch = 1V/oct + FM
-    float totalPitchCV = pitchCV + fmCV;
+// FM (attenuated, treated as pitch modulation)
+float fmV = inputs[FMCV_INPUT].isConnected()
+	? inputs[FMCV_INPUT].getVoltage()
+	: (lfo3Value * 0.2f);
 
-    // final frequency (1–500 Hz)
-    float freq = clamp(baseFreq * std::pow(2.f, totalPitchCV), 1.f, 500.f);
+pitchV += fmV * params[FM_PARAM].getValue();
+
+// Hard clamp pitch range
+pitchV = clamp(pitchV, MIN_V, MAX_V);
+
+// Convert to Hz
+float freq = voltsToHz(pitchV);
+
 
 	float waveCV = inputs[WAVECV_INPUT].isConnected() ? inputs[WAVECV_INPUT].getVoltage() : lfo1Value;
 	float waveParam = 1.0f + clamp((params[MAINWAVE_PARAM].getValue() - 1.0f) / 87.0f +
