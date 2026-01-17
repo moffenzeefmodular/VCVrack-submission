@@ -45,4 +45,5 @@ By Ross Fish Feb 2025
 - Removed deprecated use of setBrightnessSmooth from BadIdea1800 
 
 ## v2.5.0
-- Added ability to type note value directly onto pitch knob of Stargazer to avoid need for external tuner 
+- Stargazer: Added ability to type note value directly onto pitch knob to avoid need for external tuner 
+- Kleztizer: repaired voicing and inversion knobs. Inversion was unresponsive in "Closed" mode. "Open" mode was not implemented correctly
