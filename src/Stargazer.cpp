@@ -53,7 +53,6 @@ static bool parseNoteString(const std::string& s, float& outVolts) {
 		else if (s[i] == 'b') { note--; i++; }
 	}
 
-	// ✅ Default octave = 4 if none provided
 	int octave = 4;
 
 	if (i < (int)s.size()) {
@@ -70,16 +69,12 @@ static bool parseNoteString(const std::string& s, float& outVolts) {
 	return true;
 }
 
-// =====================
-// ParamQuantity
-// =====================
 struct PitchParamQuantity : rack::engine::ParamQuantity {
 
     float getDisplayValue() override {
         return clamp(voltsToHz(getValue()), MIN_HZ, MAX_HZ);
     }
 
-    // ✅ Display string now includes "Hz"
     std::string getDisplayValueString() override {
         char buf[16];
         snprintf(buf, sizeof(buf), "%.2f Hz", getDisplayValue());
@@ -109,7 +104,6 @@ struct PitchParamQuantity : rack::engine::ParamQuantity {
         }
     }
 };
-
 
 
 // --- Minimal WAV file reader (mono, 16-bit or 32-bit float) ---

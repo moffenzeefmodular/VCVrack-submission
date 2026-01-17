@@ -43,3 +43,6 @@ By Ross Fish Feb 2025
 - Added Quad Deviant
 - Changed positive LED indicators on Deviant to green
 - Removed deprecated use of setBrightnessSmooth from BadIdea1800 
+
+## v2.5.0
+- Added ability to type note value directly onto pitch knob of Stargazer to avoid need for external tuner 
