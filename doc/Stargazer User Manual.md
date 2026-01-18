@@ -89,6 +89,10 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ### The output stage consists of a VCA, a mono to stereo spatialization section, as well as a distortion. LFO 2 is normalled to Stargazer's VCA volume (see Normalization Schema and Block Diagram below for more information). Following the VCA, a Spread knob is provided, which controls the panning relationship between Stargazer, and a 20ms delayed copy of the signal. After the spatialization section a simple gain stage and output volume attenuator are provided.
 
+* **Spread:** The panning relationship between Stargazer and it's delayed copy. At 0%, the delay is fully bypassed and the signal is mono. As the user gradually turns up this parameter, the delayed signal and dry signal gradually pan apart form one another until they are fully panned left and right at 100%.
+* **Gain:** Variable gain from 1x to 100x. The signal is clipped at 10vpp, so this in effect becomes a drive parameter for distortion. 
+* **Vol:** The output volume, post distortion. 
+
 ---
 
 # Normalization Schema 
@@ -103,3 +107,5 @@ Several parts of the circuit are "normalized" together. This means that with no 
 ---
 
 # Block Diagram 
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBlockDiagram.jpg" width="1500">
