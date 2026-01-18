@@ -29,16 +29,6 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ---
 
-# Normalization Schema 
-
-Several parts of the circuit are "normalized" together. This means that with no patch cable present the connection is hardwired. When you patch a signal into the associated jack it will override this pre-existing normalization. The normalized signals are as follows: 
-
-* **LFO 1:** by default this LFO is mapped to the main oscillator's **WAVE** knob which selects the primary wavetable for the synth. Patching a signal into the **WAVE** CV input will override this connection.
-* **LFO 2:** by default this LFO controls the volume stargazer, before the distortion circuit. Patching a signal into the **VOL.** CV input will override this connection.
-* **LFO 3:** by default this LFO controls the cutoff frequency of Filter 2. Patching a signal into the **FREQ 2** CV input will override this connection. 
-* **FM:** by default this attenuator is controlling the amount **LFO 3** modulates the frequency of **Pitch**. This allows the user to easily get access to vibrato without needing to patch an external signal. Patching a signal into the **FM** CV input will override this connection. 
-
----
 # Detailed Description 
 
 ---
@@ -62,7 +52,7 @@ Several parts of the circuit are "normalized" together. This means that with no 
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerFilter.jpg" width="300">
 
-### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and their modulation routing (see Normalization Schema above, and block diagram below for more information). Both filters are multimode and have the ability to be bypassed from the signal chain entirely. 
+### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and their modulation routing (see Normalization Schema and block diagram below for more information). Both filters are multimode and have the ability to be bypassed from the signal chain entirely. 
 
 * **Freq:** Cutoff frequency. 80hz - 16khz
 * **Mode:** Filter shape. Shapes in the following order: Lowpass, Bandpass, Highpass, Notch, Off (bypass).
@@ -85,11 +75,24 @@ Several parts of the circuit are "normalized" together. This means that with no 
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerLFO.png" width="300">
 
+### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain (see Normalization Schema and Block Diagram below for more information).
+
 ---
 
 ## Output Stage 
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOutput.png" width="300">
+
+---
+
+# Normalization Schema 
+
+Several parts of the circuit are "normalized" together. This means that with no patch cable present the connection is hardwired. When you patch a signal into the associated jack it will override this pre-existing normalization. The normalized signals are as follows: 
+
+* **LFO 1:** by default this LFO is mapped to the main oscillator's **WAVE** knob which selects the primary wavetable for the synth. Patching a signal into the **WAVE** CV input will override this connection.
+* **LFO 2:** by default this LFO controls the volume stargazer, before the distortion circuit. Patching a signal into the **VOL.** CV input will override this connection.
+* **LFO 3:** by default this LFO controls the cutoff frequency of Filter 2. Patching a signal into the **FREQ 2** CV input will override this connection. 
+* **FM:** by default this attenuator is controlling the amount **LFO 3** modulates the frequency of **Pitch**. This allows the user to easily get access to vibrato without needing to patch an external signal. Patching a signal into the **FM** CV input will override this connection. 
 
 ---
 
