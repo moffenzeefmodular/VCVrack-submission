@@ -35,7 +35,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOscillator.png" width="300">
 
-### The oscillator section contains a primary and secondary oscillator that share the same wavetable selection, 1v/Octave pitch input, and FM CV input. The wavetables smoothly interpolate between one another creating a morphing and organic sound. The secondary oscillator can be detuned and mixed in with the primary oscillator to create frequency beating and chorus like effects. The pitch tracking is restricted to the overall oscillator range of 1hz - 500hz. If you would like the oscillators tuned to a specific chromatic note, you can click on the pitch knob and type in the MIDI note of your preference (example C0, or Eb1).
+### The oscillator section contains a primary and secondary oscillator that share the same wavetable selection, 1v/Octave pitch input, and FM CV input. The wavetables smoothly interpolate between one another creating a morphing and organic sound. The secondary oscillator can be detuned and mixed in with the primary oscillator to create frequency beating and chorus like effects. The pitch tracking is restricted to the overall oscillator range of 1hz - 500hz. If you would like the oscillators tuned to a specific chromatic note, you can click on the pitch knob and type in the MIDI note of your preference (example C0, or Eb1). See Normalization Schema and Block Diagram below for more information.
 
 * **Pitch:** Control the pitch of both oscillators from 1hz - 500hz (C-2 to B4 in MIDI). 
 * **FM:** Linear FM control over the pitch of both oscillators (restricted to a +/-1v range to get a more vibrato like effect).
@@ -50,7 +50,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerFilter.jpg" width="300">
 
-### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and their modulation routing (see Normalization Schema and Block Diagram below for more information). Both filters are multimode and have the ability to be bypassed from the signal chain entirely. 
+### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and their modulation routing. Both filters are multimode and have the ability to be bypassed from the signal chain entirely. See Normalization Schema and Block Diagram below for more information. 
 
 * **Freq:** Cutoff frequency. 80hz - 16khz
 * **Mode:** Filter shape. Shapes in the following order: Lowpass, Bandpass, Highpass, Notch, Off (bypass).
@@ -62,7 +62,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBitReduction.png" width="250">
 
-### Control over sample rate and bit depth are provided between both filters. The rationale for the signal routing is that the user would use the first filter to modify the wavetables and then add harmonically rich content back into the signal. The second filter would then subtract this content back out of the signal. This is a weird kind of way of thinking about subtractive synthesis, but yields some aesthetically pleasing results. (See Block Diagram below for more information)
+### Control over sample rate and bit depth are provided between both filters. The rationale for the signal routing is that the user would use the first filter to modify the wavetables and then add harmonically rich content back into the signal. The second filter would then subtract this content back out of the signal. This is a weird kind of way of thinking about subtractive synthesis, but yields some aesthetically pleasing results. See Block Diagram below for more information.
 
 * **Alias:** Contiuously variable sample rate. 18khz - 20.5hz.
 * **Redux:** Stepped control of bit depth. 16 bit - 4 bit. 
@@ -73,7 +73,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerLFO.png" width="300">
 
-### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain (see Normalization Schema and Block Diagram below for more information).
+### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain. See Normalization Schema and Block Diagram below for more information.
 
 * **Wave:** LFO waveshape selection. In order: Sine, Triangle, Ramp Up, Ramp Down, Square, Stepped Random. 
 * **Range:** The overall LFO frequency range. 
@@ -87,7 +87,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOutput.png" width="300">
 
-### The output stage consists of a VCA, a mono to stereo spatialization section, as well as a distortion. LFO 2 is normalled to Stargazer's VCA volume (see Normalization Schema and Block Diagram below for more information). Following the VCA, a Spread knob is provided, which controls the panning relationship between Stargazer, and a 20ms delayed copy of the signal. After the spatialization section a simple gain stage and output volume attenuator are provided.
+### The output stage consists of a VCA, a mono to stereo spatialization section, as well as a distortion. LFO 2 is normalled to Stargazer's VCA volume (see Normalization Schema and Block Diagram below for more information). Following the VCA, a Spread knob is provided, which controls the panning relationship between Stargazer, and a 20ms delayed copy of the signal. After the spatialization section a simple gain stage and output volume attenuator are provided. See Normalization Schema and Block Diagram below for more information.
 
 * **Spread:** The panning relationship between Stargazer and it's delayed copy. At 0%, the delay is fully bypassed and the signal is mono. As the user gradually turns up this parameter, the delayed signal and dry signal gradually pan apart form one another until they are fully panned left and right at 100%.
 * **Gain:** Variable gain from 1x to 100x. The signal is clipped at 10vpp, so this in effect becomes a drive parameter for distortion. 
