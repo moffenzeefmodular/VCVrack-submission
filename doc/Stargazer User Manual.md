@@ -31,8 +31,6 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 # Detailed Description 
 
----
-
 ## Oscillators
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOscillator.png" width="300">
@@ -75,13 +73,21 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerLFO.png" width="300">
 
-### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain (see Normalization Schema and Block Diagram below for more information).
+### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain.(see Normalization Schema and Block Diagram below for more information).
+
+* **Wave:** LFO waveshape selection. In order: Sine, Triangle, Ramp Up, Ramp Down, Square, Stepped Random. 
+* **Range:** The overall LFO frequency range. 
+**Slow:** 0.01hz - 0.1hz, **Medium:** 0.05hz - 10hz, **Fast:** 0.05hz - 50hz.
+* **Rate:** LFO frequency. Frequency range is dependent upon the **Range** switch setting.
+* **Depth:** LFO amplitude.
 
 ---
 
 ## Output Stage 
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOutput.png" width="300">
+
+### The output stage consists of a VCA, a mono to stereo spatialization section, as well as a distortion. LFO 2 is normalled to Stargazer's VCA volume (see Normalization Schema and Block Diagram below for more information). Following the VCA, a Spread knob is provided, which controls the panning relationship between Stargazer, and a 20ms delayed copy of the signal. After the spatialization section a simple gain stage and output volume attenuator are provided.
 
 ---
 
