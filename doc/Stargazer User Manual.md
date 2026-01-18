@@ -108,4 +108,4 @@ Several parts of the circuit are "normalized" together. This means that with no 
 
 # Block Diagram 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBlockDiagram.jpg" width="1500">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBlockDiagram.jpg">
