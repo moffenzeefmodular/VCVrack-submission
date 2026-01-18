@@ -45,7 +45,7 @@ Several parts of the circuit are "normalized" together. This means that with no 
 
 ## Modulation 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerLFO.jpg" width="300">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerLFO.png" width="300">
 
 ## Output Stage 
 
