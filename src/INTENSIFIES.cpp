@@ -39,9 +39,12 @@ struct INTENSIFIES : Module {
 		LIGHTS_LEN
 	};
 
-	float clockPhase = 0.f;
-	bool clockState = false;
-	float heldSample = 0.f;
+    float heldSampleL = 0.f;
+    float heldSampleR = 0.f;
+    float clockPhaseL = 0.f;
+    float clockPhaseR = 0.f;
+
+    bool clockState = false;
 	float baseFreq = 0.f;
 	float modulatorPhase = 0.f;
 	float modulatorSignal = 1.f; 
@@ -127,7 +130,7 @@ struct INTENSIFIES : Module {
     modFreq = clamp(modFreq, minFreq, maxFreq);
 
     modulatorPhase += modFreq * args.sampleTime;
-    if (modulatorPhase >= 1.0f) modulatorPhase -= 1.0f;
+    if (modulatorPhase >= 1.f) modulatorPhase -= 1.f;
 
     bool modulatorHigh = (modulatorPhase < 0.5f);
     bool sampleNow = (!modEnabled || modulatorHigh);
@@ -141,23 +144,37 @@ struct INTENSIFIES : Module {
     else
         bypassActive = (params[FXBYPASS_PARAM].getValue() > 0.5f);
 
-    float inputSample = inputs[AUDIOINL_INPUT].getVoltage();
+    // ---- FX INPUTS (stereo with normalization) ----
+    float inputL = inputs[AUDIOINL_INPUT].getVoltage();
+    float inputR = inputs[AUDIOINR_INPUT].isConnected()
+        ? inputs[AUDIOINR_INPUT].getVoltage()
+        : inputL;
 
-    float fxOutput = 0.f;
+    float fxOutL = 0.f;
+    float fxOutR = 0.f;
     float gainLedLevel = 0.f;
 
     if (bypassActive) {
-        fxOutput = inputSample;
+        fxOutL = inputL;
+        fxOutR = inputR;
         gainLedLevel = 0.f;
     } else {
         if (sampleNow) {
-            clockPhase += carrierFreq * args.sampleTime;
-            if (clockPhase >= 1.0f) {
-                clockPhase -= 1.0f;
-                heldSample = inputSample;
+            clockPhaseL += carrierFreq * args.sampleTime;
+            clockPhaseR += carrierFreq * args.sampleTime;
+
+            if (clockPhaseL >= 1.f) {
+                clockPhaseL -= 1.f;
+                heldSampleL = inputL;
+            }
+            if (clockPhaseR >= 1.f) {
+                clockPhaseR -= 1.f;
+                heldSampleR = inputR;
             }
         }
-        fxOutput = sampleNow ? heldSample : 0.f;
+
+        fxOutL = sampleNow ? heldSampleL : 0.f;
+        fxOutR = sampleNow ? heldSampleR : 0.f;
 
         float gainKnob = params[GAIN_PARAM].getValue();
         float gainCV = inputs[GAINCV_INPUT].isConnected() ? inputs[GAINCV_INPUT].getVoltage() / 10.f : 0.f;
@@ -166,23 +183,28 @@ struct INTENSIFIES : Module {
         float gainRange = params[GAINRANGE_PARAM].getValue() > 0.5f ? 200.f : 20.f;
         float gainAmount = 1.f + gainControl * (gainRange - 1.f);
 
-        fxOutput *= gainAmount;
+        fxOutL *= gainAmount;
+        fxOutR *= gainAmount;
 
-        if (fxOutput > 5.f) fxOutput = 5.f;
-        if (fxOutput < -5.f) fxOutput = -5.f;
+        fxOutL = clamp(fxOutL, -5.f, 5.f);
+        fxOutR = clamp(fxOutR, -5.f, 5.f);
 
-        gainLedLevel = clamp(fabsf(fxOutput) / 5.f, 0.f, 1.f);
+        gainLedLevel = clamp(fabsf(fxOutL) / 5.f, 0.f, 1.f);
 
         float fxVolKnob = params[FXVOLUME_PARAM].getValue();
         float fxVolCV = inputs[FXVOLUMECV_INPUT].isConnected() ? inputs[FXVOLUMECV_INPUT].getVoltage() / 10.f : 0.f;
         float fxVolume = clamp(fxVolKnob + fxVolCV, 0.f, 1.f);
 
-        fxOutput *= fxVolume;
+        fxOutL *= fxVolume;
+        fxOutR *= fxVolume;
     }
 
     lights[GAINLED_LIGHT].setBrightnessSmooth(gainLedLevel, args.sampleTime);
 
-    outputs[FXOUTL_OUTPUT].setVoltage(clamp(fxOutput, -5.f, 5.f));
+    outputs[FXOUTL_OUTPUT].setVoltage(fxOutL);
+    outputs[FXOUTR_OUTPUT].setVoltage(fxOutR);
+
+    // ---- EVERYTHING BELOW IS UNCHANGED ----
 
     carrierPhase2 += carrierFreq * args.sampleTime;
     if (carrierPhase2 >= 1.f) carrierPhase2 -= 1.f;
@@ -204,20 +226,19 @@ struct INTENSIFIES : Module {
     synthOutput = clamp(synthOutput, -5.f, 5.f);
 
     float cutoff = 20.f;
-    float sampleRate = args.sampleRate;
-    float dt = 1.f / sampleRate;
+    float dt = 1.f / args.sampleRate;
     float RC = 1.f / (2.f * M_PI * cutoff);
     float alpha = RC / (RC + dt);
 
     synthHPOut = alpha * (synthHPOut + synthOutput - synthHPInLast);
     synthHPInLast = synthOutput;
 
-	outputs[SYNTHOUT_OUTPUT].setVoltage(clamp(synthHPOut, -5.f, 5.f));
+    outputs[SYNTHOUT_OUTPUT].setVoltage(clamp(synthHPOut, -5.f, 5.f));
 
-    lights[MODULATORLED_LIGHT].setBrightnessSmooth((modulatorHigh ? 0.0f : 1.0f), args.sampleTime);
+    lights[MODULATORLED_LIGHT].setBrightnessSmooth(modulatorHigh ? 0.f : 1.f, args.sampleTime);
 
     if (!bypassActive) {
-        mainOutLevel = std::max(fxOutput, 0.f) / 5.f;
+        mainOutLevel = std::max(fxOutL, 0.f) / 5.f;
     } else {
         mainOutLevel = 0.f;
     }
