@@ -1,8 +1,8 @@
-# Stargazer VCV Rack User Manual 
-
 [![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerYoutubeThumb.jpg)](https://youtu.be/sNoFB7NnAwc)
 
 ---
+
+# Stargazer VCV Rack User Manual 
 
 ### "This VCV Rack module is a hardware clone of a previously released drone synthesizer. The original project from 2016 was designed as a portable, all-in-one, compact solution for performing a drone set without the need for a specialized power supply or interface. Concepts that I was playing with in Eurorack at the time were packed down into this little 9v powered box with a 1/4" output and used at shows that were (and are) generally poorly attended. Over the lifespan of the product I made five limited edition colorways, all signed by the builders, with only 425 total units produced. Each through-hole unit was soldered by hand in Portland, OR by myself and a rotating cast of clowns. Many of those clowns I still have the luxury of calling my 'friends.' While the VCV module adds a robust new feature set, I made a point to keep the core functionality as close to the original as possible, even utilizing the exact same wavetable files from the hardware unit. The added features are just a cherry on top."
 **-Ross Fish January 2026** 
