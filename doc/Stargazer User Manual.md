@@ -1,1 +1,3 @@
-lorem ipsum
+# Stargazer VCV Rack User Manual 
+
+### Overview
