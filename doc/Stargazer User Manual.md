@@ -47,17 +47,37 @@ Several parts of the circuit are "normalized" together. This means that with no 
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerOscillator.png" width="300">
 
+### The oscillator section contains a primary and secondary oscillator that share the same wavetable selection, 1v/Octave pitch input, and FM CV input. The wavetables smoothly interpolate between one another creating a morphing and organic sound. The secondary oscillator can be detuned and mixed in with the primary oscillator to create frequency beating and chorus like effects. The pitch tracking is restricted to the overall oscillator range of 1hz - 500hz. If you would like the oscillators tuned to a specific chromatic note, you can click on the pitch knob and type in the MIDI note of your preference (example C0, or Eb1).
+
+* **Pitch:** Control the pitch of both oscillators from 1hz - 500hz.
+* **FM:** Linear FM control over the pitch of both oscillators (restricted to a +/-1v range to get a more vibrato like effect).
+* **Wave:** Smoothly interpolated wavetable selection. There are 88 total wavetables.
+* **Mix:** Oscillator 2 volume.
+* **Sub:** Tranpose Oscillator 2 down one octave (pre-detune). 
+* **Detune:** +/-5hz additional control over the pitch of Oscillator 2. Both oscillators share the same pitch, 1v/Octave input, and FM information.
+
 ---
 
 ## Filters 
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerFilter.jpg" width="300">
 
+### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and which LFOs control their frequency cutoff. Both filters are multimode and have the ability to be bypassed from the signal chain entirely.
+
+* **Freq:** Cutoff frequency. 80hz - 16khz
+* **Mode:** Filter shape. Shapes in the following order: Lowpass, Bandpass, Highpass, Notch, Off (bypass).
+* **Res:** Filter resonance.
+
 ---
 
 ## Sample Rate + Bit Depth Reduction 
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerBitReduction.png" width="250">
+
+### Control over sample rate and bit depth are provided between both filters. The rationale for the signal routing is that the user would use the first filter to modify the wavetables and then add harmonically rich content back into the signal. The second filter would then subtract this content back out of the signal. This is a weird kind of way of thinking about subtractive synthesis, but yields some aesthetically pleasing results. 
+
+* **Alias:** Contiuously variable sample rate. 18khz - 20.5hz.
+* **Redux:** Stepped control of bit depth. 16 bit - 4 bit. 
 
 ---
 
@@ -72,3 +92,5 @@ Several parts of the circuit are "normalized" together. This means that with no 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerOutput.png" width="300">
 
 ---
+
+# Block Diagram 
