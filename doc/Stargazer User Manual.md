@@ -13,7 +13,7 @@
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerScreenshot.png" width="1000">
 
-Stargazer is a stereo dual wavetable based drone synth with two multimode filters, sample rate and bit depth reduction, and three LFOs. While a wide variety of sounds are possible with this device, it was designed with the intention of creating slow morphing timbral shifts over time. For this reason, the device is monophonic and has a restricted pitch range dedicated to low frequencies. This is also why the device does not have onboard amplitude envelopes.
+Stargazer is a stereo dual wavetable based drone synth with two multimode filters, sample rate and bit depth reduction, and three LFOs. While a wide variety of sounds are possible with this device, it was designed with the intention of creating slow morphing timbral shifts over time. For this reason, the device is monophonic and has a restricted pitch range dedicated to low frequencies. This is also why the device does not have onboard amplitude or filter envelopes.
 
 The visual design that mimics a constellation may look haphazard at first, but there is actually a key to help you better understand the underlying signal flow. **SOLID LINES** indicate that parameters are part of the same section or module. **DASHED LINES** indicate a CV routing from source to destination. **DOTTED LINES** indicate an audio routing from source to destination. See Normalization Schema and Block Diagram below for more information.
 
