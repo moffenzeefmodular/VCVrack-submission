@@ -19,14 +19,16 @@ struct INTENSIFIES : Module {
 		FXVOLUMECV_INPUT,
 		GAINCV_INPUT,
 		MODULATORCV_INPUT,
-		AUDIOIN_INPUT,
+		AUDIOINL_INPUT,
+        AUDIOINR_INPUT,
 		SYNTHVOLUMECV_INPUT,
 		ENGAGECV_INPUT,
 		BYPASSCV_INPUT,
 		INPUTS_LEN
 	};
 	enum OutputId {
-		FXOUT_OUTPUT,
+		FXOUTL_OUTPUT,
+        FXOUTR_OUTPUT,
 		SYNTHOUT_OUTPUT,
 		OUTPUTS_LEN
 	};
@@ -74,10 +76,14 @@ struct INTENSIFIES : Module {
 		configInput(FXVOLUMECV_INPUT, "FX Volume CV");
 		configInput(GAINCV_INPUT, "Gain CV");
 		configInput(MODULATORCV_INPUT, "Modulator CV");
-		configInput(AUDIOIN_INPUT, "Audio");
+		configInput(AUDIOINL_INPUT, "Audio Left");
+        configInput(AUDIOINR_INPUT, "Audio Right");
+
 		configInput(SYNTHVOLUMECV_INPUT, "Synth Volume CV");
 
-		configOutput(FXOUT_OUTPUT, "FX");
+		configOutput(FXOUTL_OUTPUT, "FX Left");
+        configOutput(FXOUTR_OUTPUT, "FX Right");
+
 		configOutput(SYNTHOUT_OUTPUT, "Synth");
 	}
 
@@ -135,7 +141,7 @@ struct INTENSIFIES : Module {
     else
         bypassActive = (params[FXBYPASS_PARAM].getValue() > 0.5f);
 
-    float inputSample = inputs[AUDIOIN_INPUT].getVoltage();
+    float inputSample = inputs[AUDIOINL_INPUT].getVoltage();
 
     float fxOutput = 0.f;
     float gainLedLevel = 0.f;
@@ -176,7 +182,7 @@ struct INTENSIFIES : Module {
 
     lights[GAINLED_LIGHT].setBrightnessSmooth(gainLedLevel, args.sampleTime);
 
-    outputs[FXOUT_OUTPUT].setVoltage(clamp(fxOutput, -5.f, 5.f));
+    outputs[FXOUTL_OUTPUT].setVoltage(clamp(fxOutput, -5.f, 5.f));
 
     carrierPhase2 += carrierFreq * args.sampleTime;
     if (carrierPhase2 >= 1.f) carrierPhase2 -= 1.f;
@@ -253,10 +259,14 @@ struct INTENSIFIESWidget : ModuleWidget {
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(89.588, 50.638)), module, INTENSIFIES::BYPASSCV_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(48.824, 58.053)), module, INTENSIFIES::ENGAGECV_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(53.375, 76.187)), module, INTENSIFIES::MODULATORCV_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.078, 76.864)), module, INTENSIFIES::AUDIOIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(80.75, 101.603)), module, INTENSIFIES::SYNTHVOLUMECV_INPUT));
 
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::FXOUT_OUTPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.078, 76.864)), module, INTENSIFIES::AUDIOINL_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.078, 66.864)), module, INTENSIFIES::AUDIOINR_INPUT));
+
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.254, 62.619)), module, INTENSIFIES::FXOUTL_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.254, 72.619)), module, INTENSIFIES::FXOUTR_OUTPUT));
+
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(10.251, 104.885)), module, INTENSIFIES::SYNTHOUT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(109.201, 35.91)), module, INTENSIFIES::MAINOUTLED_LIGHT));
