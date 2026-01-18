@@ -50,7 +50,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerFilter.jpg" width="300">
 
-### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and their modulation routing (see Normalization Schema and block diagram below for more information). Both filters are multimode and have the ability to be bypassed from the signal chain entirely. 
+### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and their modulation routing (see Normalization Schema and Block Diagram below for more information). Both filters are multimode and have the ability to be bypassed from the signal chain entirely. 
 
 * **Freq:** Cutoff frequency. 80hz - 16khz
 * **Mode:** Filter shape. Shapes in the following order: Lowpass, Bandpass, Highpass, Notch, Off (bypass).
@@ -62,7 +62,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBitReduction.png" width="250">
 
-### Control over sample rate and bit depth are provided between both filters. The rationale for the signal routing is that the user would use the first filter to modify the wavetables and then add harmonically rich content back into the signal. The second filter would then subtract this content back out of the signal. This is a weird kind of way of thinking about subtractive synthesis, but yields some aesthetically pleasing results. 
+### Control over sample rate and bit depth are provided between both filters. The rationale for the signal routing is that the user would use the first filter to modify the wavetables and then add harmonically rich content back into the signal. The second filter would then subtract this content back out of the signal. This is a weird kind of way of thinking about subtractive synthesis, but yields some aesthetically pleasing results. (See Block Diagram below for more information)
 
 * **Alias:** Contiuously variable sample rate. 18khz - 20.5hz.
 * **Redux:** Stepped control of bit depth. 16 bit - 4 bit. 
@@ -73,7 +73,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerLFO.png" width="300">
 
-### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain.(see Normalization Schema and Block Diagram below for more information).
+### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain (see Normalization Schema and Block Diagram below for more information).
 
 * **Wave:** LFO waveshape selection. In order: Sine, Triangle, Ramp Up, Ramp Down, Square, Stepped Random. 
 * **Range:** The overall LFO frequency range. 
