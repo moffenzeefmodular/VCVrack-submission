@@ -33,10 +33,20 @@ Several parts of the circuit are "normalized" together. This means that with no 
 
 ## Oscillators
 
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerOscillator.png" width="300">
+
 ## Filters 
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerFilter.png" width="300">
 
 ## Sample Rate + Bit Depth Reduction 
 
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerBitReduction.png" width="300">
+
 ## Modulation 
 
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerLFO.png" width="300">
+
 ## Output Stage 
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/StargazerOutput.png" width="300">
