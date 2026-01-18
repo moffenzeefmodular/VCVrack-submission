@@ -1,9 +1,5 @@
 # Stargazer VCV Rack User Manual 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerScreenshot.png" width="1000">
-
----
-
 [![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerYoutubeThumb.jpg)](https://youtu.be/sNoFB7NnAwc)
 
 ---
@@ -14,6 +10,8 @@
 ---
 
 # Overview
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerScreenshot.png" width="1000">
 
 Stargazer is a stereo dual wavetable based drone synth with two multimode filters, sample rate and bit depth reduction, and three LFOs. While a wide variety of sounds are possible with this device, it was designed with the intention of creating slow morphing timbral shifts over time. For this reason, the device is monophonic and has a restricted pitch range dedicated to low frequencies. This is also why the device does not have onboard amplitude envelopes.
 
