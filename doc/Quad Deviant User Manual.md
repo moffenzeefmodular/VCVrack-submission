@@ -25,13 +25,13 @@ The four outputs are combined into an assignable **CV Bus** at the far right of 
 
 # Individual Channels 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantChannel.png" width="150">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantChannel.png" width="100">
 
 ---
 
 # CV Bus 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantCVBus.png" width="150">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantCVBus.png" width="100">
 
 --- 
 
