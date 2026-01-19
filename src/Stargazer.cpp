@@ -476,7 +476,7 @@ if (paramQuantities.size() > (size_t)rateParam) {
             break;
         case 6: // Smooth Random (ultra chaotic, speed-independent)
         {
-            float baseFreq = freq * 0.1f; 
+            float baseFreq = freq * 0.1f;  
             stepCounter += args.sampleTime * (5.f + (float)rand() / RAND_MAX * 15.f); // 5 → 20 jumps/sec
             if (stepCounter >= 1.f) {
             freqTarget = baseFreq * (0.05f + ((float)rand() / RAND_MAX) * 11.95f); // extreme range
