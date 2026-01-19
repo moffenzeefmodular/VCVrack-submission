@@ -16,7 +16,7 @@ defaults:
 
 jobs:
 
-  build:
+  build-win-linux:
     name: ${{ matrix.platform }}
     runs-on: ubuntu-latest
     container:
@@ -25,21 +25,40 @@ jobs:
     strategy:
       matrix:
         platform: [win-x64, lin-x64]
+
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
+      - name: Set RACK_DIR
+        run: |
+          export RACK_DIR=$GITHUB_WORKSPACE/Rack-SDK
+          echo "RACK_DIR=$RACK_DIR" >> $GITHUB_ENV
+
       - name: Build plugin
         run: |
           export PLUGIN_DIR=$GITHUB_WORKSPACE
           pushd ${{ env.rack-plugin-toolchain-dir }}
-          make plugin-build-${{ matrix.platform }}
+          # Use dist target to create a proper .vcvplugin folder
+          make dist-${{ matrix.platform }}
 
-      - name: Upload artifact
+      - name: Get plugin version
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version $GITHUB_WORKSPACE/plugin.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Rename and upload artifact
+        run: |
+          mkdir -p artifacts
+          for folder in dist/*.vcvplugin; do
+            base=$(basename "$folder")
+            cp -r "$folder" "artifacts/Moffenzeef-${{ steps.get_version.outputs.version }}-${{ matrix.platform }}.vcvplugin"
+          done
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ env.rack-plugin-toolchain-dir }}/plugin-build
+          path: artifacts/*
           name: ${{ matrix.platform }}
           overwrite: true
 
@@ -80,26 +99,20 @@ jobs:
             make dist
           fi
 
-      - name: Get version from plugin.json
+      - name: Get plugin version
         id: get_version
         run: |
-          VERSION=$(jq -r .version plugin.json)
+          VERSION=$(jq -r .version $GITHUB_WORKSPACE/plugin.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Rename .vcvplugin for platform
+      - name: Rename and upload artifact
         run: |
-          mkdir -p dist-${{ matrix.platform }}
-          for file in dist/*.vcvplugin; do
-            if [[ "${{ matrix.platform }}" == "x64" ]]; then
-              mv "$file" "dist-${{ matrix.platform }}/Moffenzeef-${{ steps.get_version.outputs.version }}-mac-x64.vcvplugin"
-            else
-              mv "$file" "dist-${{ matrix.platform }}/Moffenzeef-${{ steps.get_version.outputs.version }}-mac-arm64.vcvplugin"
-            fi
+          mkdir -p artifacts
+          for folder in dist/*.vcvplugin; do
+            cp -r "$folder" "artifacts/Moffenzeef-${{ steps.get_version.outputs.version }}-mac-${{ matrix.platform }}.vcvplugin"
           done
-
-      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: dist-${{ matrix.platform }}/*.vcvplugin
+          path: artifacts/*
           name: mac-${{ matrix.platform }}
           overwrite: true
