@@ -2,15 +2,20 @@
 
 # Kleztizer VCV Rack User Manual 
 
-### "Story" -Ross Fish January 2026 
+### "Understanding modal music and music theory is a very dense subject, especially for the unitiated. My goal when making this module was to eschew the need to understand anything about music theory and get whoever is using this module to generate *something* musical even if the result could be percieved as "incorrect" by the trained ear. When using **Kleztizer**, I want you to feel like an ignorant child pushing buttons and turning knobs until you like what you hear even if you don't necessarily understand what the hell is going on. If you do in fact know what's going on and you do understand music theory, then this device hopefully is a very useful palette for exploring these concepts. I admit, this module creates more problems than it solves, but I'm pretty sure I'm the only moron in existence to try and translate Klezmer music theory to an electronic musical instrument. If you're reading this and you did in fact beat me to the chase, please send me an email. I would really like to have a beer with you. " -Ross Fish January 2026 
 
 ---
 
-# Overview
+# The History of Klezmer Music
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerScreenshot.png" width="500">
+Here are some excellent resources about the rich history of Klezmer music:
+
+### [Roten, Hervé. “Klezmer Music: from the Past to the Present.” Institut Européen des Musiques Juives](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/HistoryOfKlezmer.pdf)
+
+### [Punzi Punzi, Ludovica. “On the Confluence of Klezmer and Moldovan Music: A Short Review of Some of the Writings of Dr. Walter Zev Feldman.” Early Music Seattle, 17 Jan. 2023](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KlezmerAndMoldavanMusic.pdf)
 
 ---
+
 
 # What is Modal Music? 
 
@@ -24,18 +29,25 @@ Modal music uses specific scales (modes), rather than just major/minor keys, emp
 * **Atmosphere:** Creates a specific mood, sometimes static or floating, with less dramatic tension and release than tonal music.
 * **Tonal Center:** Still has a "home" note (tonic) but doesn't rely on functional harmony to get there. 
 
-
----
-
-# The History of Klezmer Music
-
-Here are some great resources exploring the rich history of Klezmer music:
-
 ---
 
 # Klezmer Music Theory 
 
 Going in depth on the music theory of Klezmer music is best left to musicologists. This subject is extraordinarily dense, as the musical tradition is over 500 years old. Liturgical Jewish music is even older (5786 years by our own accounting). If I were to begin explaining this to you, I probably would do a terrible job. That being said, here are a few excellent resources on the subject:
+
+### [Ditzian, Jason. “Klezmer Scales.” Klezmer.com, 27 Nov. 2023](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DitzianKlezmerScales.pdf)
+
+### [Horowitz, Josh. “The Main Klezmer Modes: Ahava Rabboh.” KlezmerShack, 1999](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/HorowitzTheMainKlezmerModes.pdf)
+
+### [Malin, Yonatan, and Daniel Shanahan. “Modes in Klezmer Music: A Corpus Study Based on Beregovski’s Jewish Instrumental Folk Music.” Music Theory Online, vol. 31, no. 3, 2025](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MalinModesinKlezmerMusic.pdf)
+
+---
+
+# Overview
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerScreenshot.png" width="500">
+
+**Kleztizer** is a combination module consisting of two quantizers and a chord generator. Both the chord generator and the quantizers follow the "rules" of modal harmony, specifically as they pertain to modes common in Klezmer music. Setting the **Key** and **Mode** dictate the "rules" that the subsequent sections of the module follow. 
 
 ---
 
