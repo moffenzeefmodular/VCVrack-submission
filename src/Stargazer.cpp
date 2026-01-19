@@ -269,15 +269,15 @@ configParam<PitchParamQuantity>(
 		configParam(FREQ2_PARAM, 0.f, 1.f, 1.f, "Filter 2 Cutoff", "hz", 200.f, 80.f); // 80hz - 5khz
 		configParam(RES2_PARAM, 0.f, 1.f, 0.f, "Filter 2 Resonance", "%", 0.f, 100.f); // Q 1-5
 
-		configSwitch(WAVE1_PARAM, 0.f, 5.f, 0.f, "LFO 1 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Stepped Random"} );
+		configSwitch(WAVE1_PARAM, 0.f, 6.f, 0.f, "LFO 1 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Stepped Random", "Smooth Random"} );
 		configParam(RATE1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH1_PARAM, 0.f, 1.f, 0.f, "LFO 1 Depth", "%", 0.f, 100.f);
 
-		configSwitch(WAVE2_PARAM, 0.f, 5.f, 0.f, "LFO 2 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Stepped Random"});
+		configSwitch(WAVE2_PARAM, 0.f, 6.f, 0.f, "LFO 2 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Stepped Random", "Smooth Random"});
 		configParam(RATE2_PARAM, 0.f, 1.f, 0.f, "LFO 2 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH2_PARAM, 0.f, 1.f, 0.f, "LFO 2 Depth", "%", 0.f, 100.f);
 
-		configSwitch(WAVE3_PARAM, 0.f, 5.f, 0.f, "LFO 3 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Stepped Random"});
+		configSwitch(WAVE3_PARAM, 0.f, 6.f, 0.f, "LFO 3 Waveshape", {"Sine", "Triangle", "Ramp Up", "Ramp Down", "Square", "Stepped Random", "Smooth Random"});
 		configParam(RATE3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Frequency", "hz"); // 0.05hz - 50hz
 		configParam(DEPTH3_PARAM, 0.f, 1.f, 0.f, "LFO 3 Depth", "%", 0.f, 100.f);
 
@@ -362,26 +362,36 @@ const float targetPeak = 0.8f;    // target normalized peak
 float aliasCounter = 0.f;
 float lastSample = 0.f;
 
-// LFO1 member variables
+// --- LFO1 member variables
 float lfo1Phase = 0.f;
-float lfo1LastValue = 0.f;      // last output (already exists)
-float lfo1StepCounter = 1.f;    // for stepped random waveform
-float lfo1RandValue = 0.f;      // for stepped random waveform
+float lfo1LastValue = 0.f;
+float lfo1StepCounter = 1.f;
+float lfo1RandValue = 0.f;
 float lfo1Value = 0.f;
 
-// LFO2 member variables
+// --- LFO2 member variables
 float lfo2Phase = 0.f;
-float lfo2LastValue = 0.f;      // last output (already exists)
-float lfo2StepCounter = 1.f;    // for stepped random waveform
-float lfo2RandValue = 0.f;      // for stepped random waveform
+float lfo2LastValue = 0.f;
+float lfo2StepCounter = 1.f;
+float lfo2RandValue = 0.f;
 float lfo2Value = 0.f;
 
-// LFO3 member variables
+// --- LFO3 member variables
 float lfo3Phase = 0.f;
-float lfo3LastValue = 0.f;      // last output (already exists)
-float lfo3StepCounter = 1.f;    // for stepped random waveform
-float lfo3RandValue = 0.f;      // for stepped random waveform
+float lfo3LastValue = 0.f;
+float lfo3StepCounter = 1.f;
+float lfo3RandValue = 0.f;
 float lfo3Value = 0.f;
+
+// --- Smooth random LFO state ---
+float lfo1FreqDrift = 1.f;
+float lfo1FreqTarget = 1.f;
+float lfo2FreqDrift = 1.f;
+float lfo2FreqTarget = 1.f;
+float lfo3FreqDrift = 1.f;
+float lfo3FreqTarget = 1.f;
+float lfoSmooth = 1.f; 
+
 
 // --- Simple delay state ---
 std::vector<float> delayBuffer;
@@ -394,8 +404,9 @@ void process(const ProcessArgs& args) override {
 auto processLFO = [&](int rateParam, int depthParam, int waveParam,
                       int rateCV, int depthCV, int waveCV,
                       float& phase, float& stepCounter, float& randValue,
+                      float& freqDrift, float& freqTarget,
                       int outId, int ledRedId, int ledGreenId,
-                      int rangeParam, // new: LFO range switch
+                      int rangeParam,
                       float* outValue = nullptr) {
 
     float rate = params[rateParam].getValue();
@@ -446,8 +457,7 @@ if (paramQuantities.size() > (size_t)rateParam) {
     if (phase >= 1.f) phase -= 1.f;
 
     // Waveform selection
-    int wave = clamp((int)roundf(params[waveParam].getValue() +
-                 (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f)/2.f : 0.f)), 0, 5);
+    int wave = clamp((int)roundf(params[waveParam].getValue() + (inputs[waveCV].isConnected() ? clamp(inputs[waveCV].getVoltage(), -5.f, 5.f) / 2.f : 0.f)), 0, 6);
 
     float value = 0.f;
     switch (wave) {
@@ -464,6 +474,23 @@ if (paramQuantities.size() > (size_t)rateParam) {
             stepCounter += freq * args.sampleTime * 2.f;
             value = randValue;
             break;
+        case 6: // Smooth Random (ultra chaotic, speed-independent)
+        {
+            float baseFreq = freq * 0.1f; 
+            stepCounter += args.sampleTime * (5.f + (float)rand() / RAND_MAX * 15.f); // 5 → 20 jumps/sec
+            if (stepCounter >= 1.f) {
+            freqTarget = baseFreq * (0.05f + ((float)rand() / RAND_MAX) * 11.95f); // extreme range
+            if (rand() % 2 == 0) freqTarget = -freqTarget; // allow negative jumps
+            stepCounter -= 1.f;
+         }
+         float slew = 0.3f + ((float)rand() / RAND_MAX) * 2.0f; // 0.3 → 2.3
+         freqDrift += (freqTarget - freqDrift) * slew * args.sampleTime * 200.f;
+         phase += freqDrift * args.sampleTime;
+         if (phase >= 1.f) phase -= 1.f;
+         else if (phase < 0.f) phase += 1.f;
+         value = sinf(2.f * float(M_PI) * phase);
+        }
+        break;
     }
 
     value *= depth * 5.f;
@@ -480,18 +507,21 @@ if (paramQuantities.size() > (size_t)rateParam) {
 processLFO(RATE1_PARAM, DEPTH1_PARAM, WAVE1_PARAM,
            LFO1RATECV_INPUT, LFO1DEPTHCV_INPUT, LFO1WAVECV_INPUT,
            lfo1Phase, lfo1StepCounter, lfo1RandValue,
+           lfo1FreqDrift, lfo1FreqTarget,
            LFO1OUT_OUTPUT, LFO1LEDRED_LIGHT, LFO1LEDGREEN_LIGHT,
            RANGE1_PARAM, &lfo1Value);
 
 processLFO(RATE2_PARAM, DEPTH2_PARAM, WAVE2_PARAM,
            LFO2RATECV_INPUT, LFO2DEPTHCV_INPUT, LFO2WAVECV_INPUT,
            lfo2Phase, lfo2StepCounter, lfo2RandValue,
+           lfo2FreqDrift, lfo2FreqTarget,
            LFO2OUT_OUTPUT, LFO2LEDRED_LIGHT, LFO2LEDGREEN_LIGHT,
            RANGE2_PARAM, &lfo2Value);
 
 processLFO(RATE3_PARAM, DEPTH3_PARAM, WAVE3_PARAM,
            LFO3RATECV_INPUT, LFO3DEPTHCV_INPUT, LFO3WAVECV_INPUT,
            lfo3Phase, lfo3StepCounter, lfo3RandValue,
+           lfo3FreqDrift, lfo3FreqTarget,
            LFO3OUT_OUTPUT, LFO3LEDRED_LIGHT, LFO3LEDGREEN_LIGHT,
            RANGE3_PARAM, &lfo3Value);
 
