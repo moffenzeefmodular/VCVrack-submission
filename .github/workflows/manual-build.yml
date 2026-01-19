@@ -16,27 +16,8 @@ defaults:
 
 jobs:
 
-  modify-plugin-version:
-    name: Modify plugin version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        id: plugin-version-cache
-        with:
-          path: plugin.json
-          key: ${{ github.sha }}-${{ github.run_id }}
-
-      - run: |
-          gitrev=$(git rev-parse --short HEAD)
-          pluginversion=$(jq -r '.version' plugin.json)
-          echo "Set plugin version from $pluginversion to $pluginversion-$gitrev"
-          jq --arg VERSION "$pluginversion-$gitrev" '.version=$VERSION' plugin.json > plugin.json
-
   build:
     name: ${{ matrix.platform }}
-    needs: modify-plugin-version
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/qno/rack-plugin-toolchain-win-linux
@@ -44,17 +25,10 @@ jobs:
     strategy:
       matrix:
         platform: [win-x64, lin-x64]
-
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - uses: actions/cache@v4
-        id: plugin-version-cache
-        with:
-          path: plugin.json
-          key: ${{ github.sha }}-${{ github.run_id }}
 
       - name: Build plugin
         run: |
@@ -71,7 +45,6 @@ jobs:
 
   build-mac:
     name: mac-${{ matrix.platform }}
-    needs: modify-plugin-version
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -85,12 +58,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - uses: actions/cache@v4
-        id: plugin-version-cache
-        with:
-          path: plugin.json
-          key: ${{ github.sha }}-${{ github.run_id }}
 
       - name: Get Rack-SDK
         run: |
