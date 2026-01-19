@@ -577,8 +577,13 @@ float freq = voltsToHz(pitchV);
         mix += inputs[MIXCV_INPUT].getVoltage() / 10.f;
     mix = clamp(mix, 0.f, 1.f);
 
-    // --- Oscillator mixer ---
-    float sample = osc1 + osc2 * mix;
+    // --- Oscillator mixer OR external audio ---
+    float sample;
+    if (inputs[EXTAUDIO_INPUT].isConnected()) {
+        sample = inputs[EXTAUDIO_INPUT].getVoltage();
+    } else {
+        sample = osc1 + osc2 * mix;
+    }
 
     // --- Filter 1 cutoff + resonance ---
 	float cutoff = params[FREQ1_PARAM].getValue();
