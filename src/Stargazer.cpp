@@ -219,6 +219,7 @@ struct Stargazer : Module {
         WIDTHCV_INPUT,
 		GAINCV_INPUT,
 		VOLUMECV_INPUT,
+        EXTAUDIO_INPUT,
 		INPUTS_LEN
 	};
 	enum OutputId {
@@ -312,6 +313,7 @@ configParam<PitchParamQuantity>(
         configInput(WIDTHCV_INPUT, "Spread CV");
 		configInput(GAINCV_INPUT, "Gain CV");
 		configInput(VOLUMECV_INPUT, "Volume CV");
+        configInput(EXTAUDIO_INPUT, "External Audio");
 		configOutput(OUTL_OUTPUT, "Audio Left");
         configOutput(OUTR_OUTPUT, "Audio Right");
 		configOutput(LFO1OUT_OUTPUT, "LFO 1");
@@ -896,6 +898,9 @@ struct StargazerWidget : ModuleWidget {
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(138.373, 102.986)), module, Stargazer::LFO1DEPTHCV_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(147.477, 102.986)), module, Stargazer::LFO2DEPTHCV_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(156.615, 102.986)), module, Stargazer::LFO3DEPTHCV_INPUT));
+
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(13.793, 7.603)), module, Stargazer::EXTAUDIO_INPUT));
+
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(138.373, 115.734)), module, Stargazer::LFO1OUT_OUTPUT));
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(147.477, 115.734)), module, Stargazer::LFO2OUT_OUTPUT));
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(156.615, 115.734)), module, Stargazer::LFO3OUT_OUTPUT));

@@ -1937,13 +1937,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.61193116"
-     inkscape:cx="524.56881"
-     inkscape:cy="73.537683"
+     inkscape:zoom="1.7308027"
+     inkscape:cx="182.86313"
+     inkscape:cy="-10.399799"
      inkscape:window-width="1920"
      inkscape:window-height="1027"
-     inkscape:window-x="640"
-     inkscape:window-y="25"
+     inkscape:window-x="1370"
+     inkscape:window-y="82"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer-MC1"
      showguides="true"
@@ -3920,6 +3920,11 @@
        style="font-style:italic;font-weight:bold;font-size:2.11667px;font-family:'Century Gothic';-inkscape-font-specification:'Century Gothic Bold Italic';text-align:center;text-anchor:middle;stroke-width:0.2;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:0.600001, 0.2, 0.4, 1.4;fill:#ffffff"
        transform="rotate(17.361217)"
        aria-label="F M" />
+    <path
+       style="font-style:italic;font-weight:bold;font-size:2.11667px;font-family:'century gothic';-inkscape-font-specification:'century gothic Bold Italic';text-align:center;letter-spacing:0.132292px;text-anchor:middle;display:inline;fill:#f9f9f9;stroke-width:0.5;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       d="m 8.0761,11.759 0.79424,0.226093 -0.10765,0.249823 -0.5169,-0.147144 -0.12778,0.290303 0.51889,0.14771 -0.10609,0.248118 -0.51889,-0.14771 -0.16205,0.37296 0.52187,0.14856 -0.10751,0.245564 -0.79623,-0.22666 z m 1.88768,0.537361 0.28231,0.08036 0.077,0.510863 0.44784,-0.361454 0.31809,0.09055 -0.72091,0.577082 0.12573,0.834214 -0.28429,-0.08093 -0.0815,-0.559411 -0.49309,0.395854 -0.32008,-0.09112 0.76716,-0.611198 z m 2.03878,0.580372 0.89264,0.254107 -0.10594,0.251384 -0.31114,-0.08857 -0.50016,1.1568 -0.27237,-0.07753 0.50016,-1.1568 -0.31113,-0.08857 z m 0.77826,1.471296 q 0.0686,0.01952 0.10343,0.0821 0.0358,0.06286 0.016,0.13244 -0.0195,0.06859 -0.0834,0.104141 -0.0626,0.03484 -0.13116,0.01532 -0.0696,-0.01981 -0.10443,-0.08238 -0.0346,-0.06357 -0.015,-0.132155 0.0198,-0.06958 0.0824,-0.104426 0.0626,-0.03484 0.13216,-0.01503 z"
+       id="text5"
+       aria-label="E X T." />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -4386,5 +4391,13 @@
        cy="115.73408"
        r="1.5"
        inkscape:label="LFO3Out" />
+    <ellipse
+       style="display:inline;fill:#00ff00;stroke:none;stroke-width:0.623624;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-opacity:1"
+       id="path483-2"
+       cx="14.107375"
+       cy="7.9173746"
+       rx="0.31437549"
+       ry="0.31437445"
+       inkscape:label="ExtAudio" />
   </g>
 </svg>
