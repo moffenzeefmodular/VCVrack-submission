@@ -48,7 +48,7 @@ Modal music uses specific scales (modes), rather than just major/minor keys, emp
 
 # Klezmer Music Theory 
 
-Going in depth on the music theory of Klezmer music is best left to musicologists. This subject is extraordinarily dense, as the musical tradition is over 500 years old. Liturgical Jewish music is even older (5,786 years by our own accounting). If I were to begin explaining this to you, I would probably do a terrible job. That being said, here are a few excellent resources on the subject:
+Going in depth on the music theory of Klezmer music is best left to musicologists. This subject is extraordinarily dense, as the musical tradition is over 500 years old. Liturgical Jewish music is even older (since the year 70 CE in terms of own western aknowledgment and accounting). If I were to begin explaining this to you, I would probably do a terrible job. That being said, here are a few excellent resources on the subject:
 
 ### [Ditzian, Jason. “Klezmer Scales.” Klezmer.com, 27 Nov. 2023](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DitzianKlezmerScales.pdf)
 
