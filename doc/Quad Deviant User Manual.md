@@ -37,7 +37,7 @@ The four outputs are combined into an assignable **CV Bus** at the far right of 
 
 # Normalization Schema 
 
-Several parts of the circuit are "normalized" together. This means that with no patch cable present the connection is hardwired. When you patch a signal into the associated jack it will override this pre-existing normalization. The normalized signals are as follows: 
+The trigger inputs are "normalized" together. This means that with no patch cable present the connection is hardwired. When you patch a signal into the associated jack it will override this pre-existing normalization. The normalized signals are as follows: 
 
 * The **CLK IN** of each channel recieves it's trigger from the **CLK IN** of the previous channel and then continues it's normalization down to the next channel. Example 1: If a trigger is plugged into **CLK IN** on channel 1, all 4 Deviants will trigger. If you plug a new trigger into channel 2, it will trigger channels 2, 3, and 4. Example 2: If a trigger is plugged into **CLK IN** on channel 1 and a seperate trigger is pluugged into channel **CLK IN** on channel 3, channel 1 and 2 will share the same trigger and channels 3 and 4 will share the same trigger. 
 
