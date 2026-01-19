@@ -29,14 +29,40 @@ The 1970s Klezmer revival, spearheaded by Lev Liberman on the West Coast, sought
 
 # Klezmer Rhythm References
 
-As mentioned earlier, drumming proper is not necessarily the dominant rhythmic force of these rhythms. Here are some recorded examples of some of the grooves you will hear in Klezmer music. 
+As mentioned earlier, drumming proper is not necessarily the dominant rhythmic force of these grooves. Here are some general recorded examples of rhythms you will hear in Klezmer music. They are all modern examples pulled from YouTube, since I imagine many of you aren’t too interested in the original 78s (my personal favorites). Modern players also take liberties with these interpretations, and there is no definitive "true" way to play this music—it’s an ever-evolving folk tradition. 
 
-* **Bulgar** 
-* **Araber**
-* **Terkisher**
-* **Hora**
-* **Zhok**
-* **In Zibn** 
+### Bulgar 
+[Bulgar Style #1 Example (oomph, tschak)](https://youtu.be/nImp1wBSof4)
+
+[Bulgar Style #2 Example (A very common syncopation that is probably most familiar to you)](https://youtu.be/pH5-1BnNK8U)
+
+The Bulgar is a lively, dance-driven klezmer tune with roots in Eastern European Jewish communities, especially Bessarabia and Ukraine. Typically in 2/4 or 4/4 time, it features a bouncy, syncopated rhythm that emphasizes the upbeat, giving it an energetic, forward-driving feel. Bulgars often include repeating melodic motifs, short ornamented phrases, and call-and-response lines between instruments like clarinet, violin, and tsimbl (hammered dulcimer). Traditionally, they were performed at weddings and festive gatherings to get dancers moving quickly across the floor.
+
+### Araber 
+[Araber Example](https://youtu.be/0vnfwLpv65A)
+
+The Araber is a slower, more expressive klezmer dance tune. Usually in 2/4 or 4/4 time, it showcases flowing, lyrical melodies with long, ornamented phrases and slides or expressive bends. In contrast to the lively Bulgar, Arabers carry a melancholic or sultry character, often evoking a sense of elegance or storytelling. They were typically performed at weddings and social events, providing a reflective counterpoint to the fast-paced dances.
+
+### Terkisher
+[Terkisher Example](https://youtu.be/QRkcXz9e97I)
+
+The Terkisher is an energetic, fast-moving klezmer dance tune influenced by Turkish and Balkan rhythms. Usually in 2/4 or 4/4 time, it is defined by driving syncopation, rapid melodic runs, and lively ornamentation, often accented with playful phrasing. Traditionally, Terkishers were played at weddings and celebrations to excite dancers and create a spirited, high-energy atmosphere.
+
+### Hora
+[Hora Example](https://youtu.be/jCa7WC8azHI)
+
+A slow Hora is a gentle, circular dance tune, usually in 3/8 or 3/4 time. It emphasizes a steady, flowing rhythm with ornamented, expressive melodies. Slow Horas are often performed to highlight emotional, sentimental, or celebratory moments at weddings, encouraging dancers to move together gracefully in a flowing circle rather than with brisk energy.
+
+### Zhok 
+[Zhok Example](https://youtu.be/mLKgUr_Hoog)
+
+The Zhok is a playful, dance-oriented klezmer tune, usually in 2/4 or 4/4 time. Faster than a Hora but generally less intense than a Terkisher, it often features short, repeating motifs, syncopated rhythms, and call-and-response interplay between instruments. Zhoks were traditionally played at weddings and festive gatherings, offering a lively, foot-tapping contrast to slower, more lyrical dances.
+
+### In Zibn 
+[In Zibn Example](https://youtu.be/mbuew5E1mqE)
+
+"In Zibn" means "in seven" in Yiddish. It isn’t a traditional Klezmer rhythm—7/8 is not a standard groove in this music. My group began playing traditional klezmer tunes in 7/8 because of our interest in Moldovan music, a close cousin of Klezmer. Since Moldova was part of the region where Klezmer developed, you’ll hear crossover in modal choices and melodic structures.
+
 
 ---
 # Overview
