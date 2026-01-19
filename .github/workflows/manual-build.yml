@@ -1,0 +1,116 @@
+name: Manual VCV Rack Build
+
+on:
+  workflow_dispatch:
+
+env:
+  RACK_SDK_VERSION: 2.6.0
+
+jobs:
+  macos:
+    name: macOS (${{ matrix.arch }})
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Rack SDK (macOS)
+        run: |
+          curl -L https://vcvrack.com/downloads/Rack-SDK-${RACK_SDK_VERSION}-mac-${{ matrix.arch }}.zip -o sdk.zip
+          unzip sdk.zip
+          mv Rack-SDK-* Rack-SDK
+
+      - name: Build plugin
+        env:
+          RACK_DIR: ${{ github.workspace }}/Rack-SDK
+        run: |
+          make clean
+          make
+
+      - name: Package plugin
+        run: |
+          mkdir -p dist
+          cp -r plugin dist/
+          cd dist
+          zip -r plugin-macos-${{ matrix.arch }}.zip plugin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: dist/*.zip
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
+
+      - name: Download Rack SDK (Linux)
+        run: |
+          curl -L https://vcvrack.com/downloads/Rack-SDK-${RACK_SDK_VERSION}-linux-x64.zip -o sdk.zip
+          unzip sdk.zip
+          mv Rack-SDK-* Rack-SDK
+
+      - name: Build plugin
+        env:
+          RACK_DIR: ${{ github.workspace }}/Rack-SDK
+        run: |
+          make clean
+          make
+
+      - name: Package plugin
+        run: |
+          mkdir -p dist
+          cp -r plugin dist/
+          cd dist
+          zip -r plugin-linux.zip plugin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*.zip
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Rack SDK (Windows)
+        shell: bash
+        run: |
+          curl -L https://vcvrack.com/downloads/Rack-SDK-${RACK_SDK_VERSION}-win-x64.zip -o sdk.zip
+          unzip sdk.zip
+          mv Rack-SDK-* Rack-SDK
+
+      - name: Build plugin
+        shell: bash
+        env:
+          RACK_DIR: ${{ github.workspace }}/Rack-SDK
+        run: |
+          make clean
+          make
+
+      - name: Package plugin
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp -r plugin dist/
+          cd dist
+          zip -r plugin-windows.zip plugin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*.zip
