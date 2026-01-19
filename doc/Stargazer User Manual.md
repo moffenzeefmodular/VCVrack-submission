@@ -74,7 +74,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain. See Normalization Schema and Block Diagram below for more information.
 
-* **Wave:** LFO waveshape selection. In order: Sine, Triangle, Ramp Up, Ramp Down, Square, Stepped Random. 
+* **Wave:** LFO waveshape selection. In order: Sine, Triangle, Ramp Up, Ramp Down, Square, Stepped Random, Smooth Random (chaotic sine). 
 * **Range:** The overall LFO frequency range. 
 **Slow:** 0.01hz - 0.1hz, **Medium:** 0.05hz - 10hz, **Fast:** 0.05hz - 50hz.
 * **Rate:** LFO frequency. Frequency range is dependent upon the **Range** switch setting.
