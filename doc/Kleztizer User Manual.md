@@ -26,7 +26,7 @@ Lorem ipsum.
 
 # Key and Mode 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerKeyMode.png" width="200">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerKeyMode.png" width="500">
 
 Lorem ipsum.
 
@@ -37,7 +37,7 @@ Lorem ipsum.
 
 # Chords 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerChords.png" width="200">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerChords.png" width="500">
 
 Lorem ipsum.
 
@@ -49,7 +49,7 @@ Lorem ipsum.
 
 # Lead Channels 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerLead.png" width="200">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerLead.png" width="500">
 
 Lorem ipsum.
 
@@ -62,7 +62,7 @@ Lorem ipsum.
 
 # Quantizer Outputs 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerOutputs.png" width="200">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerOutputs.png" width="500">
 
 Lorem ipsum.
 
