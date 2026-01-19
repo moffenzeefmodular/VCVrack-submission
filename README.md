@@ -45,8 +45,9 @@ By Ross Fish Feb 2025
 - Removed deprecated use of setBrightnessSmooth from BadIdea1800 
 
 ## v2.5.0
+- Stargazer: Added external audio input to oscillator section.
 - Stargazer: Added ability to type note value directly onto pitch knob to avoid need for external tuner 
-- Stargazer: added external audio input to oscillator section.
-- Kleztizer: repaired voicing and inversion knobs. Inversion was unresponsive in "Closed" mode. "Open" mode was not implemented correctly
-- Added stereo output to [INTENSIFIES]
+- Stargazer: Added a new LFO shape "Smooth Random" which is a sort of drunken walk sine wave LFO that randomly changes it's frequency within the given range.
+- Kleztizer: Repaired voicing and inversion knobs. Inversion was unresponsive in "Closed" mode. "Open" mode was not implemented correctly
+-[INTENSIFIES]: Added stereo output.
 - Added user manuals for Stargazer, Quad Deviant, Tantz!, and Kleztizer
