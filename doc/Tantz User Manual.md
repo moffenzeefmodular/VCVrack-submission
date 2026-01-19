@@ -1,8 +1,8 @@
-# Tantz! VCV Rack User Manual 
-
 [![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzYoutubeThumb.jpg)](https://youtu.be/oB4lEuMjE34)
 
 ---
+
+# Tantz! VCV Rack User Manual 
 
 "Story" **-Ross Fish January 2026**
 
@@ -24,7 +24,7 @@
 
 # Global
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzGlobal.png" width="500">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzGlobal.png" width="250">
 
 ---
 
@@ -36,6 +36,6 @@
 
 # I/O 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzTracks.png" width="500">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzIO.png" width="500">
 
 ---
