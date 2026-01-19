@@ -75,4 +75,3 @@ steps:
     with:
       name: ${{ github.repository }}-${{ matrix.name }}
       path: dist/*.zip
-```
