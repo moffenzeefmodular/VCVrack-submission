@@ -22,7 +22,7 @@ The four outputs are combined into an assignable **CV Bus** at the far right of 
 
 ---
 
-# CV And Audio Ranges
+# CV Ranges
 
 ### All CV inputs respond to -5 V…+5 V. Every knob is treated as an offset: with the knob at 50%, a -5 V signal will turn it all the way left, and a +5 V signal will turn it all the way right. All logic inputs (labeled CLK IN) ignore pulse width and trigger on a rising-edge signal.
 
