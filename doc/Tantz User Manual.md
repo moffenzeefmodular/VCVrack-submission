@@ -30,12 +30,12 @@
 
 # Individual Tracks 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzTracks.png" width="500">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzTracks.png" width="300">
 
 ---
 
 # I/O 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzIO.png" width="500">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzIO.png" width="600">
 
 ---
