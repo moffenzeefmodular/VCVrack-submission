@@ -31,7 +31,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ## Oscillators
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOscillator.png" width="300">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOscillator.jpg" width="300">
 
 ### The oscillator section contains a primary and secondary oscillator that share the same wavetable selection, 1v/Octave pitch input, and FM CV input. The wavetables smoothly interpolate between one another creating a morphing and organic sound. The secondary oscillator can be detuned and mixed in with the primary oscillator to create frequency beating and chorus-like effects. The pitch tracking is restricted to the overall oscillator range of 1hz - 500hz. If you would like the oscillators tuned to a specific chromatic note, you can click on the pitch knob and type in the MIDI note of your preference (example C0, or Eb1). See Normalization Schema and Block Diagram below for more information.
 
@@ -41,6 +41,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 * **Mix:** Oscillator 2 volume.
 * **Sub:** Transpose Oscillator 2 down one octave (pre-detune). 
 * **Detune:** +/-5hz additional control over the pitch of Oscillator 2. Both oscillators share the same pitch, 1v/Octave input, and FM information.
+* **Ext.:** External audio input. When a signal is patched here, it replaces the oscillator section in the signal chain. 
 
 ---
 

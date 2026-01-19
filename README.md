@@ -46,6 +46,7 @@ By Ross Fish Feb 2025
 
 ## v2.5.0
 - Stargazer: Added ability to type note value directly onto pitch knob to avoid need for external tuner 
+- Stargazer: added external audio input to oscillator section.
 - Kleztizer: repaired voicing and inversion knobs. Inversion was unresponsive in "Closed" mode. "Open" mode was not implemented correctly
 - Added stereo output to [INTENSIFIES]
 - Added user manuals for Stargazer, Quad Deviant, Tantz!, and Kleztizer
