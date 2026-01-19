@@ -30,7 +30,7 @@
 
 # Individual Tracks 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzTracks.png" width="300">
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzTracks.png" width="400">
 
 ---
 
