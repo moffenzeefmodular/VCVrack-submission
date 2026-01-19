@@ -4,7 +4,7 @@
 
 # Tantz! VCV Rack User Manual 
 
-"**Tantz!** is the second module in my Klezmer series and is a companion module for **Kleztizer.** For an essay on my relationship with Klezmer music [check out the Kleztizer user manual here](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Kleztizer%20User%20Manual.md). I worked on this module with my friend and fellow Klezmer musician David Rosman who helped me draft the sequences inside this module. We took some serious liberties coming up with all of these patterns, as there really isn't much of a reference to use other than our own ears. Unlike heavily researched percussion heavy genres like afro-cuban music, we don't have a huge database of transcriptions to work from. Using this module very rarely produces accurate Klezmer patterns if under heavy modulation. The patterns were designed like presets on an organ drum machine where you're supposed to "set it and forget it." That being said, I don't actually want you to use it in this manner at all, that's why there's CV for everything, Make weird IDM with it that has nothing to do with Klezmer music. 
+"**Tantz!** is the second module in my Klezmer series and is a companion module for **Kleztizer.** For an essay on my relationship with Klezmer music, [check out the Kleztizer user manual here](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Kleztizer%20User%20Manual.md). I worked on this module with my friend and fellow Klezmer musician David Rosman, who helped me draft the sequences inside it. We took some serious liberties coming up with these patterns, as there really isn’t much of a reference to use other than our own ears. Unlike heavily researched, percussion-heavy genres like Afro-Cuban music, we don’t have a huge database of transcriptions to work from. Using this module very rarely produces accurate Klezmer patterns under heavy modulation. The patterns were designed like presets on an organ drum machine, where you’re supposed to “set it and forget it.” That being said, I don’t actually want you to use it in this manner at all—that’s why there’s CV for everything. Make weird IDM with it that has nothing to do with Klezmer music."
 
   **-Ross Fish January 2026**
 
@@ -43,9 +43,9 @@ As mentioned earlier, drumming proper is not necessarily the dominant rhythmic f
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzScreenshot.png" width="500">
 
-**Tantz!** is a preset drum sequencer inspired by organ drum machines. There are 6 tracks that have 8 pattern variations per track. Changing the **Style** shifts the global bank for all tracks to a completely new set of patterns and time signature. Global swing is provided mainly for the patterns that are in 3/4 to mimick the sound of the cimbalom. 
+**Tantz!** is a preset drum sequencer inspired by organ drum machines. There are 6 tracks, each with 8 pattern variations. Changing the **Style** shifts the global bank for all tracks to a completely new set of patterns and time signatures. Global swing is provided mainly for the patterns in 3/4, to mimic the sound of the cimbalom.  
 
-Although the knobs are labeled Kick, Snare, Hat etc., these are just modern words I used as anchors so you could wrap your head around the function of each track. The patterns associated with each channel don't necessarily need to be triggered with those drums, in fact, they would be more effective triggering different musical notes rather than percussion at all. 
+Although the knobs are labeled Kick, Snare, Hat, etc., these are just modern words I used as anchors so you can wrap your head around the function of each track. The patterns associated with each channel don't necessarily need to be triggered with those drums; in fact, they may be more effective when triggering different musical notes rather than percussion at all.
 
 ---
 
