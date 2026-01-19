@@ -12,15 +12,36 @@
 
 ---
 
-# CV And Gate Ranges
+# What is Modal Music? 
 
-### All CV inputs respond to -5 V…+5 V. Every knob is treated as an offset: with the knob at 50%, a -5 V signal will turn it all the way left, and a +5 V signal will turn it all the way right. All logic outputs are 0-5v. The button logic inputs are rising edge triggers and ignore pulse width. All Quantized outputs are scaled for 1v/octave pitch tracking.
+Modal music uses specific scales (modes), rather than just major/minor keys, emphasizing a distinct atmosphere by treating all notes within the mode as equally important, often featuring fewer chord changes, less tension-building (like avoiding tritones), and a focus on melodic movement within the mode's "home" area, seen in Gregorian chants, Debussy, and Miles Davis's Kind of Blue. It contrasts with tonal music's hierarchical harmony (tonic, dominant, etc.) by allowing chords to exist more independently, creating a floating, less goal-oriented sound. 
+
+**Key Characteristics:**
+
+* **Scale-Based:** Built from specific modes (Dorian, Phrygian, Lydian, etc.) with unique flavors, not just major/minor. Klezmer music specifically has its own Modes common to the genre. 
+* **Equal Notes:** Notes within a mode have less fixed roles; they don't strongly pull to a tonic.
+* **Limited Harmony:** Often uses fewer chords, sometimes just one or two, with less emphasis on traditional dominant-tonic resolution (V-I).
+* **Atmosphere:** Creates a specific mood, sometimes static or floating, with less dramatic tension and release than tonal music.
+* **Tonal Center:** Still has a "home" note (tonic) but doesn't rely on functional harmony to get there. 
+
+
+---
+
+# The History of Klezmer Music
+
+Here are some great resources exploring the rich history of Klezmer music:
 
 ---
 
 # Klezmer Music Theory 
 
-Lorem ipsum. 
+Going in depth on the music theory of Klezmer music is best left to musicologists. This subject is extraordinarily dense, as the musical tradition is over 500 years old. Liturgical Jewish music is even older (5786 years by our own accounting). If I were to begin explaining this to you, I probably would do a terrible job. That being said, here are a few excellent resources on the subject:
+
+---
+
+# CV And Gate Ranges
+
+### All CV inputs respond to -5 V…+5 V. Every knob is treated as an offset: with the knob at 50%, a -5 V signal will turn it all the way left, and a +5 V signal will turn it all the way right. All logic outputs are 0-5v. The button logic inputs are rising edge triggers and ignore pulse width. All Quantized outputs are scaled for 1v/octave pitch tracking.
 
 ---
 
