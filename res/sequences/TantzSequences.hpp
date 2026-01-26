@@ -3,10 +3,10 @@
 #include <algorithm>
 
 struct RhythmData {
-    static const int NUM_STYLES = 6;
-    static const int NUM_DRUMS = 6;
-    static const int NUM_PATTERNS = 8;
-    static const int MAX_STEPS = 16;
+	static constexpr int NUM_STYLES = 6;
+	static constexpr int NUM_DRUMS = 6;
+	static constexpr int NUM_PATTERNS = 8;
+	static constexpr int MAX_STEPS = 16;
 
     // rhythms[style][drum][pattern][step]
 
