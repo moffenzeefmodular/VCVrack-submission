@@ -34,7 +34,6 @@ on:
       - '!**.svg'
       - '!**.json'
 
-publish:
   permissions:
     contents: write
 
