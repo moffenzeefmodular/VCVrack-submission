@@ -167,7 +167,7 @@ jobs:
           path: dist/*.vcvplugin
 
 
-publish:
+  publish:
   if: startsWith(github.ref, 'refs/tags/v')
   name: Publish VCV plugin
   runs-on: ubuntu-24.04
@@ -189,7 +189,7 @@ publish:
       id: notes
       run: |
         TAG_NAME=${GITHUB_REF#refs/tags/}
-        
+
         # Try to extract section under header matching the tag
         RELEASE_BODY=$(awk -v tag="$TAG_NAME" '
           BEGIN {found=0}
@@ -197,21 +197,12 @@ publish:
           found {print}
         ' README.md)
 
-        # If no match found, grab the first header section in README
+        # If no match found, use a simple default
         if [ -z "$RELEASE_BODY" ]; then
-          RELEASE_BODY=$(awk '
-            BEGIN {found=0}
-            /^#\s*/ {if(found==0){found=1; next} else {exit}}
-            found {print}
-          ' README.md)
+          RELEASE_BODY="VCV Rack plugin build for tag $TAG_NAME"
         fi
 
-        # If README is empty or no headers found, fallback to tag
-        if [ -z "$RELEASE_BODY" ]; then
-          RELEASE_BODY="Release $TAG_NAME"
-        fi
-
-        # Export to GitHub Actions environment variable
+        # Export for GitHub Actions
         echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
         echo "$RELEASE_BODY" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
@@ -223,3 +214,4 @@ publish:
         body: ${{ env.RELEASE_BODY }}
         files: |
           artifacts/**/*.vcvplugin
+
