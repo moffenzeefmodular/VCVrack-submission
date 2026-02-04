@@ -27,7 +27,7 @@ on:
   push:
     branches: [ main ]
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
       - 'debug-*'
     paths:
       - '!**.md'
@@ -167,7 +167,7 @@ jobs:
           path: dist/*.vcvplugin
 
 
-  publish:
+publish:
   if: startsWith(github.ref, 'refs/tags/v')
   name: Publish VCV plugin
   runs-on: ubuntu-24.04
@@ -178,40 +178,15 @@ jobs:
     - build-mac-arm64
 
   steps:
-    - uses: actions/checkout@v4
-
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v4
       with:
         path: artifacts
 
-    - name: Extract release notes from README
-      id: notes
-      run: |
-        TAG_NAME=${GITHUB_REF#refs/tags/}
+    - uses: FranzDiebold/github-env-vars-action@v2
 
-        # Try to extract section under header matching the tag
-        RELEASE_BODY=$(awk -v tag="$TAG_NAME" '
-          BEGIN {found=0}
-          /^#\s*/ {if($0 ~ tag) {found=1; next} else if(found) {exit}}
-          found {print}
-        ' README.md)
-
-        # If no match found, use a simple default
-        if [ -z "$RELEASE_BODY" ]; then
-          RELEASE_BODY="VCV Rack plugin build for tag $TAG_NAME"
-        fi
-
-        # Export for GitHub Actions
-        echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
-        echo "$RELEASE_BODY" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
-
-    - name: Create GitHub release
-      uses: softprops/action-gh-release@v2
+    - uses: softprops/action-gh-release@v2
       with:
-        name: "Moffenzeef VCV Plugin ${{ github.ref_name }}"
-        body: ${{ env.RELEASE_BODY }}
+        name: "VCV Plugin ${{ github.ref_name }}"
+        body: "VCV Rack plugin build for tag ${{ github.ref_name }}"
         files: |
           artifacts/**/*.vcvplugin
-
