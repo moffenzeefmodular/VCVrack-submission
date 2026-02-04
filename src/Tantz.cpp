@@ -162,6 +162,10 @@ LightId drumLightIds[RhythmData::NUM_DRUMS] = {
 	bool lastRunButton = false;   // last frame button value
 	bool lastRunCV = false;       // last frame CV value
 
+	float currentStepTime = 0.0f;
+    float stepInterval = 0.0f;
+    bool stepPending = false;
+
 	// Convert PW knob 0–1 to 5–50ms gate length (seconds)
 	float getGateLength(float pw) {
 		return minGateSec + pw * (maxGateSec - minGateSec);
@@ -213,10 +217,6 @@ void process(const ProcessArgs& args) override {
 
     // --- Clock handling ---
     float clock = inputs[CLOCKIN_INPUT].isConnected() ? inputs[CLOCKIN_INPUT].getVoltage() : 0.0f;
-    static float lastClock = 0.0f;
-    static float currentStepTime = 0.0f;
-    static float stepInterval = 0.0f;
-    static bool stepPending = false;
 
     currentStepTime += dt;
     if (clock > 1.0f && lastClock <= 1.0f) {
