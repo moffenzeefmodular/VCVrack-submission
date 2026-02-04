@@ -50,4 +50,6 @@ By Ross Fish Feb 2025
 - Stargazer: Added a new LFO shape "Smooth Random" which is a sort of drunken walk sine wave LFO that randomly changes it's frequency within the given range.
 - Kleztizer: Repaired voicing and inversion knobs. Inversion was unresponsive in "Closed" mode. "Open" mode was not implemented correctly
 - [INTENSIFIES]: Added stereo output.
+- Removed static variables from Tantz so that multiple instances don’t conflict with one another
+- Repaired Tantz! Sequences (there was all sorts of goofy stuff happening)
 - Added user manuals for Stargazer, Quad Deviant, Tantz!, and Kleztizer
