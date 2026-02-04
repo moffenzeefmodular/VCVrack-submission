@@ -167,26 +167,59 @@ jobs:
           path: dist/*.vcvplugin
 
 
-  publish:
-    if: startsWith(github.ref, 'refs/tags/v')
-    name: Publish VCV plugin
-    runs-on: ubuntu-24.04
-    needs:
-      - build-lin-x64
-      - build-win-x64
-      - build-mac-x64
-      - build-mac-arm64
+publish:
+  if: startsWith(github.ref, 'refs/tags/v')
+  name: Publish VCV plugin
+  runs-on: ubuntu-24.04
+  needs:
+    - build-lin-x64
+    - build-win-x64
+    - build-mac-x64
+    - build-mac-arm64
 
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+  steps:
+    - uses: actions/checkout@v4
 
-      - uses: FranzDiebold/github-env-vars-action@v2
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          name: "VCV Plugin ${CI_REF_NAME}"
-          body: "VCV Rack plugin build for tag ${CI_REF_NAME}"
-          files: |
-            artifacts/**/*.vcvplugin
+    - name: Extract release notes from README
+      id: notes
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        
+        # Try to extract section under header matching the tag
+        RELEASE_BODY=$(awk -v tag="$TAG_NAME" '
+          BEGIN {found=0}
+          /^#\s*/ {if($0 ~ tag) {found=1; next} else if(found) {exit}}
+          found {print}
+        ' README.md)
+
+        # If no match found, grab the first header section in README
+        if [ -z "$RELEASE_BODY" ]; then
+          RELEASE_BODY=$(awk '
+            BEGIN {found=0}
+            /^#\s*/ {if(found==0){found=1; next} else {exit}}
+            found {print}
+          ' README.md)
+        fi
+
+        # If README is empty or no headers found, fallback to tag
+        if [ -z "$RELEASE_BODY" ]; then
+          RELEASE_BODY="Release $TAG_NAME"
+        fi
+
+        # Export to GitHub Actions environment variable
+        echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+        echo "$RELEASE_BODY" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: "Moffenzeef VCV Plugin ${{ github.ref_name }}"
+        body: ${{ env.RELEASE_BODY }}
+        files: |
+          artifacts/**/*.vcvplugin
