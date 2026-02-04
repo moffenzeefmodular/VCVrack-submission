@@ -34,6 +34,10 @@ on:
       - '!**.svg'
       - '!**.json'
 
+publish:
+  permissions:
+    contents: write
+
 env:
   rack-sdk-version: latest
   rack-plugin-toolchain-dir: /home/build/rack-plugin-toolchain
