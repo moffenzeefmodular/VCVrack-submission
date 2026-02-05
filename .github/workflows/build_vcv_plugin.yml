@@ -178,11 +178,17 @@ jobs:
         with:
           path: artifacts
 
-      - uses: FranzDiebold/github-env-vars-action@v2
+      - name: Extract latest changelog from README
+        run: |
+          awk '
+            /^## v/ { section=$0; content="" }
+            { content = content $0 "\n" }
+            END { print content }
+          ' README.md > release-notes.md
 
       - uses: softprops/action-gh-release@v2
         with:
-          name: "VCV Plugin ${{ github.ref_name }}"
-          body: "VCV Rack plugin build for tag ${{ github.ref_name }}"
+          name: "Release: Version ${{ github.ref_name }}"
+          body_path: release-notes.md
           files: |
             artifacts/**/*.vcvplugin
