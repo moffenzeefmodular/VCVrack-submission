@@ -367,10 +367,10 @@ struct QuadDeviantWidget : ModuleWidget {
 		));
 
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(mm2px(Vec(108.324, 18.277)), module, QuadDeviant::BUS1_PARAM, QuadDeviant::BUS1LED_LIGHT));
 		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(mm2px(Vec(121.633, 18.308)), module, QuadDeviant::BUS2_PARAM, QuadDeviant::BUS2LED_LIGHT));
@@ -392,33 +392,33 @@ struct QuadDeviantWidget : ModuleWidget {
 		addParam(createParamCentered<CKSSThreeHorizontal>(mm2px(Vec(64.664, 61.826)), module, QuadDeviant::RANGE3_PARAM));
 		addParam(createParamCentered<CKSSThreeHorizontal>(mm2px(Vec(89.664, 61.826)), module, QuadDeviant::RANGE4_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(14.664, 76.014)), module, QuadDeviant::CLK1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.664, 75.929)), module, QuadDeviant::CLK2_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(64.664, 75.929)), module, QuadDeviant::CLK3_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(89.664, 75.929)), module, QuadDeviant::CLK4_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(14.664, 88.876)), module, QuadDeviant::TOPCV1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.664, 88.876)), module, QuadDeviant::TOPCV2_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(64.664, 88.876)), module, QuadDeviant::TOPCV3_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(89.664, 88.876)), module, QuadDeviant::TOPCV4_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(14.664, 101.449)), module, QuadDeviant::BOTTOMCV1_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(39.664, 101.449)), module, QuadDeviant::BOTTOMCV2_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(64.664, 101.449)), module, QuadDeviant::BOTTOMCV3_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(89.664, 101.449)), module, QuadDeviant::BOTTOMCV4_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(14.664, 76.014)), module, QuadDeviant::CLK1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.664, 75.929)), module, QuadDeviant::CLK2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(64.664, 75.929)), module, QuadDeviant::CLK3_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(89.664, 75.929)), module, QuadDeviant::CLK4_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(14.664, 88.876)), module, QuadDeviant::TOPCV1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.664, 88.876)), module, QuadDeviant::TOPCV2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(64.664, 88.876)), module, QuadDeviant::TOPCV3_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(89.664, 88.876)), module, QuadDeviant::TOPCV4_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(14.664, 101.449)), module, QuadDeviant::BOTTOMCV1_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(39.664, 101.449)), module, QuadDeviant::BOTTOMCV2_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(64.664, 101.449)), module, QuadDeviant::BOTTOMCV3_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(89.664, 101.449)), module, QuadDeviant::BOTTOMCV4_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(108.324, 44.897)), module, QuadDeviant::SUMOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.633, 44.9)), module, QuadDeviant::INVSUMOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(108.324, 62.102)), module, QuadDeviant::MAXOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.633, 62.047)), module, QuadDeviant::MINOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(108.324, 79.23)), module, QuadDeviant::POSOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.633, 79.194)), module, QuadDeviant::NEGOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(108.324, 96.435)), module, QuadDeviant::FULLOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.633, 96.417)), module, QuadDeviant::INVFULLOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(14.664, 113.602)), module, QuadDeviant::OUT1_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(39.664, 113.602)), module, QuadDeviant::OUT2_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(64.664, 113.602)), module, QuadDeviant::OUT3_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(89.664, 113.602)), module, QuadDeviant::OUT4_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(108.324, 113.602)), module, QuadDeviant::AVGOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(121.633, 113.602)), module, QuadDeviant::SLEWOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(108.324, 44.897)), module, QuadDeviant::SUMOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(121.633, 44.9)), module, QuadDeviant::INVSUMOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(108.324, 62.102)), module, QuadDeviant::MAXOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(121.633, 62.047)), module, QuadDeviant::MINOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(108.324, 79.23)), module, QuadDeviant::POSOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(121.633, 79.194)), module, QuadDeviant::NEGOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(108.324, 96.435)), module, QuadDeviant::FULLOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(121.633, 96.417)), module, QuadDeviant::INVFULLOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.664, 113.602)), module, QuadDeviant::OUT1_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(39.664, 113.602)), module, QuadDeviant::OUT2_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(64.664, 113.602)), module, QuadDeviant::OUT3_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(89.664, 113.602)), module, QuadDeviant::OUT4_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(108.324, 113.602)), module, QuadDeviant::AVGOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(121.633, 113.602)), module, QuadDeviant::SLEWOUT_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(11.801, 13.745)), module, QuadDeviant::LED1RED_LIGHT));
 		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(17.189, 13.745)), module, QuadDeviant::LED1GREEN_LIGHT));
