@@ -53,9 +53,3 @@ By Ross Fish Feb 2025
 - Removed static variables from Tantz so that multiple instances don’t conflict with one another
 - Repaired Tantz! Sequences (there was all sorts of goofy stuff happening)
 - Added user manuals for Stargazer, Quad Deviant, Tantz!, and Kleztizer
-
-## v4.20.70
-- I am testing
-- Workflow file 
-- To attach description 
-- To Release
