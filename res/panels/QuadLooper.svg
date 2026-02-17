@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="152.39999mm"
+   height="128.5mm"
+   viewBox="0 0 152.39999 128.5"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   sodipodi:docname="QuadLooper.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.89887065"
+     inkscape:cx="299.82067"
+     inkscape:cy="521.20959"
+     inkscape:window-width="1200"
+     inkscape:window-height="1186"
+     inkscape:window-x="717"
+     inkscape:window-y="62"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer2" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="artwork">
+    <rect
+       style="fill:#cccccc;stroke-width:0.600001;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="rect1"
+       width="179.55402"
+       height="147.76411"
+       x="-13.540138"
+       y="-5.5926661"
+       rx="2.0917387"
+       ry="2.5886953"
+       inkscape:label="Panel"
+       sodipodi:insensitive="true" />
+  </g>
+  <g
+     inkscape:label="components"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:none">
+    <circle
+       style="fill:#0000ff;stroke-width:0.599997;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1"
+       cx="65.745857"
+       cy="119.50417"
+       r="1.5"
+       inkscape:label="XOut" />
+    <circle
+       style="fill:#0000ff;stroke-width:0.599997;stroke-linejoin:bevel;stroke-miterlimit:3.3"
+       id="path1-3"
+       cx="86.654137"
+       cy="119.50417"
+       r="1.5"
+       inkscape:label="YOut" />
+  </g>
+</svg>
