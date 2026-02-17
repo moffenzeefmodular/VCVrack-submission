@@ -3,8 +3,10 @@
 
 struct QuadLooper : Module {
 	enum ParamId {
-		RANGE_PARAM,
 		SLEW_PARAM,
+		LOOPSIZE_PARAM,
+		LOOPPOSITION_PARAM,
+		LOOPXFADE_PARAM,
 		PARAMS_LEN
 	};
 	enum InputId {
@@ -19,8 +21,10 @@ struct QuadLooper : Module {
 
 	QuadLooper() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(RANGE_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(LOOPSIZE_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(LOOPPOSITION_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(LOOPXFADE_PARAM, 0.f, 1.f, 0.f, "");
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -38,8 +42,10 @@ struct QuadLooperWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(67.658, 91.427)), module, QuadLooper::RANGE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(85.166, 91.427)), module, QuadLooper::SLEW_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(76.2, 24.892)), module, QuadLooper::SLEW_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(57.7, 87.737)), module, QuadLooper::LOOPSIZE_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(76.2, 87.737)), module, QuadLooper::LOOPPOSITION_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(94.7, 87.737)), module, QuadLooper::LOOPXFADE_PARAM));
 	}
 };
 
