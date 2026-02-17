@@ -33,17 +33,18 @@ struct QuadLooper : Module {
     }
 };
 
+////////////////////////////////
+// XY PAD DISPLAY
+////////////////////////////////
 struct QuadLooperXYDisplay : Widget {
     QuadLooper *module;
     Vec dragPos;
     bool dragging = false;
 
     void updateFromPos() {
-        // Clamp dragPos inside pad
         dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
         dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
 
-        // Update module params
         float x = dragPos.x / box.size.x;
         float y = 1.f - (dragPos.y / box.size.y);
 
@@ -56,8 +57,8 @@ struct QuadLooperXYDisplay : Widget {
         if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS) {
             dragging = true;
 
-            // Compute local dragPos directly from event
-            dragPos = e.pos;   // e.pos is already relative to this widget
+            // e.pos is already relative to this widget
+            dragPos = e.pos;
             dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
             dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
 
@@ -72,7 +73,6 @@ struct QuadLooperXYDisplay : Widget {
     void onDragMove(const event::DragMove &e) override {
         if (!module || !dragging) return;
 
-        // Add delta directly (scaled by zoom)
         dragPos = dragPos.plus(e.mouseDelta.div(getAbsoluteZoom()));
 
         dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
@@ -106,7 +106,7 @@ struct QuadLooperXYDisplay : Widget {
         nvgStrokeColor(args.vg, nvgRGB(60, 60, 60));
         nvgStroke(args.vg);
 
-        // Dot
+        // Cursor dot
         nvgBeginPath(args.vg);
         nvgCircle(args.vg, px, py, radius);
         nvgFillColor(args.vg, nvgRGB(230, 230, 230));
@@ -114,32 +114,31 @@ struct QuadLooperXYDisplay : Widget {
     }
 };
 
-
-
-///////////////////////////
-// MODULE WIDGET SETUP //
-///////////////////////////
-
+////////////////////////////////
+// MODULE WIDGET
+////////////////////////////////
 struct QuadLooperWidget : ModuleWidget {
     QuadLooperWidget(QuadLooper *module) {
         setModule(module);
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/QuadLooper.svg")));
 
-        // === 60x60 XY Pad, centered ===
+        // === 40x40 XY Pad, centered ===
         auto xy = new QuadLooperXYDisplay();
         xy->module = module;
 
-        float squareSize = 60.f; // 60 x 60 mm
-        float xOffset = (152.4f - squareSize) / 2.f; // ~46.2 mm
-        float yOffset = (128.5f - squareSize) / 2.f; // ~34.25 mm
+        float squareSize = 40.f; // 40 x 40 mm
+        float xOffset = (152.4f - squareSize) / 2.f; // center horizontally
+        float yOffset = (128.5f - squareSize) / 2.f; // center vertically
 
         xy->box.pos = mm2px(Vec(xOffset, yOffset));
         xy->box.size = mm2px(Vec(squareSize, squareSize));
         addChild(xy);
 
-        // Outputs below the XY pad
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(50, 110)), module, QuadLooper::X_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(100, 110)), module, QuadLooper::Y_OUTPUT));
+        // Outputs below the XY pad, relative to pad
+        addOutput(createOutputCentered<PJ301MPort>(
+            mm2px(Vec(56.2f, 95.f)), module, QuadLooper::X_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(
+            mm2px(Vec(96.2f, 95.f)), module, QuadLooper::Y_OUTPUT));
     }
 };
 
