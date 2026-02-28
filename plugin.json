@@ -280,26 +280,10 @@
       ]
     },
     {
-      "slug": "QuadDeviant",
-      "name": "Quad Deviant",
-      "description": "Quad version of Deviant with range switches and CV bus",
-      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Quad%20Deviant%20User%20Manual.md",
-      "tags": [
-        "random",
-        "utility"
-      ]
-    },
-    {
-      "slug": "QuadLooper",
-      "name": "Quad Looper",
-      "description": "A four channel sound on sound looping module designed in collaboration with Omri Cohen.",
-      "tags": [
-        "recording",
-        "granular",
-        "controller",
-        "effect",
-        "sampler"
-      ]
+      "slug": "Tehom",
+      "name": "Tehom",
+      "description": "Quad looper with degradation",
+      "tags": []
     }
   ]
 }
