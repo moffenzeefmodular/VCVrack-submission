@@ -26,9 +26,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="4.3703133"
-     inkscape:cx="471.36208"
-     inkscape:cy="245.40574"
+     inkscape:zoom="6.1805564"
+     inkscape:cx="431.19095"
+     inkscape:cy="188.41346"
      inkscape:window-width="2368"
      inkscape:window-height="1186"
      inkscape:window-x="192"
@@ -10323,7 +10323,7 @@
    y1="1036.536"
    x2="-1044.7188"
    y2="1045.3826"
-   gradientTransform="translate(1257.0265,-1130.2124)">
+   gradientTransform="rotate(180,-614.33941,571.8347)">
 		<stop
    offset="0.00559"
    style="stop-color:#3D3B3B"
@@ -10339,7 +10339,7 @@
    y1="-297.28513"
    x2="-277.82422"
    y2="-271.47653"
-   gradientTransform="matrix(-0.26458333,0,0,-0.26458333,-65.75322,-59.571525)">
+   gradientTransform="matrix(0.26458333,0,0,0.26458333,-23.583959,137.21536)">
 	<stop
    offset="0"
    style="stop-color:#3B3B3B"
@@ -15239,7 +15239,7 @@
    y1="-297.28513"
    x2="-277.82422"
    y2="-271.47653"
-   gradientTransform="matrix(-0.26458333,0,0,-0.26458333,-3.9823495,-59.571525)">
+   gradientTransform="matrix(0.26458333,0,0,0.26458333,-85.354829,137.21536)">
 	<stop
    offset="0"
    style="stop-color:#3B3B3B"
@@ -15255,7 +15255,7 @@
    y1="1036.536"
    x2="-1044.7188"
    y2="1045.3826"
-   gradientTransform="translate(1490.4912,-1130.2124)">
+   gradientTransform="rotate(180,-731.07176,571.8347)">
 		<stop
    offset="0.00559"
    style="stop-color:#3D3B3B"
@@ -16007,7 +16007,7 @@
    y1="-297.28513"
    x2="-277.82422"
    y2="-271.47653"
-   gradientTransform="matrix(-0.26458333,0,0,-0.26458333,-65.75322,-157.98625)">
+   gradientTransform="matrix(0.26458333,0,0,0.26458333,-23.583959,235.63008)">
 	<stop
    offset="0"
    style="stop-color:#3B3B3B"
@@ -16023,7 +16023,7 @@
    y1="1036.536"
    x2="-1044.7188"
    y2="1045.3826"
-   gradientTransform="translate(1257.0265,-1502.1735)">
+   gradientTransform="rotate(180,-614.33941,757.81525)">
 		<stop
    offset="0.00559"
    style="stop-color:#3D3B3B"
@@ -16775,7 +16775,7 @@
    y1="-297.28513"
    x2="-277.82422"
    y2="-271.47653"
-   gradientTransform="matrix(-0.26458333,0,0,-0.26458333,-3.9823493,-157.98624)">
+   gradientTransform="matrix(0.26458333,0,0,0.26458333,-85.35483,235.63007)">
 	<stop
    offset="0"
    style="stop-color:#3B3B3B"
@@ -16791,7 +16791,7 @@
    y1="1036.536"
    x2="-1044.7188"
    y2="1045.3826"
-   gradientTransform="translate(1490.4912,-1502.1735)">
+   gradientTransform="rotate(180,-731.07176,757.81525)">
 		<stop
    offset="0.00559"
    style="stop-color:#3D3B3B"
@@ -20351,7 +20351,7 @@
          x="9.3376036"
          y="12.203621">1</tspan></text><g
        id="g750"
-       transform="rotate(-90,-1.1927824,10.727981)"><path
+       transform="rotate(90,-16.574654,82.297723)"><path
          id="path243332"
          inkscape:connector-curvature="0"
          d="m -41.2936,37.041664 c 0.206703,0 0.375171,0.169492 0.375171,0.375161 v 2.811195 c 0,0.205685 -0.168463,0.374148 -0.375171,0.374148 h -6.749979 c -0.205674,0 -0.375171,-0.168458 -0.375171,-0.374148 v -2.811195 c 0,-0.205669 0.1695,-0.375161 0.375171,-0.375161 z"
@@ -21941,8 +21941,8 @@
 	</g>
 </g></g><g
        id="g2-0"
-       style="display:inline"
-       transform="translate(-0.19613944,61.77087)"><text
+       transform="translate(-0.19613944,61.77087)"
+       style="display:inline"><text
          xml:space="preserve"
          style="font-size:2.82222px;font-family:'century gothic';-inkscape-font-specification:'century gothic';text-align:center;letter-spacing:-0.105833px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;display:inline;fill:#000000;stroke-width:0.600001;stroke-linejoin:bevel;stroke-miterlimit:3.3"
          x="27.111801"
@@ -22818,7 +22818,7 @@
          x="9.3376036"
          y="73.974487">3</tspan></text><g
        id="g750-3"
-       transform="rotate(-90,29.692653,41.613416)"><path
+       transform="rotate(90,-47.460089,113.18316)"><path
          id="path243332-8"
          inkscape:connector-curvature="0"
          d="m -41.2936,37.041664 c 0.206703,0 0.375171,0.169492 0.375171,0.375161 v 2.811195 c 0,0.205685 -0.168463,0.374148 -0.375171,0.374148 h -6.749979 c -0.205674,0 -0.375171,-0.168458 -0.375171,-0.374148 v -2.811195 c 0,-0.205669 0.1695,-0.375161 0.375171,-0.375161 z"
@@ -28384,7 +28384,7 @@
          x="142.84155"
          y="12.203621">2</tspan></text><g
        id="g750-7"
-       transform="rotate(-90,48.014576,-38.479377)"><path
+       transform="rotate(90,32.632704,131.50508)"><path
          id="path243332-5"
          inkscape:connector-curvature="0"
          d="m -41.2936,37.041664 c 0.206703,0 0.375171,0.169492 0.375171,0.375161 v 2.811195 c 0,0.205685 -0.168463,0.374148 -0.375171,0.374148 h -6.749979 c -0.205674,0 -0.375171,-0.168458 -0.375171,-0.374148 v -2.811195 c 0,-0.205669 0.1695,-0.375161 0.375171,-0.375161 z"
@@ -30832,7 +30832,7 @@
          x="142.83467"
          y="73.974487">4</tspan></text><g
        id="g750-7-1"
-       transform="rotate(-90,78.900011,-7.5939425)"><path
+       transform="rotate(90,1.747269,162.39052)"><path
          id="path243332-5-1"
          inkscape:connector-curvature="0"
          d="m -41.2936,37.041664 c 0.206703,0 0.375171,0.169492 0.375171,0.375161 v 2.811195 c 0,0.205685 -0.168463,0.374148 -0.375171,0.374148 h -6.749979 c -0.205674,0 -0.375171,-0.168458 -0.375171,-0.374148 v -2.811195 c 0,-0.205669 0.1695,-0.375161 0.375171,-0.375161 z"
@@ -31360,8 +31360,8 @@
    id="circle198-6-6-2-6" />
 </g></g></g><g
        id="g2-5"
-       style="display:inline"
-       transform="translate(98.218577,61.77087)"><text
+       transform="translate(98.218577,61.77087)"
+       style="display:inline"><text
          xml:space="preserve"
          style="font-size:2.82222px;font-family:'century gothic';-inkscape-font-specification:'century gothic';text-align:center;letter-spacing:-0.105833px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;display:inline;fill:#000000;stroke-width:0.600001;stroke-linejoin:bevel;stroke-miterlimit:3.3"
          x="27.111801"
@@ -31379,8 +31379,8 @@
          d="m 31.017766,17.767524 h 4.303241"
          id="path92-9-7" /></g><g
        id="g2-9"
-       style="display:inline"
-       transform="translate(98.218576)"><text
+       transform="translate(98.218576)"
+       style="display:inline"><text
          xml:space="preserve"
          style="font-size:2.82222px;font-family:'century gothic';-inkscape-font-specification:'century gothic';text-align:center;letter-spacing:-0.105833px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;display:inline;fill:#000000;stroke-width:0.600001;stroke-linejoin:bevel;stroke-miterlimit:3.3"
          x="27.111801"
