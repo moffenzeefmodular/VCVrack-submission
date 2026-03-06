@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="10.099999mm"
+   height="10.099999mm"
+   viewBox="0 0 10.099999 10.099999"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   sodipodi:docname="LEDBezelSilver.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="14.695511"
+     inkscape:cx="16.467614"
+     inkscape:cy="35.07874"
+     inkscape:window-width="1200"
+     inkscape:window-height="1186"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-99.747919,-143.40416)">
+    <circle
+       style="display:inline;fill:#cccccc;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-dashoffset:1;stroke-opacity:1"
+       id="path188-6-3-3-6-5-6"
+       cx="104.79792"
+       cy="148.45416"
+       r="4.9499998" />
+    <circle
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:none;stroke-opacity:1"
+       id="path188-67-1"
+       cx="104.79792"
+       cy="148.45416"
+       r="2.95" />
+    <circle
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:0.1, 0.3;stroke-dashoffset:0.02;stroke-opacity:1"
+       id="path188-6-15-9"
+       cx="104.79792"
+       cy="148.45416"
+       r="3.45" />
+    <circle
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.2;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:0.4, 0.4;stroke-dashoffset:0;stroke-opacity:1"
+       id="path188-6-3-9-3"
+       cx="104.79792"
+       cy="148.45416"
+       r="3.9500003" />
+    <circle
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:3.3;stroke-dasharray:0.1, 0.3;stroke-dashoffset:0.02;stroke-opacity:1"
+       id="path188-6-3-3-1-7"
+       cx="104.79792"
+       cy="148.45416"
+       r="4.4499998" />
+  </g>
+</svg>

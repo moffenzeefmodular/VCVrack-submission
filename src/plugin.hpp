@@ -144,3 +144,11 @@ struct StargazerLFOKnob : SvgKnob {
 		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/StargazerLFOKnob.svg")));
 	}
 };
+
+struct LEDBezelSilver : SvgKnob {
+	widget::SvgWidget* bg;
+		LEDBezelSilver() {
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/LEDBezelSilver.svg")));
+	}
+};
+
