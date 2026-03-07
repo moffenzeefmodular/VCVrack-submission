@@ -144,7 +144,7 @@ struct Tehom : Module {
 
     configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "HiFi Tape Hiss", "LoFi Tape Hiss", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
 
-	configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "ms", 0.f, 1000.f);
+	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
 	configParam(LEDBEZEL1_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f);
@@ -166,7 +166,7 @@ struct Tehom : Module {
 	configParam(SOURCE4_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
 
 	// Pitch params
-	configParam(SPEED1_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED1_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
 	configParam(SPEED2_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
 	configParam(SPEED3_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
 	configParam(SPEED4_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
@@ -409,7 +409,7 @@ void process(const ProcessArgs& args) override {
     // --- BEZEL SPINNING (pauses audio readPos when held) ---
     for (int i = 0; i < 4; i++) {
         if (playState[i] && !bezelDragging[i].load()) {
-            float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f);
+            float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.025f, 1.f);
             float spinSpeed = 0.02f + pitchVal * 0.18f;
             float spinDir = playReversed[i] ? -1.f : 1.f;
             float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
@@ -421,7 +421,7 @@ void process(const ProcessArgs& args) override {
 
     // === AUDIO DSP ===
     float inL = inputs[AUDIOLEFTIN_INPUT].getVoltage();
-    float inR = inputs[AUDIORIGHTIN_INPUT].getVoltage();
+    float inR = inputs[AUDIORIGHTIN_INPUT].isConnected() ? inputs[AUDIORIGHTIN_INPUT].getVoltage() : inL;
 
     // XY mixer — 2x2 bilinear: each corner owns one channel at full volume
     // ch1=top-left, ch2=top-right, ch3=bottom-left, ch4=bottom-right
@@ -451,7 +451,7 @@ void process(const ProcessArgs& args) override {
                 sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
                 sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
 
-                float speed = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f) * 2.f;
+                float speed = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.025f, 1.f) * 2.f;
                 float dir = playReversed[i] ? -1.f : 1.f;
                 readPos[i] += dir * speed;
 
@@ -520,8 +520,8 @@ void process(const ProcessArgs& args) override {
         targetY = params[YPOS_PARAM].getValue();
     }
 
-    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? inputs[SLEWCVIN_INPUT].getVoltage() / 10.f : 0.f), 0.f, 1.f);
-    float alpha = (slewParam < 1e-6f) ? 1.f : clamp(args.sampleTime / slewParam, 0.f, 1.f);
+    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? inputs[SLEWCVIN_INPUT].getVoltage() / 10.f : 0.f), 0.02f, 1.f);
+    float alpha = clamp(args.sampleTime / slewParam, 0.f, 1.f);
     xyFinalX += (targetX - xyFinalX) * alpha;
     xyFinalY += (targetY - xyFinalY) * alpha;
 
