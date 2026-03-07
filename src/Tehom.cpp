@@ -280,29 +280,27 @@ void onReset(const ResetEvent& e) override {
 json_t* dataToJson() override {
     json_t* root = json_object();
     json_object_set_new(root, "bufferDuration", json_real(bufferDuration));
-    json_t* ap = json_array();
-    json_t* apf = json_array();
+    json_t* ap = json_array(), *apf = json_array(), *rt = json_array();
     for (int i = 0; i < 4; i++) {
         json_array_append_new(ap,  json_boolean(autoPlay[i]));
         json_array_append_new(apf, json_boolean(autoPlayFull[i]));
+        json_array_append_new(rt,  json_boolean(retrigger[i]));
     }
     json_object_set_new(root, "autoPlay",     ap);
     json_object_set_new(root, "autoPlayFull", apf);
+    json_object_set_new(root, "retrigger",    rt);
     return root;
 }
 
 void dataFromJson(json_t* root) override {
     json_t* bd = json_object_get(root, "bufferDuration");
-    if (bd) {
-        bufferDuration = (float)json_real_value(bd);
-        if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate);
-    }
+    if (bd) { bufferDuration = (float)json_real_value(bd); if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate); }
     json_t* ap = json_object_get(root, "autoPlay");
-    if (ap)
-        for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap, i); if (v) autoPlay[i] = json_boolean_value(v); }
+    if (ap)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap,  i); if (v) autoPlay[i]     = json_boolean_value(v); }
     json_t* apf = json_object_get(root, "autoPlayFull");
-    if (apf)
-        for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf, i); if (v) autoPlayFull[i] = json_boolean_value(v); }
+    if (apf) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf, i); if (v) autoPlayFull[i]  = json_boolean_value(v); }
+    json_t* rt = json_object_get(root, "retrigger");
+    if (rt)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(rt,  i); if (v) retrigger[i]     = json_boolean_value(v); }
 }
 
 // Current state of record/play toggles
@@ -323,8 +321,9 @@ std::atomic<bool> bezelDragging[4];
 bool playReversed[4] = {false, false, false, false};
 
 float eraseFlash[4] = {};
-bool autoPlay[4]     = {true, true, true, true}; // auto-play when recording manually stopped
-bool autoPlayFull[4] = {true, true, true, true}; // auto-play when buffer fills to 5s
+bool autoPlay[4]     = {true, true, true, true};
+bool autoPlayFull[4] = {true, true, true, true};
+bool retrigger[4]    = {false, false, false, false}; // CV retriggers playhead instead of toggling
 
 std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
@@ -392,7 +391,11 @@ void process(const ProcessArgs& args) override {
         bool cvRising = cv && !lastPlayCV[i];
         lastPlayCV[i] = cv;
 
-        if (btnRising || cvRising) {
+        if (cvRising && retrigger[i]) {
+            // Retrigger: reset playhead to start (or end if reversed), ensure playing
+            playState[i] = true;
+            readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+        } else if (btnRising || cvRising) {
             playState[i] = !playState[i];
             if (playState[i]) {
                 readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
@@ -810,7 +813,7 @@ struct QuadLooperXYDisplay : Widget {
 struct ChanLight0 : GrayModuleLightWidget { ChanLight0() { addBaseColor(SCHEME_CYAN); } };
 struct ChanLight1 : GrayModuleLightWidget { ChanLight1() { addBaseColor(SCHEME_PURPLE); } };
 struct ChanLight2 : GrayModuleLightWidget { ChanLight2() { addBaseColor(SCHEME_ORANGE); } };
-struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_YELLOW); } };
+struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_RED); } };
 
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
@@ -968,6 +971,16 @@ struct TehomWidget : ModuleWidget {
                 labels[j], "",
                 [=]() { return tehom->bufferDuration == dur; },
                 [=]() { tehom->bufferDuration = dur; tehom->resizeBuffers(tehom->currentSampleRate); }
+            ));
+        }
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Play CV — Retrigger mode"));
+        for (int i = 0; i < 4; i++) {
+            menu->addChild(createCheckMenuItem(
+                "Channel " + std::to_string(i + 1), "",
+                [=]() { return tehom->retrigger[i]; },
+                [=]() { tehom->retrigger[i] = !tehom->retrigger[i]; }
             ));
         }
 
