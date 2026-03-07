@@ -277,7 +277,8 @@ void onReset(const ResetEvent& e) override {
         eraseBuffer(i);
         autoPlay[i]     = true;
         autoPlayFull[i] = true;
-        retrigger[i]    = false;
+        playCVMode[i]   = 0;
+        playReversed[i] = false;
     }
     xyFinalX = 0.5f;
     xyFinalY = 0.5f;
@@ -286,15 +287,15 @@ void onReset(const ResetEvent& e) override {
 json_t* dataToJson() override {
     json_t* root = json_object();
     json_object_set_new(root, "bufferDuration", json_real(bufferDuration));
-    json_t* ap = json_array(), *apf = json_array(), *rt = json_array();
+    json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array();
     for (int i = 0; i < 4; i++) {
-        json_array_append_new(ap,  json_boolean(autoPlay[i]));
-        json_array_append_new(apf, json_boolean(autoPlayFull[i]));
-        json_array_append_new(rt,  json_boolean(retrigger[i]));
+        json_array_append_new(ap,   json_boolean(autoPlay[i]));
+        json_array_append_new(apf,  json_boolean(autoPlayFull[i]));
+        json_array_append_new(pcvm, json_integer(playCVMode[i]));
     }
     json_object_set_new(root, "autoPlay",     ap);
     json_object_set_new(root, "autoPlayFull", apf);
-    json_object_set_new(root, "retrigger",    rt);
+    json_object_set_new(root, "playCVMode",   pcvm);
     return root;
 }
 
@@ -305,8 +306,8 @@ void dataFromJson(json_t* root) override {
     if (ap)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap,  i); if (v) autoPlay[i]     = json_boolean_value(v); }
     json_t* apf = json_object_get(root, "autoPlayFull");
     if (apf) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf, i); if (v) autoPlayFull[i]  = json_boolean_value(v); }
-    json_t* rt = json_object_get(root, "retrigger");
-    if (rt)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(rt,  i); if (v) retrigger[i]     = json_boolean_value(v); }
+    json_t* pcvm = json_object_get(root, "playCVMode");
+    if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i]  = (int)json_integer_value(v); }
 }
 
 // Current state of record/play toggles
@@ -329,7 +330,7 @@ bool playReversed[4] = {false, false, false, false};
 float eraseFlash[4] = {};
 bool autoPlay[4]     = {true, true, true, true};
 bool autoPlayFull[4] = {true, true, true, true};
-bool retrigger[4]    = {false, false, false, false}; // CV retriggers playhead instead of toggling
+int playCVMode[4] = {0, 0, 0, 0}; // 0=Play/Stop, 1=Retrigger, 2=Forward/Reverse
 
 std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
@@ -397,15 +398,25 @@ void process(const ProcessArgs& args) override {
         bool cvRising = cv && !lastPlayCV[i];
         lastPlayCV[i] = cv;
 
-        if (cvRising && retrigger[i]) {
-            // Retrigger: reset playhead to start (or end if reversed), ensure playing
-            playState[i] = true;
-            readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
-        } else if (btnRising || cvRising) {
-            playState[i] = !playState[i];
-            if (playState[i]) {
+        if (cvRising) {
+            if (playCVMode[i] == 1) {
+                // Retrigger: reset playhead to start (or end if reversed), ensure playing
+                playState[i] = true;
                 readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+            } else if (playCVMode[i] == 2) {
+                // Forward/Reverse toggle
+                playReversed[i] = !playReversed[i];
+            } else {
+                // Play/Stop toggle (default)
+                playState[i] = !playState[i];
+                if (playState[i])
+                    readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
             }
+        }
+        if (btnRising) {
+            playState[i] = !playState[i];
+            if (playState[i])
+                readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
         }
 
         lights[PLAY1_LIGHT + i].setBrightnessSmooth((playState[i] && !playReversed[i]) ? 1.f : 0.f, args.sampleTime);
@@ -997,47 +1008,46 @@ struct TehomWidget : ModuleWidget {
         auto* tehom = dynamic_cast<Tehom*>(module);
         if (!tehom) return;
 
+        // Buffer Size — global, flat list
         menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Buffer Size (all channels)"));
-        const float durations[] = {1.f, 2.f, 5.f, 10.f, 20.f, 30.f, 60.f};
-        const char* labels[]    = {"1 second", "2 seconds", "5 seconds", "10 seconds", "20 seconds", "30 seconds", "1 minute"};
-        for (int j = 0; j < 7; j++) {
-            float dur = durations[j];
-            menu->addChild(createCheckMenuItem(
-                labels[j], "",
-                [=]() { return tehom->bufferDuration == dur; },
-                [=]() { tehom->bufferDuration = dur; tehom->resizeBuffers(tehom->currentSampleRate); }
-            ));
-        }
+        menu->addChild(createSubmenuItem("Buffer Size", "", [=](Menu* subMenu) {
+            const float durations[] = {1.f, 2.f, 5.f, 10.f, 20.f, 30.f, 60.f};
+            const char* labels[]    = {"1 second", "2 seconds", "5 seconds", "10 seconds", "20 seconds", "30 seconds", "1 minute"};
+            for (int j = 0; j < 7; j++) {
+                float dur = durations[j];
+                subMenu->addChild(createCheckMenuItem(
+                    labels[j], "",
+                    [=]() { return tehom->bufferDuration == dur; },
+                    [=]() { tehom->bufferDuration = dur; tehom->resizeBuffers(tehom->currentSampleRate); }
+                ));
+            }
+        }));
 
+        // Per-channel settings — one submenu per channel
         menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Play CV — Retrigger mode"));
+        const std::vector<std::string> modeNames = {"Play/Stop", "Retrigger", "Forward/Reverse"};
         for (int i = 0; i < 4; i++) {
-            menu->addChild(createCheckMenuItem(
-                "Channel " + std::to_string(i + 1), "",
-                [=]() { return tehom->retrigger[i]; },
-                [=]() { tehom->retrigger[i] = !tehom->retrigger[i]; }
-            ));
-        }
-
-        menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Auto-Play when recording complete"));
-        for (int i = 0; i < 4; i++) {
-            menu->addChild(createCheckMenuItem(
-                "Channel " + std::to_string(i + 1), "",
-                [=]() { return tehom->autoPlay[i]; },
-                [=]() { tehom->autoPlay[i] = !tehom->autoPlay[i]; }
-            ));
-        }
-
-        menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Auto-Play when buffer full"));
-        for (int i = 0; i < 4; i++) {
-            menu->addChild(createCheckMenuItem(
-                "Channel " + std::to_string(i + 1), "",
-                [=]() { return tehom->autoPlayFull[i]; },
-                [=]() { tehom->autoPlayFull[i] = !tehom->autoPlayFull[i]; }
-            ));
+            menu->addChild(createSubmenuItem("Channel " + std::to_string(i + 1), "", [=](Menu* subMenu) {
+                subMenu->addChild(createMenuLabel("Play CV Mode"));
+                for (int m = 0; m < 3; m++) {
+                    subMenu->addChild(createCheckMenuItem(
+                        modeNames[m], "",
+                        [=]() { return tehom->playCVMode[i] == m; },
+                        [=]() { tehom->playCVMode[i] = m; }
+                    ));
+                }
+                subMenu->addChild(new MenuSeparator);
+                subMenu->addChild(createCheckMenuItem(
+                    "Auto-Play when recording complete", "",
+                    [=]() { return tehom->autoPlay[i]; },
+                    [=]() { tehom->autoPlay[i] = !tehom->autoPlay[i]; }
+                ));
+                subMenu->addChild(createCheckMenuItem(
+                    "Auto-Play when buffer full", "",
+                    [=]() { return tehom->autoPlayFull[i]; },
+                    [=]() { tehom->autoPlayFull[i] = !tehom->autoPlayFull[i]; }
+                ));
+            }));
         }
     }
 };
