@@ -271,6 +271,8 @@ void onSampleRateChange(const SampleRateChangeEvent& e) override {
 
 void onReset(const ResetEvent& e) override {
     Module::onReset(e);
+    bufferDuration = 2.f;
+    if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate);
     for (int i = 0; i < 4; i++)
         eraseBuffer(i);
     xyFinalX = 0.5f;
