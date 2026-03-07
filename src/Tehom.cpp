@@ -150,6 +150,9 @@ struct Tehom : Module {
 	configParam(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL3_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL4_PARAM, 0.f, 1.f, 0.f);
+	// LEDBezel spin position should not change on Randomize or Init
+	for (int i = 0; i < 4; i++)
+		paramQuantities[LEDBEZEL1_PARAM + i]->randomizeEnabled = false;
 
 	for (int i = 0; i < 4; i++) bezelDragging[i].store(false);
 
@@ -270,7 +273,13 @@ void onSampleRateChange(const SampleRateChangeEvent& e) override {
 }
 
 void onReset(const ResetEvent& e) override {
+    // Preserve bezel spin positions — they should not reset on Init
+    float bezelPos[4];
+    for (int i = 0; i < 4; i++)
+        bezelPos[i] = params[LEDBEZEL1_PARAM + i].getValue();
     Module::onReset(e);
+    for (int i = 0; i < 4; i++)
+        params[LEDBEZEL1_PARAM + i].setValue(bezelPos[i]);
     bufferDuration = 2.f;
     if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate);
     for (int i = 0; i < 4; i++) {
@@ -309,6 +318,8 @@ void dataFromJson(json_t* root) override {
     json_t* pcvm = json_object_get(root, "playCVMode");
     if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i]  = (int)json_integer_value(v); }
 }
+
+
 
 // Current state of record/play toggles
 bool recordState[4] = {false, false, false, false};
@@ -350,6 +361,13 @@ int writePos[4] = {};
 float readPos[4] = {};
 int recordedLength[4] = {};
 bool hasContent[4] = {};
+
+void processBypass(const ProcessArgs& args) override {
+    float inL = inputs[AUDIOLEFTIN_INPUT].getVoltage();
+    float inR = inputs[AUDIORIGHTIN_INPUT].isConnected() ? inputs[AUDIORIGHTIN_INPUT].getVoltage() : inL;
+    outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(inL);
+    outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(inR);
+}
 
 void process(const ProcessArgs& args) override {
     // Ensure buffers are allocated (onSampleRateChange may not fire before first process)
