@@ -431,7 +431,7 @@ void process(const ProcessArgs& args) override {
     for (int i = 0; i < 4; i++) {
         if (playState[i] && !bezelDragging[i].load()) {
             float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f);
-            float spinSpeed = 0.02f + pitchVal * 0.18f;
+            float spinSpeed = 0.02f + pitchVal * 0.8f;
             float spinDir = playReversed[i] ? -1.f : 1.f;
             float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
             if (newValue > 1.f) newValue -= 1.f;
