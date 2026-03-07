@@ -156,7 +156,7 @@ struct Tehom : Module {
 	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
     configParam(SIZE_PARAM, 0.f, 1.f, 1.f, "Loop Size", "%", 0.f, 100.f);
-    configParam(POSITION_PARAM, 0.f, 1.f, 0.5f, "Loop Position", "%", 0.f, 100.f);
+    configParam(POSITION_PARAM, 0.f, 1.f, 0.f, "Loop Position", "%", 0.f, 100.f);
     configParam(XFADE_PARAM, 0.f, 1.f, 0.f, "Crossfade", "%", 0.f, 100.f);
 	
 	// Source params
@@ -452,7 +452,7 @@ void process(const ProcessArgs& args) override {
             if (len >= 2) {
                 // Compute loop window (strictly within recorded content)
                 int minLoopSize = std::min(100, len);
-                int loopSize    = clamp((int)(sizeParam * (float)len), minLoopSize, len);
+                int loopSize    = clamp((int)(sizeParam * sizeParam * sizeParam * (float)len), minLoopSize, len);
                 int maxStart    = len - loopSize; // always >= 0 since loopSize <= len
                 int loopStart   = clamp((int)(posParam * (float)maxStart), 0, maxStart);
                 int loopEnd     = loopStart + loopSize; // always <= len, exact
