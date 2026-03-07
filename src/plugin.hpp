@@ -151,4 +151,3 @@ struct LEDBezelSilver : SvgKnob {
 		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/LEDBezelSilver.svg")));
 	}
 };
-

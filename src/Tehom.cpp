@@ -94,55 +94,70 @@ struct Tehom : Module {
         OUTPUTS_LEN
     };
 
-    enum LightId {
-        BUFFER1LED_LIGHT,
-        BUFFER2LED_LIGHT,
-        BUFFER3LED_LIGHT,
-        BUFFER4LED_LIGHT,
-        LIGHTS_LEN
-    };
+  enum LightId {
+    BUFFER1LED_LIGHT,
+    BUFFER2LED_LIGHT,
+    BUFFER3LED_LIGHT,
+    BUFFER4LED_LIGHT,
+    
+    // RECORD lights (red)
+    RECORD1_LIGHT,
+    RECORD2_LIGHT,
+    RECORD3_LIGHT,
+    RECORD4_LIGHT,
+    
+    // PLAY lights (green)
+    PLAY1_LIGHT,
+    PLAY2_LIGHT,
+    PLAY3_LIGHT,
+    PLAY4_LIGHT,
+    
+    LIGHTS_LEN
+};
 
 	Tehom() {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
     // Global params
     configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
-    configParam(SELECT_PARAM, 0.f, 1.f, 0.f, "Select", "%", 0.f, 100.f);
-    configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Amount", "%", 0.f, 100.f);
+
+    configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "HiFi Tape Hiss", "LoFi Tape Hiss", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
+    
+	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
     configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "%", 0.f, 100.f);
     configParam(SIZE_PARAM, 0.f, 1.f, 0.f, "Size", "%", 0.f, 100.f);
     configParam(POSITION_PARAM, 0.f, 1.f, 0.f, "Position", "%", 0.f, 100.f);
     configParam(XFADE_PARAM, 0.f, 1.f, 0.f, "Crossfade", "%", 0.f, 100.f);
+	
+	// Source params
+	configParam(SOURCE1_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
+	configParam(SOURCE2_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
+	configParam(SOURCE3_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
+	configParam(SOURCE4_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
 
-    // Source params
-    configParam(SOURCE1_PARAM, 0.f, 1.f, 0.f, "Source 1", "%", 0.f, 100.f);
-    configParam(SOURCE2_PARAM, 0.f, 1.f, 0.f, "Source 2", "%", 0.f, 100.f);
-    configParam(SOURCE3_PARAM, 0.f, 1.f, 0.f, "Source 3", "%", 0.f, 100.f);
-    configParam(SOURCE4_PARAM, 0.f, 1.f, 0.f, "Source 4", "%", 0.f, 100.f);
+	// Pitch params
+	configParam(PITCH1_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam(PITCH2_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam(PITCH3_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam(PITCH4_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
 
-    // Pitch params
-    configParam(PITCH1_PARAM, 0.f, 1.f, 0.f, "Pitch 1", "%", 0.f, 100.f);
-    configParam(PITCH2_PARAM, 0.f, 1.f, 0.f, "Pitch 2", "%", 0.f, 100.f);
-    configParam(PITCH3_PARAM, 0.f, 1.f, 0.f, "Pitch 3", "%", 0.f, 100.f);
-    configParam(PITCH4_PARAM, 0.f, 1.f, 0.f, "Pitch 4", "%", 0.f, 100.f);
+	// Record switches
+	configSwitch(RECORD1_PARAM, 0.f, 1.f, 0.f, "Record");
+	configSwitch(RECORD2_PARAM, 0.f, 1.f, 0.f, "Record");
+	configSwitch(RECORD3_PARAM, 0.f, 1.f, 0.f, "Record");
+	configSwitch(RECORD4_PARAM, 0.f, 1.f, 0.f, "Record");
 
-    // Record switches
-    configSwitch(RECORD1_PARAM, 0.f, 1.f, 0.f, "Record 1", {"off", "on"});
-    configSwitch(RECORD2_PARAM, 0.f, 1.f, 0.f, "Record 2", {"off", "on"});
-    configSwitch(RECORD3_PARAM, 0.f, 1.f, 0.f, "Record 3", {"off", "on"});
-    configSwitch(RECORD4_PARAM, 0.f, 1.f, 0.f, "Record 4", {"off", "on"});
+	// Loop switches
+	configSwitch(LOOP1_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
+	configSwitch(LOOP2_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
+	configSwitch(LOOP3_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
+	configSwitch(LOOP4_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
 
-    // Loop switches
-    configSwitch(LOOP1_PARAM, 0.f, 1.f, 0.f, "Loop 1", {"off", "on"});
-    configSwitch(LOOP2_PARAM, 0.f, 1.f, 0.f, "Loop 2", {"off", "on"});
-    configSwitch(LOOP3_PARAM, 0.f, 1.f, 0.f, "Loop 3", {"off", "on"});
-    configSwitch(LOOP4_PARAM, 0.f, 1.f, 0.f, "Loop 4", {"off", "on"});
-
-    // Play switches
-    configSwitch(PLAY1_PARAM, 0.f, 1.f, 0.f, "Play 1", {"off", "on"});
-    configSwitch(PLAY2_PARAM, 0.f, 1.f, 0.f, "Play 2", {"off", "on"});
-    configSwitch(PLAY3_PARAM, 0.f, 1.f, 0.f, "Play 3", {"off", "on"});
-    configSwitch(PLAY4_PARAM, 0.f, 1.f, 0.f, "Play 4", {"off", "on"});
+	// Play switches
+	configSwitch(PLAY1_PARAM, 0.f, 1.f, 0.f, "Play");
+	configSwitch(PLAY2_PARAM, 0.f, 1.f, 0.f, "Play");
+	configSwitch(PLAY3_PARAM, 0.f, 1.f, 0.f, "Play");
+	configSwitch(PLAY4_PARAM, 0.f, 1.f, 0.f, "Play");
 
     // Audio inputs
     configInput(AUDIOLEFTIN_INPUT, "Audio Left");
@@ -152,48 +167,85 @@ struct Tehom : Module {
     configInput(WARBLECVIN_INPUT, "Warble CV");
     configInput(SELECTCVIN_INPUT, "Select CV");
     configInput(AMOUNTCVIN_INPUT, "Amount CV");
-    configInput(RETURN_INPUT, "Return");
+    configInput(RETURN_INPUT, "Noise Return");
     configInput(XCVIN_INPUT, "X CV");
     configInput(YCVIN_INPUT, "Y CV");
     configInput(SLEWCVIN_INPUT, "Slew CV");
     configInput(SIZECVIN_INPUT, "Size CV");
     configInput(POSITIONCVIN_INPUT, "Position CV");
     configInput(XFADECVIN_INPUT, "Crossfade CV");
+	
+	// Source CV inputs
+	configInput(SOURCE1CVIN_INPUT, "Source CV");
+	configInput(SOURCE2CVIN_INPUT, "Source CV");
+	configInput(SOURCE3CVIN_INPUT, "Source CV");
+	configInput(SOURCE4CVIN_INPUT, "Source CV");
 
-    // Source CV inputs
-    configInput(SOURCE1CVIN_INPUT, "Source 1 CV");
-    configInput(SOURCE2CVIN_INPUT, "Source 2 CV");
-    configInput(SOURCE3CVIN_INPUT, "Source 3 CV");
-    configInput(SOURCE4CVIN_INPUT, "Source 4 CV");
+	// Pitch CV inputs
+	configInput(PITCH1CVIN_INPUT, "Pitch CV");
+	configInput(PITCH2CVIN_INPUT, "Pitch CV");
+	configInput(PITCH3CVIN_INPUT, "Pitch CV");
+	configInput(PITCH4CVIN_INPUT, "Pitch CV");
 
-    // Pitch CV inputs
-    configInput(PITCH1CVIN_INPUT, "Pitch 1 CV");
-    configInput(PITCH2CVIN_INPUT, "Pitch 2 CV");
-    configInput(PITCH3CVIN_INPUT, "Pitch 3 CV");
-    configInput(PITCH4CVIN_INPUT, "Pitch 4 CV");
+	// Record CV inputs
+	configInput(RECORD1CVIN_INPUT, "Record CV");
+	configInput(RECORD2CVIN_INPUT, "Record CV");
+	configInput(RECORD3CVIN_INPUT, "Record CV");
+	configInput(RECORD4CVIN_INPUT, "Record CV");
 
-    // Record CV inputs
-    configInput(RECORD1CVIN_INPUT, "Record 1 CV");
-    configInput(RECORD2CVIN_INPUT, "Record 2 CV");
-    configInput(RECORD3CVIN_INPUT, "Record 3 CV");
-    configInput(RECORD4CVIN_INPUT, "Record 4 CV");
-
-    // Play CV inputs
-    configInput(PLAY1CVIN_INPUT, "Play 1 CV");
-    configInput(PLAY2CVIN_INPUT, "Play 2 CV");
-    configInput(PLAY3CVIN_INPUT, "Play 3 CV");
-    configInput(PLAY4CVIN_INPUT, "Play 4 CV");
+	// Play CV inputs
+	configInput(PLAY1CVIN_INPUT, "Play CV");
+	configInput(PLAY2CVIN_INPUT, "Play CV");
+	configInput(PLAY3CVIN_INPUT, "Play CV");
+	configInput(PLAY4CVIN_INPUT, "Play CV");
 
     // Outputs
-    configOutput(AUDIOLEFTOUT_OUTPUT, "Audio Left Out");
-    configOutput(AUDIORIGHTOUT_OUTPUT, "Audio Right Out");
-    configOutput(SEND_OUTPUT, "Send");
-    configOutput(XCVOUT_OUTPUT, "X CV Out");
-    configOutput(YCVOUT_OUTPUT, "Y CV Out");
+    configOutput(AUDIOLEFTOUT_OUTPUT, "Audio Left");
+    configOutput(AUDIORIGHTOUT_OUTPUT, "Audio Right");
+    configOutput(SEND_OUTPUT, "Noise Send");
+    configOutput(XCVOUT_OUTPUT, "X CV");
+    configOutput(YCVOUT_OUTPUT, "Y CV");
 }
 
-	void process(const ProcessArgs& args) override {
-	}
+// Current state of record/play toggles
+bool recordState[4] = {false, false, false, false};
+bool playState[4] = {false, false, false, false};
+
+// Previous button value for rising-edge detection
+bool lastRecordButton[4] = {false, false, false, false};
+bool lastPlayButton[4] = {false, false, false, false};
+
+void process(const ProcessArgs& args) override {
+    // --- RECORD toggles ---
+    for (int i = 0; i < 4; i++) {
+        bool btn = params[RECORD1_PARAM + i].getValue() > 0.5f;
+        bool btnRising = btn && !lastRecordButton[i];
+
+        if (btnRising)
+            recordState[i] = !recordState[i]; // toggle state
+
+        lastRecordButton[i] = btn;
+
+        // Update light smoothly
+        lights[RECORD1_LIGHT + i].setBrightnessSmooth(recordState[i] ? 1.f : 0.f, args.sampleTime);
+    }
+
+    // --- PLAY toggles ---
+    for (int i = 0; i < 4; i++) {
+        bool btn = params[PLAY1_PARAM + i].getValue() > 0.5f;
+        bool btnRising = btn && !lastPlayButton[i];
+
+        if (btnRising)
+            playState[i] = !playState[i]; // toggle state
+
+        lastPlayButton[i] = btn;
+
+        // Update light smoothly
+        lights[PLAY1_LIGHT + i].setBrightnessSmooth(playState[i] ? 1.f : 0.f, args.sampleTime);
+    }
+
+    // --- Continue processing your audio / buffers here ---
+}
 };
 
 
@@ -202,80 +254,106 @@ struct TehomWidget : ModuleWidget {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Tehom.svg")));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(60.972, 36.448)), module, Tehom::WARBLE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(71.215, 36.448)), module, Tehom::SELECT_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(81.457, 36.448)), module, Tehom::AMOUNT_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(14.738, 39.243)), module, Tehom::SOURCE1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 39.243)), module, Tehom::PITCH1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 39.243)), module, Tehom::SOURCE2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 39.243)), module, Tehom::PITCH2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(14.738, 54.176)), module, Tehom::RECORD1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(26.901, 54.204)), module, Tehom::LOOP1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(39.026, 54.176)), module, Tehom::PLAY1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 54.176)), module, Tehom::RECORD2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(125.316, 54.204)), module, Tehom::LOOP2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.441, 54.176)), module, Tehom::PLAY2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(14.738, 101.014)), module, Tehom::SOURCE3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 101.014)), module, Tehom::PITCH3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 101.014)), module, Tehom::SOURCE4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 101.014)), module, Tehom::PITCH4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(60.972, 114.136)), module, Tehom::SLEW_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(71.215, 114.136)), module, Tehom::SIZE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(81.457, 114.136)), module, Tehom::POSITION_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(91.8, 114.136)), module, Tehom::XFADE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(14.738, 115.947)), module, Tehom::RECORD3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(26.901, 115.975)), module, Tehom::LOOP3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(39.026, 115.947)), module, Tehom::PLAY3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 115.947)), module, Tehom::RECORD4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(125.316, 115.975)), module, Tehom::LOOP4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.441, 115.947)), module, Tehom::PLAY4_PARAM));
+		// 2 Position switches 
+		addParam(createParamCentered<CKSS>(mm2px(Vec(26.901, 54.204)), module, Tehom::LOOP1_PARAM));
+		addParam(createParamCentered<CKSS>(mm2px(Vec(125.316, 54.204)), module, Tehom::LOOP2_PARAM));
+		addParam(createParamCentered<CKSS>(mm2px(Vec(26.901, 115.975)), module, Tehom::LOOP3_PARAM));
+		addParam(createParamCentered<CKSS>(mm2px(Vec(125.316, 115.975)), module, Tehom::LOOP4_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(60.972, 11.851)), module, Tehom::AUDIOLEFTIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(71.215, 11.851)), module, Tehom::AUDIORIGHTIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(9.434, 23.541)), module, Tehom::SOURCE1CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(20.788, 23.541)), module, Tehom::RECORD1CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(32.932, 23.541)), module, Tehom::PLAY1CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(44.33, 23.541)), module, Tehom::PITCH1CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(107.848, 23.541)), module, Tehom::SOURCE2CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(119.202, 23.541)), module, Tehom::RECORD2CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(131.347, 23.541)), module, Tehom::PLAY2CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(142.745, 23.541)), module, Tehom::PITCH2CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(60.972, 26.591)), module, Tehom::WARBLECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(71.215, 26.591)), module, Tehom::SELECTCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(81.457, 26.591)), module, Tehom::AMOUNTCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.627, 36.448)), module, Tehom::RETURN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(9.434, 85.312)), module, Tehom::SOURCE3CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(20.788, 85.312)), module, Tehom::RECORD3CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(32.932, 85.312)), module, Tehom::PLAY3CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(44.33, 85.312)), module, Tehom::PITCH3CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(107.848, 85.312)), module, Tehom::SOURCE4CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(119.202, 85.312)), module, Tehom::RECORD4CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(131.347, 85.312)), module, Tehom::PLAY4CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(142.745, 85.312)), module, Tehom::PITCH4CVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(60.968, 90.436)), module, Tehom::XCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(71.215, 90.436)), module, Tehom::YCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(60.972, 106.395)), module, Tehom::SLEWCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(71.215, 106.395)), module, Tehom::SIZECVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(81.457, 106.395)), module, Tehom::POSITIONCVIN_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(91.8, 106.395)), module, Tehom::XFADECVIN_INPUT));
+		// LEDBezel buttons with lights (RECORD = red, PLAY = green)
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(14.738, 54.176)), module, Tehom::RECORD1_PARAM));
+		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(14.738, 54.176)), module, Tehom::RECORD1_LIGHT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(81.457, 11.912)), module, Tehom::AUDIOLEFTOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(91.8, 11.912)), module, Tehom::AUDIORIGHTOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(91.627, 26.591)), module, Tehom::SEND_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(81.41, 90.353)), module, Tehom::XCVOUT_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(91.8, 90.669)), module, Tehom::YCVOUT_OUTPUT));
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(113.152, 54.176)), module, Tehom::RECORD2_PARAM));
+		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(113.152, 54.176)), module, Tehom::RECORD2_LIGHT));
 
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(26.9, 10.166)), module, Tehom::BUFFER1LED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(125.315, 10.166)), module, Tehom::BUFFER2LED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(26.9, 71.937)), module, Tehom::BUFFER3LED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(125.315, 71.937)), module, Tehom::BUFFER4LED_LIGHT));
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(14.738, 115.947)), module, Tehom::RECORD3_PARAM));
+		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(14.738, 115.947)), module, Tehom::RECORD3_LIGHT));
+
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(113.152, 115.947)), module, Tehom::RECORD4_PARAM));
+		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(113.152, 115.947)), module, Tehom::RECORD4_LIGHT));
+
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(39.026, 54.176)), module, Tehom::PLAY1_PARAM));
+		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(39.026, 54.176)), module, Tehom::PLAY1_LIGHT));
+
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(137.441, 54.176)), module, Tehom::PLAY2_PARAM));
+		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(137.441, 54.176)), module, Tehom::PLAY2_LIGHT));
+
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(39.026, 115.947)), module, Tehom::PLAY3_PARAM));
+		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(39.026, 115.947)), module, Tehom::PLAY3_LIGHT));
+
+		addParam(createParamCentered<LEDBezel>(mm2px(Vec(137.441, 115.947)), module, Tehom::PLAY4_PARAM));
+		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(137.441, 115.947)), module, Tehom::PLAY4_LIGHT));
+
+		// Small knobs 
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(60.972, 36.448)), module, Tehom::WARBLE_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(71.215, 36.448)), module, Tehom::SELECT_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(81.457, 36.448)), module, Tehom::AMOUNT_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(60.972, 114.136)), module, Tehom::SLEW_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(71.215, 114.136)), module, Tehom::SIZE_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(81.457, 114.136)), module, Tehom::POSITION_PARAM));
+		addParam(createParamCentered<Trimpot>(mm2px(Vec(91.8, 114.136)), module, Tehom::XFADE_PARAM));
+
+		// Big Knobs
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(14.738, 39.243)), module, Tehom::SOURCE1_PARAM));
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(113.152, 39.243)), module, Tehom::SOURCE2_PARAM));
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(14.738, 101.014)), module, Tehom::SOURCE3_PARAM));
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(113.152, 101.014)), module, Tehom::SOURCE4_PARAM));
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(38.86, 39.243)), module, Tehom::PITCH1_PARAM));
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(137.275, 39.243)), module, Tehom::PITCH2_PARAM));
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(38.86, 101.014)), module, Tehom::PITCH3_PARAM));
+		addParam(createParamCentered<RoundBigBlackKnob>(mm2px(Vec(137.275, 101.014)), module, Tehom::PITCH4_PARAM));
+	
+
+		// Audio inputs
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 11.851)), module, Tehom::AUDIOLEFTIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 11.851)), module, Tehom::AUDIORIGHTIN_INPUT));
+
+		// Inputs 
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 26.591)), module, Tehom::WARBLECVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 26.591)), module, Tehom::SELECTCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.457, 26.591)), module, Tehom::AMOUNTCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.627, 36.448)), module, Tehom::RETURN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.968, 90.436)), module, Tehom::XCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 90.436)), module, Tehom::YCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 106.395)), module, Tehom::SLEWCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 106.395)), module, Tehom::SIZECVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.457, 106.395)), module, Tehom::POSITIONCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.8, 106.395)), module, Tehom::XFADECVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(9.434, 23.541)), module, Tehom::SOURCE1CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(44.33, 23.541)), module, Tehom::PITCH1CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(20.788, 23.541)), module, Tehom::RECORD1CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(32.932, 23.541)), module, Tehom::PLAY1CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.848, 23.541)), module, Tehom::SOURCE2CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(142.745, 23.541)), module, Tehom::PITCH2CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(119.202, 23.541)), module, Tehom::RECORD2CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(131.347, 23.541)), module, Tehom::PLAY2CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(9.434, 85.312)), module, Tehom::SOURCE3CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(44.33, 85.312)), module, Tehom::PITCH3CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(20.788, 85.312)), module, Tehom::RECORD3CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(32.932, 85.312)), module, Tehom::PLAY3CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.848, 85.312)), module, Tehom::SOURCE4CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(142.745, 85.312)), module, Tehom::PITCH4CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(119.202, 85.312)), module, Tehom::RECORD4CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(131.347, 85.312)), module, Tehom::PLAY4CVIN_INPUT));
+
+		// Outputs
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(81.457, 11.912)), module, Tehom::AUDIOLEFTOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(91.8, 11.912)), module, Tehom::AUDIORIGHTOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(91.627, 26.591)), module, Tehom::SEND_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(81.41, 90.353)), module, Tehom::XCVOUT_OUTPUT));
+		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(91.8, 90.669)), module, Tehom::YCVOUT_OUTPUT));
+
+		// Lights
+		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(26.9, 10.166)), module, Tehom::BUFFER1LED_LIGHT));
+		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(125.315, 10.166)), module, Tehom::BUFFER2LED_LIGHT));
+		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(26.9, 71.937)), module, Tehom::BUFFER3LED_LIGHT));
+		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(125.315, 71.937)), module, Tehom::BUFFER4LED_LIGHT));
 	}
 };
-
-
 Model* modelTehom = createModel<Tehom, TehomWidget>("Tehom");
