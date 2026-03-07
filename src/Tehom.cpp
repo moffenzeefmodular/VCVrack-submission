@@ -1,5 +1,12 @@
 #include "plugin.hpp"
 
+struct PitchQuantity : ParamQuantity {
+    std::string getDisplayValueString() override {
+        float v = getValue();
+        float display = (v >= 0.f) ? (v + 1.f) : (v - 1.f);
+        return string::f("%.3gx", display); // literally same as SpeedQuantity
+    }
+};
 
 struct Tehom : Module {
     enum ParamId {
@@ -118,28 +125,27 @@ struct Tehom : Module {
 	Tehom() {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-    // Global params
-    configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
-
     configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "HiFi Tape Hiss", "LoFi Tape Hiss", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
-    
+
+	configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "ms", 0.f, 1000.f);
+
+	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
-    configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "%", 0.f, 100.f);
     configParam(SIZE_PARAM, 0.f, 1.f, 0.f, "Size", "%", 0.f, 100.f);
     configParam(POSITION_PARAM, 0.f, 1.f, 0.f, "Position", "%", 0.f, 100.f);
     configParam(XFADE_PARAM, 0.f, 1.f, 0.f, "Crossfade", "%", 0.f, 100.f);
 	
 	// Source params
-	configParam(SOURCE1_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
-	configParam(SOURCE2_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
-	configParam(SOURCE3_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
-	configParam(SOURCE4_PARAM, 0.f, 1.f, 0.5f, "Source", "%", 0.f, 100.f);
+	configParam(SOURCE1_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
+	configParam(SOURCE2_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
+	configParam(SOURCE3_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
+	configParam(SOURCE4_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
 
 	// Pitch params
-	configParam(PITCH1_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
-	configParam(PITCH2_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
-	configParam(PITCH3_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
-	configParam(PITCH4_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam<PitchQuantity>(PITCH1_PARAM, -1.f, 1.f, 0.f, "Pitch");
+	configParam<PitchQuantity>(PITCH2_PARAM, -1.f, 1.f, 0.f, "Pitch");
+	configParam<PitchQuantity>(PITCH3_PARAM, -1.f, 1.f, 0.f, "Pitch");
+	configParam<PitchQuantity>(PITCH4_PARAM, -1.f, 1.f, 0.f, "Pitch");
 
 	// Record switches
 	configSwitch(RECORD1_PARAM, 0.f, 1.f, 0.f, "Record");
@@ -165,8 +171,8 @@ struct Tehom : Module {
 
     // Global CV inputs
     configInput(WARBLECVIN_INPUT, "Warble CV");
-    configInput(SELECTCVIN_INPUT, "Select CV");
-    configInput(AMOUNTCVIN_INPUT, "Amount CV");
+    configInput(SELECTCVIN_INPUT, "Noise Select CV");
+    configInput(AMOUNTCVIN_INPUT, "Noise Amount CV");
     configInput(RETURN_INPUT, "Noise Return");
     configInput(XCVIN_INPUT, "X CV");
     configInput(YCVIN_INPUT, "Y CV");
