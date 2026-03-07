@@ -16,11 +16,11 @@ struct Tehom : Module {
         SOURCE3_PARAM,
         SOURCE4_PARAM,
 
-        // Pitch
-        PITCH1_PARAM,
-        PITCH2_PARAM,
-        PITCH3_PARAM,
-        PITCH4_PARAM,
+        // Speed
+        SPEED1_PARAM,
+        SPEED2_PARAM,
+        SPEED3_PARAM,
+        SPEED4_PARAM,
 
         // Record
         RECORD1_PARAM,
@@ -68,11 +68,11 @@ struct Tehom : Module {
         SOURCE3CVIN_INPUT,
         SOURCE4CVIN_INPUT,
 
-        // Pitch CV
-        PITCH1CVIN_INPUT,
-        PITCH2CVIN_INPUT,
-        PITCH3CVIN_INPUT,
-        PITCH4CVIN_INPUT,
+        // Speed CV
+        SPEED1CVIN_INPUT,
+        SPEED2CVIN_INPUT,
+        SPEED3CVIN_INPUT,
+        SPEED4CVIN_INPUT,
 
         // Record CV
         RECORD1CVIN_INPUT,
@@ -152,10 +152,10 @@ struct Tehom : Module {
 	configParam(SOURCE4_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
 
 	// Pitch params
-	configParam(PITCH1_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
-	configParam(PITCH2_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
-	configParam(PITCH3_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
-	configParam(PITCH4_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam(SPEED1_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED2_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED3_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED4_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
 
 	// Record switches
 	configSwitch(RECORD1_PARAM, 0.f, 1.f, 0.f, "Record");
@@ -198,10 +198,10 @@ struct Tehom : Module {
 	configInput(SOURCE4CVIN_INPUT, "Source CV");
 
 	// Pitch CV inputs
-	configInput(PITCH1CVIN_INPUT, "Pitch CV");
-	configInput(PITCH2CVIN_INPUT, "Pitch CV");
-	configInput(PITCH3CVIN_INPUT, "Pitch CV");
-	configInput(PITCH4CVIN_INPUT, "Pitch CV");
+	configInput(SPEED1CVIN_INPUT, "Speed CV");
+	configInput(SPEED2CVIN_INPUT, "Speed CV");
+	configInput(SPEED3CVIN_INPUT, "Speed CV");
+	configInput(SPEED4CVIN_INPUT, "Speed CV");
 
 	// Record CV inputs
 	configInput(RECORD1CVIN_INPUT, "Record CV");
@@ -279,7 +279,7 @@ void process(const ProcessArgs& args) override {
 for (int i = 0; i < 4; i++) {
     // Only spin if PLAY is active and user isn't clicking the bezel
     if (playState[i] && !bezelDragging[i].load()) {
-        float pitchVal = params[Tehom::PITCH1_PARAM + i].getValue();
+        float pitchVal = clamp(params[Tehom::SPEED1_PARAM + i].getValue() + inputs[Tehom::SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f);
 
         float minSpeed = 0.02f;
         float maxSpeed = 0.2f;
@@ -525,10 +525,10 @@ struct TehomWidget : ModuleWidget {
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 39.243)), module, Tehom::SOURCE2_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(14.738, 101.014)), module, Tehom::SOURCE3_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 101.014)), module, Tehom::SOURCE4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 39.243)), module, Tehom::PITCH1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 39.243)), module, Tehom::PITCH2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 101.014)), module, Tehom::PITCH3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 101.014)), module, Tehom::PITCH4_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 39.243)), module, Tehom::SPEED1_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 39.243)), module, Tehom::SPEED2_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 101.014)), module, Tehom::SPEED3_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 101.014)), module, Tehom::SPEED4_PARAM));
 	
 		// Audio inputs
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 11.851)), module, Tehom::AUDIOLEFTIN_INPUT));
@@ -546,19 +546,19 @@ struct TehomWidget : ModuleWidget {
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.457, 106.395)), module, Tehom::POSITIONCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.8, 106.395)), module, Tehom::XFADECVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(9.434, 23.541)), module, Tehom::SOURCE1CVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(44.33, 23.541)), module, Tehom::PITCH1CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(44.33, 23.541)), module, Tehom::SPEED1CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(20.788, 23.541)), module, Tehom::RECORD1CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(32.932, 23.541)), module, Tehom::PLAY1CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.848, 23.541)), module, Tehom::SOURCE2CVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(142.745, 23.541)), module, Tehom::PITCH2CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(142.745, 23.541)), module, Tehom::SPEED2CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(119.202, 23.541)), module, Tehom::RECORD2CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(131.347, 23.541)), module, Tehom::PLAY2CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(9.434, 85.312)), module, Tehom::SOURCE3CVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(44.33, 85.312)), module, Tehom::PITCH3CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(44.33, 85.312)), module, Tehom::SPEED3CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(20.788, 85.312)), module, Tehom::RECORD3CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(32.932, 85.312)), module, Tehom::PLAY3CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(107.848, 85.312)), module, Tehom::SOURCE4CVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(142.745, 85.312)), module, Tehom::PITCH4CVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(142.745, 85.312)), module, Tehom::SPEED4CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(119.202, 85.312)), module, Tehom::RECORD4CVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(131.347, 85.312)), module, Tehom::PLAY4CVIN_INPUT));
 
