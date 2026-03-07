@@ -1,13 +1,5 @@
 #include "plugin.hpp"
 
-struct PitchQuantity : ParamQuantity {
-    std::string getDisplayValueString() override {
-        float v = getValue();
-        float display = (v >= 0.f) ? (v + 1.f) : (v - 1.f);
-        return string::f("%.3gx", display); // literally same as SpeedQuantity
-    }
-};
-
 struct Tehom : Module {
     enum ParamId {
         WARBLE_PARAM,
@@ -134,10 +126,10 @@ struct Tehom : Module {
 
 	configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "ms", 0.f, 1000.f);
 
-	configSwitch(LEDBEZEL1_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
-	configSwitch(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
-	configSwitch(LEDBEZEL3_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
-	configSwitch(LEDBEZEL4_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
+	configParam(LEDBEZEL1_PARAM, 0.f, 1.f, 0.f);
+	configParam(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f);
+	configParam(LEDBEZEL3_PARAM, 0.f, 1.f, 0.f);
+	configParam(LEDBEZEL4_PARAM, 0.f, 1.f, 0.f);
 
 	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
@@ -152,10 +144,10 @@ struct Tehom : Module {
 	configParam(SOURCE4_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
 
 	// Pitch params
-	configParam<PitchQuantity>(PITCH1_PARAM, -1.f, 1.f, 0.f, "Pitch");
-	configParam<PitchQuantity>(PITCH2_PARAM, -1.f, 1.f, 0.f, "Pitch");
-	configParam<PitchQuantity>(PITCH3_PARAM, -1.f, 1.f, 0.f, "Pitch");
-	configParam<PitchQuantity>(PITCH4_PARAM, -1.f, 1.f, 0.f, "Pitch");
+	configParam(PITCH1_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam(PITCH2_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam(PITCH3_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
+	configParam(PITCH4_PARAM, 0.f, 1.f, 0.5f, "Pitch", "%", 0.f, 100.f);
 
 	// Record switches
 	configSwitch(RECORD1_PARAM, 0.f, 1.f, 0.f, "Record");
@@ -231,6 +223,8 @@ bool playState[4] = {false, false, false, false};
 bool lastRecordButton[4] = {false, false, false, false};
 bool lastPlayButton[4] = {false, false, false, false};
 
+float ledSpinSpeed[4] = {0.3f, 0.25f, 0.2f, 0.15f};
+
 void process(const ProcessArgs& args) override {
     // --- RECORD toggles ---
     for (int i = 0; i < 4; i++) {
@@ -258,7 +252,28 @@ void process(const ProcessArgs& args) override {
 
         // Update light smoothly
         lights[PLAY1_LIGHT + i].setBrightnessSmooth(playState[i] ? 1.f : 0.f, args.sampleTime);
-    }
+
+for (int i = 0; i < 4; i++) {
+    // Pitch knob value 0 → 1
+    float pitchVal = params[Tehom::PITCH1_PARAM + i].getValue();
+
+    // Define min and max spin speed
+    float minSpeed = 0.02f;  // slowest
+    float maxSpeed = 0.11f;   // fastest
+
+    // Map knob linearly from min → max speed
+    float spinSpeed = minSpeed + pitchVal * (maxSpeed - minSpeed);
+
+    // Update bezel rotation
+    float newValue = params[Tehom::LEDBEZEL1_PARAM + i].getValue() + spinSpeed * args.sampleTime;
+
+    // Wrap between 0 → 1
+    if (newValue > 1.f) newValue -= 1.f;
+
+    params[Tehom::LEDBEZEL1_PARAM + i].setValue(newValue);
+}
+
+}
 }
 };
 
@@ -364,9 +379,9 @@ struct TehomWidget : ModuleWidget {
 
 		// LED Bezels 
 		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(26.901, 10.166)), module, Tehom::LEDBEZEL1_PARAM));
-        addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 10.166)), module, Tehom::LEDBEZEL2_PARAM));
-        addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(26.901, 71.937)), module, Tehom::LEDBEZEL3_PARAM));
-        addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 71.937)), module, Tehom::LEDBEZEL4_PARAM));
+		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 10.166)), module, Tehom::LEDBEZEL2_PARAM));
+		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(26.901, 71.937)), module, Tehom::LEDBEZEL3_PARAM));
+		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 71.937)), module, Tehom::LEDBEZEL4_PARAM));
 
 		// Lights
 		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(26.9, 10.166)), module, Tehom::BUFFER1LED_LIGHT));
