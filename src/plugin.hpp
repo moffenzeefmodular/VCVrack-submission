@@ -142,7 +142,6 @@ struct StargazerTinyKnob : SvgKnob {
 	}
 };
 
-
 struct StargazerLFOKnob : SvgKnob {
 	widget::SvgWidget* bg;
 	StargazerLFOKnob() {
@@ -157,5 +156,18 @@ struct LEDBezelSilver : SvgKnob {
 	widget::SvgWidget* bg;
 	LEDBezelSilver() {
 		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/LEDBezelSilver.svg")));
+	}
+};
+
+struct TehomKnob : SvgKnob {
+	widget::SvgWidget* bg;
+	TehomKnob() {
+		minAngle = -0.85 * M_PI;
+		maxAngle = 0.85 * M_PI;
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/TehomKnob.svg")));
+
+		bg = new widget::SvgWidget;
+		fb->addChildBelow(bg, tw);
+		bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/TehomKnobBG.svg")));
 	}
 };

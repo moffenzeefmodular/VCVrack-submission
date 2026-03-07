@@ -1000,14 +1000,14 @@ struct TehomWidget : ModuleWidget {
 		addParam(createParamCentered<Trimpot>(mm2px(Vec(91.8, 114.136)), module, Tehom::XFADE_PARAM));
 
 		// Big Knobs
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(14.738, 39.243)), module, Tehom::SOURCE1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 39.243)), module, Tehom::SOURCE2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(14.738, 101.014)), module, Tehom::SOURCE3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(113.152, 101.014)), module, Tehom::SOURCE4_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 39.243)), module, Tehom::SPEED1_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 39.243)), module, Tehom::SPEED2_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 101.014)), module, Tehom::SPEED3_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 101.014)), module, Tehom::SPEED4_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(14.738, 39.243)), module, Tehom::SOURCE1_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(113.152, 39.243)), module, Tehom::SOURCE2_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(14.738, 101.014)), module, Tehom::SOURCE3_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(113.152, 101.014)), module, Tehom::SOURCE4_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(38.86, 39.243)), module, Tehom::SPEED1_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(137.275, 39.243)), module, Tehom::SPEED2_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(38.86, 101.014)), module, Tehom::SPEED3_PARAM));
+		addParam(createParamCentered<TehomKnob>(mm2px(Vec(137.275, 101.014)), module, Tehom::SPEED4_PARAM));
 	
 		// Audio inputs
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 11.851)), module, Tehom::AUDIOLEFTIN_INPUT));
