@@ -155,8 +155,8 @@ struct Tehom : Module {
 
 	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
-    configParam(SIZE_PARAM, 0.f, 1.f, 0.f, "Size", "%", 0.f, 100.f);
-    configParam(POSITION_PARAM, 0.f, 1.f, 0.f, "Position", "%", 0.f, 100.f);
+    configParam(SIZE_PARAM, 0.f, 1.f, 1.f, "Loop Size", "%", 0.f, 100.f);
+    configParam(POSITION_PARAM, 0.f, 1.f, 0.5f, "Loop Position", "%", 0.f, 100.f);
     configParam(XFADE_PARAM, 0.f, 1.f, 0.f, "Crossfade", "%", 0.f, 100.f);
 	
 	// Source params
@@ -167,9 +167,9 @@ struct Tehom : Module {
 
 	// Pitch params
 	configParam(SPEED1_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
-	configParam(SPEED2_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
-	configParam(SPEED3_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
-	configParam(SPEED4_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED2_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED3_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED4_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
 
 	// Record switches
 	configSwitch(RECORD1_PARAM, 0.f, 1.f, 0.f, "Record");
@@ -330,7 +330,7 @@ float xyFinalX = 0.5f;
 float xyFinalY = 0.5f;
 
 // Audio buffers
-float bufferDuration = 5.f;   // seconds, user-selectable
+float bufferDuration = 2.f;   // seconds, user-selectable
 float currentSampleRate = 44100.f;
 int bufferSize = 0;
 std::vector<float> bufL[4];
@@ -439,14 +439,29 @@ void process(const ProcessArgs& args) override {
     float outL = 0.f, outR = 0.f;
     float chanMixL[4] = {}, chanMixR[4] = {};
 
+    // Global loop window params
+    float sizeParam = clamp(params[SIZE_PARAM].getValue() + inputs[SIZECVIN_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+    float posParam  = clamp(params[POSITION_PARAM].getValue() + inputs[POSITIONCVIN_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+
     for (int i = 0; i < 4; i++) {
         float sampL = 0.f, sampR = 0.f;
 
         if (playState[i] && hasContent[i] && bufferSize > 0 && !bezelDragging[i].load()) {
             int len = recordedLength[i];
             if (len >= 2) {
-                int rp0 = clamp((int)readPos[i], 0, len - 1);
-                int rp1 = clamp(rp0 + 1, 0, len - 1);
+                // Compute loop window
+                int loopSize  = std::max(100, (int)(sizeParam * (float)len));
+                loopSize      = std::min(loopSize, len);
+                int loopStart = (int)(posParam * (float)(len - loopSize));
+                loopStart     = clamp(loopStart, 0, std::max(0, len - loopSize));
+                int loopEnd   = loopStart + loopSize;
+
+                // Clamp readPos into window (handles init and window changes mid-playback)
+                if (readPos[i] < (float)loopStart) readPos[i] = (float)loopStart;
+                if (readPos[i] >= (float)loopEnd)  readPos[i] = (float)(loopEnd - 1);
+
+                int rp0 = clamp((int)readPos[i], loopStart, loopEnd - 1);
+                int rp1 = clamp(rp0 + 1, loopStart, loopEnd - 1);
                 float frac = readPos[i] - (float)rp0;
                 sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
                 sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
@@ -457,12 +472,12 @@ void process(const ProcessArgs& args) override {
 
                 bool looping = params[LOOP1_PARAM + i].getValue() > 0.5f;
                 if (looping) {
-                    if (readPos[i] >= (float)len) readPos[i] -= (float)len;
-                    if (readPos[i] < 0.f) readPos[i] += (float)len;
+                    if (readPos[i] >= (float)loopEnd)   readPos[i] -= (float)loopSize;
+                    if (readPos[i] < (float)loopStart)  readPos[i] += (float)loopSize;
                 } else {
-                    if (readPos[i] >= (float)len || readPos[i] < 0.f) {
+                    if (readPos[i] >= (float)loopEnd || readPos[i] < (float)loopStart) {
                         playState[i] = false;
-                        readPos[i] = playReversed[i] ? (float)(len - 1) : 0.f;
+                        readPos[i] = playReversed[i] ? (float)(loopEnd - 1) : (float)loopStart;
                     }
                 }
             }
