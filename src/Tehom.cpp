@@ -336,6 +336,10 @@ std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
 float xyFinalY = 0.5f;
 
+// Warble LFO phases (per channel, advance while playing)
+float wowPhase[4]     = {};
+float flutterPhase[4] = {};
+
 // Audio buffers
 float bufferDuration = 2.f;   // seconds, user-selectable
 float currentSampleRate = 44100.f;
@@ -450,6 +454,14 @@ void process(const ProcessArgs& args) override {
         xyFinalX * (1.f - xyFinalY),           // ch4: bottom-right
     };
 
+    // Warble (wow + flutter)
+    float warble     = clamp(params[WARBLE_PARAM].getValue() + clamp(inputs[WARBLECVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+    float warbleFade = clamp(warble / 0.05f, 0.f, 1.f); // fade in over first 5% of knob
+    float wowRate     = 0.5f + warble * 1.5f;  // 0.5–2 Hz
+    float flutterRate = 5.f  + warble * 10.f;  // 5–15 Hz
+    float wowDepth     = warbleFade * warble * warble * 0.042f;
+    float flutterDepth = warbleFade * warble * warble * 0.011f;
+
     // Per-channel: read loop buffer (with pitch), source-crossfade with input for output + recording.
     // source left (t=0) = hear/record input; source right (t=1) = hear/record loop (sound on sound).
     // bilinear vol[] always sums to 1.0, so unity gain is preserved across XY positions.
@@ -499,6 +511,14 @@ void process(const ProcessArgs& args) override {
                 }
 
                 float speed = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f) * 2.f;
+
+                // Wow and flutter: advance per-channel LFO phases and modulate speed
+                wowPhase[i]     = std::fmod(wowPhase[i]     + wowRate     * args.sampleTime, 1.f);
+                flutterPhase[i] = std::fmod(flutterPhase[i] + flutterRate * args.sampleTime, 1.f);
+                float warbleMod = std::sin(2.f * float(M_PI) * wowPhase[i])     * wowDepth
+                                + std::sin(2.f * float(M_PI) * flutterPhase[i]) * flutterDepth;
+                speed *= (1.f + warbleMod);
+
                 float dir = playReversed[i] ? -1.f : 1.f;
                 readPos[i] += dir * speed;
 
