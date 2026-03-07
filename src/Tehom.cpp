@@ -127,6 +127,12 @@ struct Tehom : Module {
     PLAY3_BLUE_LIGHT,
     PLAY4_BLUE_LIGHT,
 
+    // Erase flash (white, overlaid on record buttons)
+    RECORD1_FLASH_LIGHT,
+    RECORD2_FLASH_LIGHT,
+    RECORD3_FLASH_LIGHT,
+    RECORD4_FLASH_LIGHT,
+
     LIGHTS_LEN
 };
 
@@ -241,6 +247,7 @@ void eraseBuffer(int i) {
     hasContent[i] = false;
     recordState[i] = false;
     playState[i] = false;
+    eraseFlash[i] = 0.4f;
 }
 
 void onSampleRateChange(const SampleRateChangeEvent& e) override {
@@ -271,6 +278,8 @@ float ledSpinSpeed[4] = {0.3f, 0.25f, 0.2f, 0.15f};
 
 std::atomic<bool> bezelDragging[4];
 bool playReversed[4] = {false, false, false, false};
+
+float eraseFlash[4] = {};
 
 std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
@@ -305,6 +314,15 @@ void process(const ProcessArgs& args) override {
         }
 
         lights[RECORD1_LIGHT + i].setBrightnessSmooth(recordState[i] ? 1.f : 0.f, args.sampleTime);
+
+        // Erase flash — white light fades out over 0.4s
+        if (eraseFlash[i] > 0.f) {
+            eraseFlash[i] -= args.sampleTime;
+            lights[RECORD1_FLASH_LIGHT + i].setBrightness(clamp(eraseFlash[i] / 0.4f, 0.f, 1.f));
+        } else {
+            eraseFlash[i] = 0.f;
+            lights[RECORD1_FLASH_LIGHT + i].setBrightness(0.f);
+        }
     }
 
     // --- PLAY toggles ---
@@ -591,17 +609,6 @@ struct RecordWidget : LEDBezel {
 		}
 	}
 
-	void drawLayer(const DrawArgs& args, int layer) override {
-		LEDBezel::drawLayer(args, layer);
-		if (layer == 1 && eraseFlashTimer > 0.f) {
-			// White flash: bright at first, fades over 0.4 seconds
-			float alpha = clamp(eraseFlashTimer / 0.4f, 0.f, 1.f);
-			nvgBeginPath(args.vg);
-			nvgCircle(args.vg, box.size.x * 0.5f, box.size.y * 0.5f, box.size.x * 0.5f);
-			nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, alpha));
-			nvgFill(args.vg);
-		}
-	}
 };
 
 struct PlayTooltip : ui::Tooltip {
@@ -792,6 +799,7 @@ struct TehomWidget : ModuleWidget {
 				rec->channel = i;
 				addParam(rec);
 				addChild(createLightCentered<LEDBezelLight<RedLight>>(recPos[i], module, Tehom::RECORD1_LIGHT + i));
+				addChild(createLightCentered<LEDBezelLight<WhiteLight>>(recPos[i], module, Tehom::RECORD1_FLASH_LIGHT + i));
 			}
 		}
 
