@@ -48,6 +48,11 @@ struct Tehom : Module {
         PLAY3_PARAM,
         PLAY4_PARAM,
 
+		LEDBEZEL1_PARAM,
+		LEDBEZEL2_PARAM,
+		LEDBEZEL3_PARAM,
+		LEDBEZEL4_PARAM,
+
         PARAMS_LEN
     };
 
@@ -128,6 +133,11 @@ struct Tehom : Module {
     configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "HiFi Tape Hiss", "LoFi Tape Hiss", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
 
 	configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "ms", 0.f, 1000.f);
+
+	configSwitch(LEDBEZEL1_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
+	configSwitch(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
+	configSwitch(LEDBEZEL3_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
+	configSwitch(LEDBEZEL4_PARAM, 0.f, 1.f, 0.f, "Tape Pause", {"Playing", "Paused"});
 
 	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
@@ -249,8 +259,6 @@ void process(const ProcessArgs& args) override {
         // Update light smoothly
         lights[PLAY1_LIGHT + i].setBrightnessSmooth(playState[i] ? 1.f : 0.f, args.sampleTime);
     }
-
-    // --- Continue processing your audio / buffers here ---
 }
 };
 
@@ -315,7 +323,6 @@ struct TehomWidget : ModuleWidget {
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(38.86, 101.014)), module, Tehom::PITCH3_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(137.275, 101.014)), module, Tehom::PITCH4_PARAM));
 	
-
 		// Audio inputs
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 11.851)), module, Tehom::AUDIOLEFTIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 11.851)), module, Tehom::AUDIORIGHTIN_INPUT));
@@ -354,6 +361,12 @@ struct TehomWidget : ModuleWidget {
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(91.627, 26.591)), module, Tehom::SEND_OUTPUT));
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(81.41, 90.353)), module, Tehom::XCVOUT_OUTPUT));
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(91.8, 90.669)), module, Tehom::YCVOUT_OUTPUT));
+
+		// LED Bezels 
+		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(26.901, 10.166)), module, Tehom::LEDBEZEL1_PARAM));
+        addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 10.166)), module, Tehom::LEDBEZEL2_PARAM));
+        addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(26.901, 71.937)), module, Tehom::LEDBEZEL3_PARAM));
+        addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 71.937)), module, Tehom::LEDBEZEL4_PARAM));
 
 		// Lights
 		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(26.9, 10.166)), module, Tehom::BUFFER1LED_LIGHT));

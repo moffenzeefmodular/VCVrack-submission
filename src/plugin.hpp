@@ -145,9 +145,11 @@ struct StargazerLFOKnob : SvgKnob {
 	}
 };
 
-struct LEDBezelSilver : SvgKnob {
+
+struct LEDBezelSilver : SvgSwitch {
 	widget::SvgWidget* bg;
-		LEDBezelSilver() {
-		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/LEDBezelSilver.svg")));
+	LEDBezelSilver() {
+		momentary = true; // true for momentary behavior
+        addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/LEDBezelSilver.svg")));
 	}
 };
