@@ -2,16 +2,16 @@
 
 struct QUADLOOPERXY : Module {
     enum ParamIds {
-        X_POS_PARAM,
-        Y_POS_PARAM,
+        XPOS_PARAM,
+        YPOS_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
         NUM_INPUTS
     };
     enum OutputIds {
-        X_OUTPUT,
-        Y_OUTPUT,
+        XCV_OUTPUT,
+        YCV_OUTPUT,
         NUM_OUTPUTS
     };
     enum LightIds {
@@ -20,16 +20,16 @@ struct QUADLOOPERXY : Module {
 
     QUADLOOPERXY() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(X_POS_PARAM, 0.f, 1.f, 0.f, "X Position");
-        configParam(Y_POS_PARAM, 0.f, 1.f, 0.f, "Y Position");
+        configParam(XPOS_PARAM, 0.f, 1.f, 0.f, "X Position");
+        configParam(YPOS_PARAM, 0.f, 1.f, 0.f, "Y Position");
     }
 
     void process(const ProcessArgs &args) override {
-        float x = params[X_POS_PARAM].getValue();
-        float y = params[Y_POS_PARAM].getValue();
+        float x = params[XPOS_PARAM].getValue();
+        float y = params[YPOS_PARAM].getValue();
 
-        outputs[X_OUTPUT].setVoltage(x * 10.f);
-        outputs[Y_OUTPUT].setVoltage(y * 10.f);
+        outputs[XCV_OUTPUT].setVoltage(x * 10.f);
+        outputs[YCV_OUTPUT].setVoltage(y * 10.f);
     }
 };
 
@@ -48,8 +48,8 @@ struct QuadLooperXYDisplay : Widget {
         float x = dragPos.x / box.size.x;
         float y = 1.f - (dragPos.y / box.size.y);
 
-        module->params[QUADLOOPERXY::X_POS_PARAM].setValue(x);
-        module->params[QUADLOOPERXY::Y_POS_PARAM].setValue(y);
+        module->params[QUADLOOPERXY::XPOS_PARAM].setValue(x);
+        module->params[QUADLOOPERXY::YPOS_PARAM].setValue(y);
     }
 
     void onButton(const event::Button &e) override {
@@ -91,8 +91,8 @@ struct QuadLooperXYDisplay : Widget {
 
         float radius = 6.f;
 
-        float px = module->params[QUADLOOPERXY::X_POS_PARAM].getValue() * box.size.x;
-        float py = (1.f - module->params[QUADLOOPERXY::Y_POS_PARAM].getValue()) * box.size.y;
+        float px = module->params[QUADLOOPERXY::XPOS_PARAM].getValue() * box.size.x;
+        float py = (1.f - module->params[QUADLOOPERXY::YPOS_PARAM].getValue()) * box.size.y;
 
         px = clamp(px, radius, box.size.x - radius);
         py = clamp(py, radius, box.size.y - radius);
@@ -136,9 +136,9 @@ struct QuadLooperWidget : ModuleWidget {
 
         // Outputs below the XY pad, relative to pad
         addOutput(createOutputCentered<PJ301MPort>(
-            mm2px(Vec(56.2f, 95.f)), module, QUADLOOPERXY::X_OUTPUT));
+            mm2px(Vec(56.2f, 95.f)), module, QUADLOOPERXY::XCV_OUTPUT));
         addOutput(createOutputCentered<PJ301MPort>(
-            mm2px(Vec(96.2f, 95.f)), module, QUADLOOPERXY::Y_OUTPUT));
+            mm2px(Vec(96.2f, 95.f)), module, QUADLOOPERXY::YCV_OUTPUT));
     }
 };
 

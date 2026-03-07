@@ -40,10 +40,15 @@ struct Tehom : Module {
         PLAY3_PARAM,
         PLAY4_PARAM,
 
+		// LED Bezels
 		LEDBEZEL1_PARAM,
 		LEDBEZEL2_PARAM,
 		LEDBEZEL3_PARAM,
 		LEDBEZEL4_PARAM,
+
+		// XY
+		XPOS_PARAM,
+        YPOS_PARAM,
 
         PARAMS_LEN
     };
@@ -127,6 +132,9 @@ struct Tehom : Module {
 
 	Tehom() {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+	configParam(XPOS_PARAM, 0.f, 1.f, 0.f, "X Position");
+    configParam(YPOS_PARAM, 0.f, 1.f, 0.f, "Y Position");
 
     configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "HiFi Tape Hiss", "LoFi Tape Hiss", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
 
@@ -275,29 +283,36 @@ void process(const ProcessArgs& args) override {
         lights[PLAY1_LIGHT + i].setBrightnessSmooth((playState[i] && !playReversed[i]) ? 1.f : 0.f, args.sampleTime);
         lights[PLAY1_BLUE_LIGHT + i].setBrightnessSmooth((playState[i] && playReversed[i]) ? 1.f : 0.f, args.sampleTime);
 
-// --- BEZEL SPINNING ---
-for (int i = 0; i < 4; i++) {
-    // Only spin if PLAY is active and user isn't clicking the bezel
-    if (playState[i] && !bezelDragging[i].load()) {
-        float pitchVal = clamp(params[Tehom::SPEED1_PARAM + i].getValue() + inputs[Tehom::SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f);
+		// --- BEZEL SPINNING ---
+		for (int i = 0; i < 4; i++) {
+		    // Only spin if PLAY is active and user isn't clicking the bezel
+		    if (playState[i] && !bezelDragging[i].load()) {
+		        float pitchVal = clamp(params[Tehom::SPEED1_PARAM + i].getValue() + inputs[Tehom::SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f);
 
-        float minSpeed = 0.02f;
-        float maxSpeed = 0.2f;
+		        float minSpeed = 0.02f;
+		        float maxSpeed = 0.2f;
 
-        float spinSpeed = minSpeed + pitchVal * (maxSpeed - minSpeed);
-        float spinDir = playReversed[i] ? -1.f : 1.f;
+		        float spinSpeed = minSpeed + pitchVal * (maxSpeed - minSpeed);
+		        float spinDir = playReversed[i] ? -1.f : 1.f;
 
-        float newValue = params[Tehom::LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
+		        float newValue = params[Tehom::LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
 
-        if (newValue > 1.f) newValue -= 1.f;
-        if (newValue < 0.f) newValue += 1.f;
+		        if (newValue > 1.f) newValue -= 1.f;
+		        if (newValue < 0.f) newValue += 1.f;
 
-        params[Tehom::LEDBEZEL1_PARAM + i].setValue(newValue);
-    }
-}
+		        params[Tehom::LEDBEZEL1_PARAM + i].setValue(newValue);
+		    }
+		}
 
-}
-}
+		// XY Pad 
+        float x = params[XPOS_PARAM].getValue();
+        float y = params[YPOS_PARAM].getValue();
+
+        outputs[XCVOUT_OUTPUT].setVoltage(x * 10.f);
+        outputs[YCVOUT_OUTPUT].setVoltage(y * 10.f);
+
+		}
+	}
 };
 
 
@@ -461,6 +476,88 @@ struct ReversePlayWidget : LEDBezel {
 	}
 };
 
+
+////////////////////////////////
+// XY PAD DISPLAY
+////////////////////////////////
+struct QuadLooperXYDisplay : Widget {
+    Tehom *module;
+    Vec dragPos;
+    bool dragging = false;
+
+    void updateFromPos() {
+        dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
+        dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
+
+        float x = dragPos.x / box.size.x;
+        float y = 1.f - (dragPos.y / box.size.y);
+
+        module->params[Tehom::XPOS_PARAM].setValue(x);
+        module->params[Tehom::YPOS_PARAM].setValue(y);
+    }
+
+    void onButton(const event::Button &e) override {
+        if (!module) return;
+        if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS) {
+            dragging = true;
+
+            // e.pos is already relative to this widget
+            dragPos = e.pos;
+            dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
+            dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
+
+            updateFromPos();
+            e.consume(this);
+        }
+        if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_RELEASE) {
+            dragging = false;
+        }
+    }
+
+    void onDragMove(const event::DragMove &e) override {
+        if (!module || !dragging) return;
+
+        dragPos = dragPos.plus(e.mouseDelta.div(getAbsoluteZoom()));
+
+        dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
+        dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
+
+        updateFromPos();
+    }
+
+    void draw(const DrawArgs &args) override {
+        nvgBeginPath(args.vg);
+        nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
+        nvgFillColor(args.vg, nvgRGB(18, 18, 18));
+        nvgFill(args.vg);
+
+        if (!module) return;
+
+        float radius = 6.f;
+
+        float px = module->params[Tehom::XPOS_PARAM].getValue() * box.size.x;
+        float py = (1.f - module->params[Tehom::YPOS_PARAM].getValue()) * box.size.y;
+
+        px = clamp(px, radius, box.size.x - radius);
+        py = clamp(py, radius, box.size.y - radius);
+
+        // Crosshair
+        nvgBeginPath(args.vg);
+        nvgMoveTo(args.vg, px, 0);
+        nvgLineTo(args.vg, px, box.size.y);
+        nvgMoveTo(args.vg, 0, py);
+        nvgLineTo(args.vg, box.size.x, py);
+        nvgStrokeColor(args.vg, nvgRGB(60, 60, 60));
+        nvgStroke(args.vg);
+
+        // Cursor dot
+        nvgBeginPath(args.vg);
+        nvgCircle(args.vg, px, py, radius);
+        nvgFillColor(args.vg, nvgRGB(230, 230, 230));
+        nvgFill(args.vg);
+    }
+};
+
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
@@ -470,6 +567,18 @@ struct TehomWidget : ModuleWidget {
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+        // === 40x40 XY Pad, centered ===
+        auto xy = new QuadLooperXYDisplay();
+        xy->module = module;
+
+        float squareSize = 40.f; // 40 x 40 mm
+        float xOffset = (152.4f - squareSize) / 2.f; // center horizontally
+        float yOffset = (128.5f - squareSize) / 2.f; // center vertically
+
+        xy->box.pos = mm2px(Vec(xOffset, yOffset));
+        xy->box.size = mm2px(Vec(squareSize, squareSize));
+        addChild(xy);
 
 		// 2 Position switches 
 		addParam(createParamCentered<CKSS>(mm2px(Vec(26.901, 54.204)), module, Tehom::LOOP1_PARAM));
