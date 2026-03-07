@@ -991,13 +991,13 @@ struct TehomWidget : ModuleWidget {
 		}
 
 		// Small knobs 
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(60.972, 36.448)), module, Tehom::WARBLE_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(71.215, 36.448)), module, Tehom::SELECT_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(81.457, 36.448)), module, Tehom::AMOUNT_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(60.972, 114.136)), module, Tehom::SLEW_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(71.215, 114.136)), module, Tehom::SIZE_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(81.457, 114.136)), module, Tehom::POSITION_PARAM));
-		addParam(createParamCentered<Trimpot>(mm2px(Vec(91.8, 114.136)), module, Tehom::XFADE_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(60.972, 36.448)), module, Tehom::WARBLE_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 36.448)), module, Tehom::SELECT_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(81.457, 36.448)), module, Tehom::AMOUNT_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(60.972, 114.136)), module, Tehom::SLEW_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 114.136)), module, Tehom::SIZE_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(81.457, 114.136)), module, Tehom::POSITION_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(91.8, 114.136)), module, Tehom::XFADE_PARAM));
 
 		// Big Knobs
 		addParam(createParamCentered<TehomKnob>(mm2px(Vec(14.738, 39.243)), module, Tehom::SOURCE1_PARAM));
