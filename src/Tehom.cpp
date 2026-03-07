@@ -178,10 +178,10 @@ struct Tehom : Module {
 	configSwitch(RECORD4_PARAM, 0.f, 1.f, 0.f, "Record");
 
 	// Loop switches
-	configSwitch(LOOP1_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
-	configSwitch(LOOP2_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
-	configSwitch(LOOP3_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
-	configSwitch(LOOP4_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
+	configSwitch(LOOP1_PARAM, 0.f, 1.f, 1.f, "Looping", {"Off", "On"});
+	configSwitch(LOOP2_PARAM, 0.f, 1.f, 1.f, "Looping", {"Off", "On"});
+	configSwitch(LOOP3_PARAM, 0.f, 1.f, 1.f, "Looping", {"Off", "On"});
+	configSwitch(LOOP4_PARAM, 0.f, 1.f, 1.f, "Looping", {"Off", "On"});
 
 	// Play switches
 	configSwitch(PLAY1_PARAM, 0.f, 1.f, 0.f, "Play");
@@ -250,8 +250,9 @@ void eraseBuffer(int i) {
     eraseFlash[i] = 0.4f;
 }
 
-void onSampleRateChange(const SampleRateChangeEvent& e) override {
-    bufferSize = (int)(5.f * e.sampleRate);
+void resizeBuffers(float sampleRate) {
+    currentSampleRate = sampleRate;
+    bufferSize = (int)(bufferDuration * sampleRate);
     for (int i = 0; i < 4; i++) {
         bufL[i].assign(bufferSize, 0.f);
         bufR[i].assign(bufferSize, 0.f);
@@ -259,7 +260,41 @@ void onSampleRateChange(const SampleRateChangeEvent& e) override {
         readPos[i] = 0.f;
         recordedLength[i] = 0;
         hasContent[i] = false;
+        recordState[i] = false;
+        playState[i] = false;
     }
+}
+
+void onSampleRateChange(const SampleRateChangeEvent& e) override {
+    resizeBuffers(e.sampleRate);
+}
+
+json_t* dataToJson() override {
+    json_t* root = json_object();
+    json_object_set_new(root, "bufferDuration", json_real(bufferDuration));
+    json_t* ap = json_array();
+    json_t* apf = json_array();
+    for (int i = 0; i < 4; i++) {
+        json_array_append_new(ap,  json_boolean(autoPlay[i]));
+        json_array_append_new(apf, json_boolean(autoPlayFull[i]));
+    }
+    json_object_set_new(root, "autoPlay",     ap);
+    json_object_set_new(root, "autoPlayFull", apf);
+    return root;
+}
+
+void dataFromJson(json_t* root) override {
+    json_t* bd = json_object_get(root, "bufferDuration");
+    if (bd) {
+        bufferDuration = (float)json_real_value(bd);
+        if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate);
+    }
+    json_t* ap = json_object_get(root, "autoPlay");
+    if (ap)
+        for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap, i); if (v) autoPlay[i] = json_boolean_value(v); }
+    json_t* apf = json_object_get(root, "autoPlayFull");
+    if (apf)
+        for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf, i); if (v) autoPlayFull[i] = json_boolean_value(v); }
 }
 
 // Current state of record/play toggles
@@ -280,12 +315,16 @@ std::atomic<bool> bezelDragging[4];
 bool playReversed[4] = {false, false, false, false};
 
 float eraseFlash[4] = {};
+bool autoPlay[4]     = {true, true, true, true}; // auto-play when recording manually stopped
+bool autoPlayFull[4] = {true, true, true, true}; // auto-play when buffer fills to 5s
 
 std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
 float xyFinalY = 0.5f;
 
-// Audio buffers (5 seconds per channel, stereo)
+// Audio buffers
+float bufferDuration = 5.f;   // seconds, user-selectable
+float currentSampleRate = 44100.f;
 int bufferSize = 0;
 std::vector<float> bufL[4];
 std::vector<float> bufR[4];
@@ -295,6 +334,10 @@ int recordedLength[4] = {};
 bool hasContent[4] = {};
 
 void process(const ProcessArgs& args) override {
+    // Ensure buffers are allocated (onSampleRateChange may not fire before first process)
+    if (bufferSize == 0)
+        resizeBuffers(args.sampleRate);
+
     // --- RECORD toggles ---
     for (int i = 0; i < 4; i++) {
         bool btn = params[RECORD1_PARAM + i].getValue() > 0.5f;
@@ -306,10 +349,16 @@ void process(const ProcessArgs& args) override {
         lastRecordCV[i] = cv;
 
         if (btnRising || cvRising) {
+            bool wasRecording = recordState[i];
             recordState[i] = !recordState[i];
             if (recordState[i] && !hasContent[i]) {
                 writePos[i] = 0;
                 recordedLength[i] = 0;
+            }
+            // Auto-play when recording manually stopped
+            if (wasRecording && !recordState[i] && autoPlay[i] && hasContent[i] && !playState[i]) {
+                playState[i] = true;
+                readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
             }
         }
 
@@ -373,11 +422,11 @@ void process(const ProcessArgs& args) override {
         xyFinalX * (1.f - xyFinalY),           // ch4: bottom-right
     };
 
-    // Playback + source crossfade per channel (bezel held = paused, output silent)
-    // chanMix holds the post-pitch, post-source-crossfade signal for each channel.
-    // This is both what gets recorded and what contributes to the module output.
-    float chanMixL[4] = {}, chanMixR[4] = {};
+    // Per-channel: read loop buffer (with pitch), source-crossfade with input for output + recording.
+    // source left (t=0) = hear/record input; source right (t=1) = hear/record loop (sound on sound).
+    // bilinear vol[] always sums to 1.0, so unity gain is preserved across XY positions.
     float outL = 0.f, outR = 0.f;
+    float chanMixL[4] = {}, chanMixR[4] = {};
 
     for (int i = 0; i < 4; i++) {
         float sampL = 0.f, sampR = 0.f;
@@ -408,27 +457,26 @@ void process(const ProcessArgs& args) override {
             }
         }
 
-        // Source crossfade: left = incoming audio, right = post-pitch loop sample
         float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + inputs[SOURCE1CVIN_INPUT + i].getVoltage() / 10.f, -1.f, 1.f);
-        float t = (srcParam + 1.f) * 0.5f; // 0 = audio input only, 1 = loop sample only
+        float t = (srcParam + 1.f) * 0.5f; // 0 = input, 1 = loop
         chanMixL[i] = inL * (1.f - t) + sampL * t;
         chanMixR[i] = inR * (1.f - t) + sampR * t;
 
         outL += chanMixL[i] * vol[i];
         outR += chanMixR[i] * vol[i];
 
-        // LED brightness from this channel's contribution
-        float level = (std::abs(chanMixL[i]) + std::abs(chanMixR[i])) * 0.5f * vol[i] / 10.f;
+        float level = (std::abs(chanMixL[i]) + std::abs(chanMixR[i])) * 0.5f * vol[i];
         lights[BUFFER1LED_LIGHT + i].setBrightnessSmooth(level, args.sampleTime * 20.f);
     }
 
-    outL = clamp(outL, -10.f, 10.f);
-    outR = clamp(outR, -10.f, 10.f);
+    outL = clamp(outL, -5.f, 5.f);
+    outR = clamp(outR, -5.f, 5.f);
 
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(outL);
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
 
-    // Recording pass — write the crossfaded mix into the buffer (sound on sound)
+    // Recording: first take always records inL at full level so playback volume matches input.
+    // Overdubs record chanMixL so the source knob blends in loop content (sound on sound).
     for (int i = 0; i < 4; i++) {
         if (!recordState[i] || bufferSize == 0) continue;
 
@@ -439,11 +487,10 @@ void process(const ProcessArgs& args) override {
         if (recordedLength[i] < bufferSize) recordedLength[i]++;
         hasContent[i] = true;
 
-        // Buffer full — stop recording and auto-start playback
         if (writePos[i] >= bufferSize) {
             writePos[i] = 0;
             recordState[i] = false;
-            if (!playState[i]) {
+            if (autoPlayFull[i] && !playState[i]) {
                 playState[i] = true;
                 readPos[i] = 0.f;
             }
@@ -898,5 +945,43 @@ struct TehomWidget : ModuleWidget {
 		addChild(createLightCentered<LargeLight<ChanLight2>>(mm2px(Vec(26.9, 71.937)), module, Tehom::BUFFER3LED_LIGHT));
 		addChild(createLightCentered<LargeLight<ChanLight3>>(mm2px(Vec(125.315, 71.937)), module, Tehom::BUFFER4LED_LIGHT));
 	}
+    void appendContextMenu(Menu* menu) override {
+        ModuleWidget::appendContextMenu(menu);
+        auto* tehom = dynamic_cast<Tehom*>(module);
+        if (!tehom) return;
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Buffer Size (all channels)"));
+        const float durations[] = {1.f, 2.f, 5.f, 10.f, 20.f, 30.f, 60.f};
+        const char* labels[]    = {"1 second", "2 seconds", "5 seconds", "10 seconds", "20 seconds", "30 seconds", "1 minute"};
+        for (int j = 0; j < 7; j++) {
+            float dur = durations[j];
+            menu->addChild(createCheckMenuItem(
+                labels[j], "",
+                [=]() { return tehom->bufferDuration == dur; },
+                [=]() { tehom->bufferDuration = dur; tehom->resizeBuffers(tehom->currentSampleRate); }
+            ));
+        }
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Auto-Play when recording complete"));
+        for (int i = 0; i < 4; i++) {
+            menu->addChild(createCheckMenuItem(
+                "Channel " + std::to_string(i + 1), "",
+                [=]() { return tehom->autoPlay[i]; },
+                [=]() { tehom->autoPlay[i] = !tehom->autoPlay[i]; }
+            ));
+        }
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Auto-Play when buffer full"));
+        for (int i = 0; i < 4; i++) {
+            menu->addChild(createCheckMenuItem(
+                "Channel " + std::to_string(i + 1), "",
+                [=]() { return tehom->autoPlayFull[i]; },
+                [=]() { tehom->autoPlayFull[i] = !tehom->autoPlayFull[i]; }
+            ));
+        }
+    }
 };
 Model* modelTehom = createModel<Tehom, TehomWidget>("Tehom");
