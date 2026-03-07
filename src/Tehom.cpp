@@ -115,7 +115,13 @@ struct Tehom : Module {
     PLAY2_LIGHT,
     PLAY3_LIGHT,
     PLAY4_LIGHT,
-    
+
+    // PLAY lights (blue - reverse mode)
+    PLAY1_BLUE_LIGHT,
+    PLAY2_BLUE_LIGHT,
+    PLAY3_BLUE_LIGHT,
+    PLAY4_BLUE_LIGHT,
+
     LIGHTS_LEN
 };
 
@@ -130,6 +136,8 @@ struct Tehom : Module {
 	configParam(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL3_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL4_PARAM, 0.f, 1.f, 0.f);
+
+	for (int i = 0; i < 4; i++) bezelDragging[i].store(false);
 
 	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
@@ -156,10 +164,10 @@ struct Tehom : Module {
 	configSwitch(RECORD4_PARAM, 0.f, 1.f, 0.f, "Record");
 
 	// Loop switches
-	configSwitch(LOOP1_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
-	configSwitch(LOOP2_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
-	configSwitch(LOOP3_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
-	configSwitch(LOOP4_PARAM, 0.f, 1.f, 0.f, "Looping", {"OFF", "ON"});
+	configSwitch(LOOP1_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
+	configSwitch(LOOP2_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
+	configSwitch(LOOP3_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
+	configSwitch(LOOP4_PARAM, 0.f, 1.f, 0.f, "Looping", {"Off", "On"});
 
 	// Play switches
 	configSwitch(PLAY1_PARAM, 0.f, 1.f, 0.f, "Play");
@@ -223,18 +231,28 @@ bool playState[4] = {false, false, false, false};
 bool lastRecordButton[4] = {false, false, false, false};
 bool lastPlayButton[4] = {false, false, false, false};
 
+// Previous CV state for rising-edge detection
+bool lastRecordCV[4] = {false, false, false, false};
+bool lastPlayCV[4] = {false, false, false, false};
+
 float ledSpinSpeed[4] = {0.3f, 0.25f, 0.2f, 0.15f};
+
+std::atomic<bool> bezelDragging[4];
+bool playReversed[4] = {false, false, false, false};
 
 void process(const ProcessArgs& args) override {
     // --- RECORD toggles ---
     for (int i = 0; i < 4; i++) {
         bool btn = params[RECORD1_PARAM + i].getValue() > 0.5f;
         bool btnRising = btn && !lastRecordButton[i];
-
-        if (btnRising)
-            recordState[i] = !recordState[i]; // toggle state
-
         lastRecordButton[i] = btn;
+
+        bool cv = inputs[RECORD1CVIN_INPUT + i].getVoltage() > 1.f;
+        bool cvRising = cv && !lastRecordCV[i];
+        lastRecordCV[i] = cv;
+
+        if (btnRising || cvRising)
+            recordState[i] = !recordState[i];
 
         // Update light smoothly
         lights[RECORD1_LIGHT + i].setBrightnessSmooth(recordState[i] ? 1.f : 0.f, args.sampleTime);
@@ -244,39 +262,204 @@ void process(const ProcessArgs& args) override {
     for (int i = 0; i < 4; i++) {
         bool btn = params[PLAY1_PARAM + i].getValue() > 0.5f;
         bool btnRising = btn && !lastPlayButton[i];
-
-        if (btnRising)
-            playState[i] = !playState[i]; // toggle state
-
         lastPlayButton[i] = btn;
 
-        // Update light smoothly
-        lights[PLAY1_LIGHT + i].setBrightnessSmooth(playState[i] ? 1.f : 0.f, args.sampleTime);
+        bool cv = inputs[PLAY1CVIN_INPUT + i].getVoltage() > 1.f;
+        bool cvRising = cv && !lastPlayCV[i];
+        lastPlayCV[i] = cv;
 
+        if (btnRising || cvRising)
+            playState[i] = !playState[i];
+
+        // Green when playing forward, blue when playing reversed
+        lights[PLAY1_LIGHT + i].setBrightnessSmooth((playState[i] && !playReversed[i]) ? 1.f : 0.f, args.sampleTime);
+        lights[PLAY1_BLUE_LIGHT + i].setBrightnessSmooth((playState[i] && playReversed[i]) ? 1.f : 0.f, args.sampleTime);
+
+// --- BEZEL SPINNING ---
 for (int i = 0; i < 4; i++) {
-    // Pitch knob value 0 → 1
-    float pitchVal = params[Tehom::PITCH1_PARAM + i].getValue();
+    // Only spin if PLAY is active and user isn't clicking the bezel
+    if (playState[i] && !bezelDragging[i].load()) {
+        float pitchVal = params[Tehom::PITCH1_PARAM + i].getValue();
 
-    // Define min and max spin speed
-    float minSpeed = 0.02f;  // slowest
-    float maxSpeed = 0.11f;   // fastest
+        float minSpeed = 0.02f;
+        float maxSpeed = 0.2f;
 
-    // Map knob linearly from min → max speed
-    float spinSpeed = minSpeed + pitchVal * (maxSpeed - minSpeed);
+        float spinSpeed = minSpeed + pitchVal * (maxSpeed - minSpeed);
+        float spinDir = playReversed[i] ? -1.f : 1.f;
 
-    // Update bezel rotation
-    float newValue = params[Tehom::LEDBEZEL1_PARAM + i].getValue() + spinSpeed * args.sampleTime;
+        float newValue = params[Tehom::LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
 
-    // Wrap between 0 → 1
-    if (newValue > 1.f) newValue -= 1.f;
+        if (newValue > 1.f) newValue -= 1.f;
+        if (newValue < 0.f) newValue += 1.f;
 
-    params[Tehom::LEDBEZEL1_PARAM + i].setValue(newValue);
+        params[Tehom::LEDBEZEL1_PARAM + i].setValue(newValue);
+    }
 }
 
 }
 }
 };
 
+
+struct ReverseMenuItem : ui::MenuItem {
+	Tehom* tehom;
+	int channel;
+	void onAction(const ActionEvent& e) override {
+		tehom->playReversed[channel] = !tehom->playReversed[channel];
+	}
+	void step() override {
+		rightText = CHECKMARK(tehom->playReversed[channel]);
+		ui::MenuItem::step();
+	}
+};
+
+struct SpinningBezelWidget : LEDBezelSilver {
+	Tehom* tehom = nullptr;
+	int channel = 0;
+	ui::Tooltip* tooltip = nullptr;
+	bool isHovered = false;
+
+	void onDragStart(const DragStartEvent& e) override {
+		if (tehom) tehom->bezelDragging[channel].store(true);
+		// don't call base — suppress knob drag behaviour
+	}
+
+	void onDragMove(const DragMoveEvent& e) override {
+		// suppress value change from dragging
+	}
+
+	void onDragEnd(const DragEndEvent& e) override {
+		if (tehom) tehom->bezelDragging[channel].store(false);
+		// don't call base — suppress knob drag behaviour
+	}
+
+	void onEnter(const EnterEvent& e) override {
+		isHovered = true;
+		// suppress default tooltip
+	}
+
+	void onLeave(const LeaveEvent& e) override {
+		isHovered = false;
+		if (tooltip) {
+			APP->scene->removeChild(tooltip);
+			delete tooltip;
+			tooltip = nullptr;
+		}
+	}
+
+	void step() override {
+		LEDBezelSilver::step();
+		bool shouldShow = isHovered && tehom && tehom->bezelDragging[channel].load();
+		if (shouldShow && !tooltip) {
+			tooltip = new ui::Tooltip;
+			tooltip->text = "Paused";
+			APP->scene->addChild(tooltip);
+		} else if (!shouldShow && tooltip) {
+			APP->scene->removeChild(tooltip);
+			delete tooltip;
+			tooltip = nullptr;
+		}
+	}
+
+	void appendContextMenu(Menu* menu) override {
+		LEDBezelSilver::appendContextMenu(menu);
+		menu->addChild(new ui::MenuSeparator);
+		auto* item = new ReverseMenuItem;
+		item->text = "Reverse";
+		item->tehom = tehom;
+		item->channel = channel;
+		menu->addChild(item);
+	}
+};
+
+struct RecordWidget : LEDBezel {
+	Tehom* tehom = nullptr;
+	int channel = 0;
+	ui::Tooltip* tooltip = nullptr;
+	bool isHovered = false;
+
+	void onButton(const ButtonEvent& e) override {
+		if (e.button == GLFW_MOUSE_BUTTON_RIGHT) {
+			e.consume(this);
+			return;
+		}
+		LEDBezel::onButton(e);
+	}
+
+	void onEnter(const EnterEvent& e) override {
+		isHovered = true;
+	}
+
+	void onLeave(const LeaveEvent& e) override {
+		isHovered = false;
+		if (tooltip) {
+			APP->scene->removeChild(tooltip);
+			delete tooltip;
+			tooltip = nullptr;
+		}
+	}
+
+	void step() override {
+		LEDBezel::step();
+		bool shouldShow = isHovered && tehom && tehom->recordState[channel];
+		if (shouldShow && !tooltip) {
+			tooltip = new ui::Tooltip;
+			tooltip->text = "Recording ...";
+			APP->scene->addChild(tooltip);
+		} else if (!shouldShow && tooltip) {
+			APP->scene->removeChild(tooltip);
+			delete tooltip;
+			tooltip = nullptr;
+		}
+	}
+};
+
+struct PlayTooltip : ui::Tooltip {
+	Tehom* tehom;
+	int channel;
+	void step() override {
+		if (tehom) {
+			if (!tehom->playState[channel])
+				text = "Stop";
+			else if (tehom->playReversed[channel])
+				text = "Reverse";
+			else
+				text = "Forward";
+		}
+		ui::Tooltip::step();
+	}
+};
+
+struct ReversePlayWidget : LEDBezel {
+	Tehom* tehom = nullptr;
+	int channel = 0;
+	ui::Tooltip* tooltip = nullptr;
+
+	void onButton(const ButtonEvent& e) override {
+		if (e.button == GLFW_MOUSE_BUTTON_RIGHT && e.action == GLFW_PRESS) {
+			if (tehom) tehom->playReversed[channel] = !tehom->playReversed[channel];
+			e.consume(this);
+			return;
+		}
+		LEDBezel::onButton(e);
+	}
+
+	void onEnter(const EnterEvent& e) override {
+		auto* tip = new PlayTooltip;
+		tip->tehom = tehom;
+		tip->channel = channel;
+		APP->scene->addChild(tip);
+		tooltip = tip;
+	}
+
+	void onLeave(const LeaveEvent& e) override {
+		if (tooltip) {
+			APP->scene->removeChild(tooltip);
+			delete tooltip;
+			tooltip = nullptr;
+		}
+	}
+};
 
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
@@ -295,29 +478,38 @@ struct TehomWidget : ModuleWidget {
 		addParam(createParamCentered<CKSS>(mm2px(Vec(125.316, 115.975)), module, Tehom::LOOP4_PARAM));
 
 		// LEDBezel buttons with lights (RECORD = red, PLAY = green)
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(14.738, 54.176)), module, Tehom::RECORD1_PARAM));
-		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(14.738, 54.176)), module, Tehom::RECORD1_LIGHT));
+		{
+			Vec recPos[4] = {
+				mm2px(Vec(14.738, 54.176)),
+				mm2px(Vec(113.152, 54.176)),
+				mm2px(Vec(14.738, 115.947)),
+				mm2px(Vec(113.152, 115.947)),
+			};
+			for (int i = 0; i < 4; i++) {
+				auto* rec = createParamCentered<RecordWidget>(recPos[i], module, Tehom::RECORD1_PARAM + i);
+				rec->tehom = module;
+				rec->channel = i;
+				addParam(rec);
+				addChild(createLightCentered<LEDBezelLight<RedLight>>(recPos[i], module, Tehom::RECORD1_LIGHT + i));
+			}
+		}
 
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(113.152, 54.176)), module, Tehom::RECORD2_PARAM));
-		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(113.152, 54.176)), module, Tehom::RECORD2_LIGHT));
-
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(14.738, 115.947)), module, Tehom::RECORD3_PARAM));
-		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(14.738, 115.947)), module, Tehom::RECORD3_LIGHT));
-
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(113.152, 115.947)), module, Tehom::RECORD4_PARAM));
-		addChild(createLightCentered<LEDBezelLight<RedLight>>(mm2px(Vec(113.152, 115.947)), module, Tehom::RECORD4_LIGHT));
-
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(39.026, 54.176)), module, Tehom::PLAY1_PARAM));
-		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(39.026, 54.176)), module, Tehom::PLAY1_LIGHT));
-
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(137.441, 54.176)), module, Tehom::PLAY2_PARAM));
-		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(137.441, 54.176)), module, Tehom::PLAY2_LIGHT));
-
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(39.026, 115.947)), module, Tehom::PLAY3_PARAM));
-		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(39.026, 115.947)), module, Tehom::PLAY3_LIGHT));
-
-		addParam(createParamCentered<LEDBezel>(mm2px(Vec(137.441, 115.947)), module, Tehom::PLAY4_PARAM));
-		addChild(createLightCentered<LEDBezelLight<GreenLight>>(mm2px(Vec(137.441, 115.947)), module, Tehom::PLAY4_LIGHT));
+		{
+			Vec playPos[4] = {
+				mm2px(Vec(39.026, 54.176)),
+				mm2px(Vec(137.441, 54.176)),
+				mm2px(Vec(39.026, 115.947)),
+				mm2px(Vec(137.441, 115.947)),
+			};
+			for (int i = 0; i < 4; i++) {
+				auto* play = createParamCentered<ReversePlayWidget>(playPos[i], module, Tehom::PLAY1_PARAM + i);
+				play->tehom = module;
+				play->channel = i;
+				addParam(play);
+				addChild(createLightCentered<LEDBezelLight<GreenLight>>(playPos[i], module, Tehom::PLAY1_LIGHT + i));
+				addChild(createLightCentered<LEDBezelLight<BlueLight>>(playPos[i], module, Tehom::PLAY1_BLUE_LIGHT + i));
+			}
+		}
 
 		// Small knobs 
 		addParam(createParamCentered<Trimpot>(mm2px(Vec(60.972, 36.448)), module, Tehom::WARBLE_PARAM));
@@ -377,11 +569,19 @@ struct TehomWidget : ModuleWidget {
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(81.41, 90.353)), module, Tehom::XCVOUT_OUTPUT));
 		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(91.8, 90.669)), module, Tehom::YCVOUT_OUTPUT));
 
-		// LED Bezels 
-		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(26.901, 10.166)), module, Tehom::LEDBEZEL1_PARAM));
-		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 10.166)), module, Tehom::LEDBEZEL2_PARAM));
-		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(26.901, 71.937)), module, Tehom::LEDBEZEL3_PARAM));
-		addParam(createParamCentered<LEDBezelSilver>(mm2px(Vec(125.316, 71.937)), module, Tehom::LEDBEZEL4_PARAM));
+		// LED Bezels
+		for (int i = 0; i < 4; i++) {
+			Vec positions[4] = {
+				mm2px(Vec(26.901, 10.166)),
+				mm2px(Vec(125.316, 10.166)),
+				mm2px(Vec(26.901, 71.937)),
+				mm2px(Vec(125.316, 71.937)),
+			};
+			auto* bezel = createParamCentered<SpinningBezelWidget>(positions[i], module, Tehom::LEDBEZEL1_PARAM + i);
+			bezel->tehom = module;
+			bezel->channel = i;
+			addParam(bezel);
+		}
 
 		// Lights
 		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(26.9, 10.166)), module, Tehom::BUFFER1LED_LIGHT));
