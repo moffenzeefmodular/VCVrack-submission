@@ -166,10 +166,10 @@ struct Tehom : Module {
 	configParam(SOURCE4_PARAM, -1.f, 1.f, 0.f, "Source", "%", 0.f, 100.f);
 
 	// Pitch params
-	configParam(SPEED1_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
-	configParam(SPEED2_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
-	configParam(SPEED3_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
-	configParam(SPEED4_PARAM, 0.025f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED1_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED2_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED3_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
+	configParam(SPEED4_PARAM, 0.f, 1.f, 0.5f, "Speed", "x", 0.f, 2.f);
 
 	// Record switches
 	configSwitch(RECORD1_PARAM, 0.f, 1.f, 0.f, "Record");
@@ -409,7 +409,7 @@ void process(const ProcessArgs& args) override {
     // --- BEZEL SPINNING (pauses audio readPos when held) ---
     for (int i = 0; i < 4; i++) {
         if (playState[i] && !bezelDragging[i].load()) {
-            float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.025f, 1.f);
+            float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f);
             float spinSpeed = 0.02f + pitchVal * 0.18f;
             float spinDir = playReversed[i] ? -1.f : 1.f;
             float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
@@ -440,8 +440,9 @@ void process(const ProcessArgs& args) override {
     float chanMixL[4] = {}, chanMixR[4] = {};
 
     // Global loop window params
-    float sizeParam = clamp(params[SIZE_PARAM].getValue() + inputs[SIZECVIN_INPUT].getVoltage() / 10.f, 0.f, 1.f);
-    float posParam  = clamp(params[POSITION_PARAM].getValue() + inputs[POSITIONCVIN_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+    float sizeParam  = clamp(params[SIZE_PARAM].getValue() + clamp(inputs[SIZECVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+    float posParam   = clamp(params[POSITION_PARAM].getValue() + clamp(inputs[POSITIONCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+    float xfadeParam = std::max(0.01f, clamp(params[XFADE_PARAM].getValue() + clamp(inputs[XFADECVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f));
 
     for (int i = 0; i < 4; i++) {
         float sampL = 0.f, sampR = 0.f;
@@ -449,12 +450,12 @@ void process(const ProcessArgs& args) override {
         if (playState[i] && hasContent[i] && bufferSize > 0 && !bezelDragging[i].load()) {
             int len = recordedLength[i];
             if (len >= 2) {
-                // Compute loop window
-                int loopSize  = std::max(100, (int)(sizeParam * (float)len));
-                loopSize      = std::min(loopSize, len);
-                int loopStart = (int)(posParam * (float)(len - loopSize));
-                loopStart     = clamp(loopStart, 0, std::max(0, len - loopSize));
-                int loopEnd   = loopStart + loopSize;
+                // Compute loop window (strictly within recorded content)
+                int minLoopSize = std::min(100, len);
+                int loopSize    = clamp((int)(sizeParam * (float)len), minLoopSize, len);
+                int maxStart    = len - loopSize; // always >= 0 since loopSize <= len
+                int loopStart   = clamp((int)(posParam * (float)maxStart), 0, maxStart);
+                int loopEnd     = loopStart + loopSize; // always <= len, exact
 
                 // Clamp readPos into window (handles init and window changes mid-playback)
                 if (readPos[i] < (float)loopStart) readPos[i] = (float)loopStart;
@@ -466,7 +467,21 @@ void process(const ProcessArgs& args) override {
                 sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
                 sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
 
-                float speed = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.025f, 1.f) * 2.f;
+                // XFade envelope: linear fade zones at loop edges, shrinking toward edges as xfade decreases.
+                // xfade=0: no fade (gain=1 everywhere); xfade=1: fade spans full half-loop each side (triangle).
+                if (xfadeParam > 0.f) {
+                    float posInLoop = readPos[i] - (float)loopStart;
+                    float fadeLen   = xfadeParam * (float)(loopSize / 2);
+                    float gain = 1.f;
+                    if (posInLoop < fadeLen)
+                        gain = posInLoop / fadeLen;
+                    else if (posInLoop > (float)loopSize - fadeLen)
+                        gain = ((float)loopSize - posInLoop) / fadeLen;
+                    sampL *= clamp(gain, 0.f, 1.f);
+                    sampR *= clamp(gain, 0.f, 1.f);
+                }
+
+                float speed = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f) * 2.f;
                 float dir = playReversed[i] ? -1.f : 1.f;
                 readPos[i] += dir * speed;
 
@@ -483,7 +498,7 @@ void process(const ProcessArgs& args) override {
             }
         }
 
-        float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + inputs[SOURCE1CVIN_INPUT + i].getVoltage() / 10.f, -1.f, 1.f);
+        float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, -1.f, 1.f);
         float t = (srcParam + 1.f) * 0.5f; // 0 = input, 1 = loop
         chanMixL[i] = inL * (1.f - t) + sampL * t;
         chanMixR[i] = inR * (1.f - t) + sampR * t;
@@ -526,8 +541,8 @@ void process(const ProcessArgs& args) override {
     // XY Pad — param + CV offset (CV bypassed while dragging), then slewed
     float targetX, targetY;
     if (!xyDragging.load()) {
-        float cvX = inputs[XCVIN_INPUT].isConnected() ? inputs[XCVIN_INPUT].getVoltage() / 10.f : 0.f;
-        float cvY = inputs[YCVIN_INPUT].isConnected() ? inputs[YCVIN_INPUT].getVoltage() / 10.f : 0.f;
+        float cvX = inputs[XCVIN_INPUT].isConnected() ? clamp(inputs[XCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f;
+        float cvY = inputs[YCVIN_INPUT].isConnected() ? clamp(inputs[YCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f;
         targetX = clamp(params[XPOS_PARAM].getValue() + cvX, 0.f, 1.f);
         targetY = clamp(params[YPOS_PARAM].getValue() + cvY, 0.f, 1.f);
     } else {
@@ -535,7 +550,7 @@ void process(const ProcessArgs& args) override {
         targetY = params[YPOS_PARAM].getValue();
     }
 
-    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? inputs[SLEWCVIN_INPUT].getVoltage() / 10.f : 0.f), 0.02f, 1.f);
+    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? clamp(inputs[SLEWCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f), 0.02f, 1.f);
     float alpha = clamp(args.sampleTime / slewParam, 0.f, 1.f);
     xyFinalX += (targetX - xyFinalX) * alpha;
     xyFinalY += (targetY - xyFinalY) * alpha;
