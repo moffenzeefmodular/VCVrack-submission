@@ -273,8 +273,12 @@ void onReset(const ResetEvent& e) override {
     Module::onReset(e);
     bufferDuration = 2.f;
     if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         eraseBuffer(i);
+        autoPlay[i]     = true;
+        autoPlayFull[i] = true;
+        retrigger[i]    = false;
+    }
     xyFinalX = 0.5f;
     xyFinalY = 0.5f;
 }
