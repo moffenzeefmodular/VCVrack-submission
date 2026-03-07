@@ -352,6 +352,8 @@ void onReset(const ResetEvent& e) override {
     xyFinalY = 0.5f;
     showCrosshairs = false;
     persist        = true;
+    bgScrollSpeed  = 2;
+    bgScrollRight  = true;
 }
 
 json_t* dataToJson() override {
@@ -361,6 +363,8 @@ json_t* dataToJson() override {
     json_object_set_new(root, "bufferDuration",  json_real(bufferDuration));
     json_object_set_new(root, "showCrosshairs",  json_boolean(showCrosshairs));
     json_object_set_new(root, "persist",         json_boolean(persist));
+    json_object_set_new(root, "bgScrollSpeed",   json_integer(bgScrollSpeed));
+    json_object_set_new(root, "bgScrollRight",   json_boolean(bgScrollRight));
 
     // Per-channel toggles
     json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array();
@@ -402,6 +406,10 @@ void dataFromJson(json_t* root) override {
     if (sc) showCrosshairs = json_boolean_value(sc);
     json_t* ps = json_object_get(root, "persist");
     if (ps) persist = json_boolean_value(ps);
+    json_t* bss = json_object_get(root, "bgScrollSpeed");
+    if (bss) bgScrollSpeed = (int)json_integer_value(bss);
+    json_t* bsr = json_object_get(root, "bgScrollRight");
+    if (bsr) bgScrollRight = json_boolean_value(bsr);
 
     // Per-channel toggles
     json_t* ap = json_object_get(root, "autoPlay");
@@ -479,6 +487,10 @@ bool autoPlayFull[4] = {true, true, true, true};
 // XY Pad display settings (UI state, reset on Init)
 bool showCrosshairs = false;
 bool persist        = true;
+
+// Background scroll speed: 0=Off, 1=Slow, 2=Medium, 3=Fast
+int  bgScrollSpeed = 2;
+bool bgScrollRight = true;
 int playCVMode[4] = {0, 0, 0, 0}; // 0=Play/Stop, 1=Retrigger, 2=Forward/Reverse
 
 std::atomic<bool> xyDragging{false};
@@ -1089,56 +1101,58 @@ struct ChanLight0 : GrayModuleLightWidget { ChanLight0() { addBaseColor(SCHEME_C
 struct ChanLight1 : GrayModuleLightWidget { ChanLight1() { addBaseColor(SCHEME_PURPLE); } };
 struct ChanLight2 : GrayModuleLightWidget { ChanLight2() { addBaseColor(SCHEME_ORANGE); } };
 struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_RED); } };
-/*
 struct TehomScrollingBG : Widget {
-    int imgHandle = -1;
+    Tehom* module = nullptr;
+    std::shared_ptr<window::Svg> svg;
     float scrollX = 0.f;
-    float svgW = 0.f, svgH = 0.f; // display size in NVG coords
-    static constexpr float RASTER_SCALE = 2.f; // rasterize at 2x for crispness
+    float scaledW = 0.f;
+
+    static constexpr float speeds[] = {0.f, 0.15f, 0.5f, 1.4f}; // Off/Slow/Medium/Fast
 
     void step() override {
         Widget::step();
-        if (svgW > 0.f)
-            scrollX = std::fmod(scrollX + 0.16f, svgW);
+        if (scaledW <= 0.f) return;
+        int spd = module ? clamp(module->bgScrollSpeed, 0, 3) : 2;
+        bool goRight = module ? module->bgScrollRight : true;
+        float delta = goRight ? speeds[spd] : -speeds[spd];
+        scrollX += delta;
+        if (scrollX >= scaledW) scrollX -= scaledW;
+        if (scrollX < 0.f)      scrollX += scaledW;
     }
 
     void draw(const DrawArgs& args) override {
-        if (imgHandle < 0) {
-            auto svg = Svg::load(asset::plugin(pluginInstance, "res/panels/TehomBGSilver.svg"));
-            if (svg && svg->handle) {
-                svgW = svg->handle->width;
-                svgH = svg->handle->height;
-                int rasterW = (int)(svgW * RASTER_SCALE);
-                int rasterH = (int)(svgH * RASTER_SCALE);
-                unsigned char* data = new unsigned char[rasterW * rasterH * 4]();
-                NSVGrasterizer* rast = nsvgCreateRasterizer();
-                nsvgRasterize(rast, svg->handle, 0, 0, RASTER_SCALE, data, rasterW, rasterH, rasterW * 4);
-                nsvgDeleteRasterizer(rast);
-                imgHandle = nvgCreateImageRGBA(args.vg, rasterW, rasterH, NVG_IMAGE_GENERATE_MIPMAPS, data);
-                delete[] data;
-            }
-        }
-        if (imgHandle < 0 || svgW == 0.f) return;
+        if (!svg)
+            svg = window::Svg::load(asset::plugin(pluginInstance, "res/panels/TehomBGSilver.svg"));
+        if (!svg || !svg->handle) return;
 
-        NVGpaint paint = nvgImagePattern(args.vg, scrollX, 0.f, svgW, svgH, 0.f, imgHandle, 1.f);
-        nvgBeginPath(args.vg);
-        nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
-        nvgFillPaint(args.vg, paint);
-        nvgFill(args.vg);
+        float svgW = svg->handle->width;
+        float svgH = svg->handle->height;
+        if (svgW <= 0.f || svgH <= 0.f) return;
+
+        float scale = box.size.y / svgH;
+        scaledW = svgW * scale;
+
+        nvgSave(args.vg);
+        nvgScissor(args.vg, 0, 0, box.size.x, box.size.y);
+        // Scroll right: anchor first copy at scrollX - scaledW, second at scrollX
+        nvgTranslate(args.vg, scrollX - scaledW, 0);
+        nvgScale(args.vg, scale, scale);
+        window::svgDraw(args.vg, svg->handle);
+        nvgTranslate(args.vg, svgW, 0);
+        window::svgDraw(args.vg, svg->handle);
+        nvgRestore(args.vg);
     }
 };
-*/
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Tehom.svg")));
 
-        /*
-		// Scrolling background texture (drawn below panel, shows through transparent areas)
+		// Scrolling background (drawn below panel, shows through transparent areas)
 		auto* bg = new TehomScrollingBG;
+		bg->module   = module;
 		bg->box.size = box.size;
 		addChildBottom(bg);
-        */
        
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -1292,6 +1306,28 @@ struct TehomWidget : ModuleWidget {
                 [=]() { return tehom->persist; },
                 [=]() { tehom->persist = !tehom->persist; }
             ));
+        }));
+
+        // Background scroll speed and direction
+        menu->addChild(createSubmenuItem("Background Scroll", "", [=](Menu* subMenu) {
+            const char* names[] = {"Off", "Slow", "Medium", "Fast"};
+            for (int s = 0; s < 4; s++) {
+                subMenu->addChild(createCheckMenuItem(names[s], "",
+                    [=]() { return tehom->bgScrollSpeed == s; },
+                    [=]() { tehom->bgScrollSpeed = s; }
+                ));
+            }
+            subMenu->addChild(new MenuSeparator);
+            subMenu->addChild(createSubmenuItem("Direction", "", [=](Menu* dirMenu) {
+                dirMenu->addChild(createCheckMenuItem("Right", "",
+                    [=]() { return tehom->bgScrollRight; },
+                    [=]() { tehom->bgScrollRight = true; }
+                ));
+                dirMenu->addChild(createCheckMenuItem("Left", "",
+                    [=]() { return !tehom->bgScrollRight; },
+                    [=]() { tehom->bgScrollRight = false; }
+                ));
+            }));
         }));
 
         // Buffer Size — global, flat list
