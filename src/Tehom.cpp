@@ -881,12 +881,57 @@ struct ChanLight0 : GrayModuleLightWidget { ChanLight0() { addBaseColor(SCHEME_C
 struct ChanLight1 : GrayModuleLightWidget { ChanLight1() { addBaseColor(SCHEME_PURPLE); } };
 struct ChanLight2 : GrayModuleLightWidget { ChanLight2() { addBaseColor(SCHEME_ORANGE); } };
 struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_RED); } };
+/*
+struct TehomScrollingBG : Widget {
+    int imgHandle = -1;
+    float scrollX = 0.f;
+    float svgW = 0.f, svgH = 0.f; // display size in NVG coords
+    static constexpr float RASTER_SCALE = 2.f; // rasterize at 2x for crispness
 
+    void step() override {
+        Widget::step();
+        if (svgW > 0.f)
+            scrollX = std::fmod(scrollX + 0.16f, svgW);
+    }
+
+    void draw(const DrawArgs& args) override {
+        if (imgHandle < 0) {
+            auto svg = Svg::load(asset::plugin(pluginInstance, "res/panels/TehomBGSilver.svg"));
+            if (svg && svg->handle) {
+                svgW = svg->handle->width;
+                svgH = svg->handle->height;
+                int rasterW = (int)(svgW * RASTER_SCALE);
+                int rasterH = (int)(svgH * RASTER_SCALE);
+                unsigned char* data = new unsigned char[rasterW * rasterH * 4]();
+                NSVGrasterizer* rast = nsvgCreateRasterizer();
+                nsvgRasterize(rast, svg->handle, 0, 0, RASTER_SCALE, data, rasterW, rasterH, rasterW * 4);
+                nsvgDeleteRasterizer(rast);
+                imgHandle = nvgCreateImageRGBA(args.vg, rasterW, rasterH, NVG_IMAGE_GENERATE_MIPMAPS, data);
+                delete[] data;
+            }
+        }
+        if (imgHandle < 0 || svgW == 0.f) return;
+
+        NVGpaint paint = nvgImagePattern(args.vg, scrollX, 0.f, svgW, svgH, 0.f, imgHandle, 1.f);
+        nvgBeginPath(args.vg);
+        nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
+        nvgFillPaint(args.vg, paint);
+        nvgFill(args.vg);
+    }
+};
+*/
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Tehom.svg")));
 
+        /*
+		// Scrolling background texture (drawn below panel, shows through transparent areas)
+		auto* bg = new TehomScrollingBG;
+		bg->box.size = box.size;
+		addChildBottom(bg);
+        */
+       
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));

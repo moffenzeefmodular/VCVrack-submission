@@ -109,6 +109,13 @@ struct NineMMKnob : SvgKnob {
 	}
 };
 
+struct TehomBigKnob : RoundBlackKnob {
+	TehomBigKnob() {
+		box.size = mm2px(Vec(11.f, 11.f));
+		shadow->box.size = box.size;
+	}
+};
+
 struct StargazerDavies : SvgKnob {
 	widget::SvgWidget* bg;
 	StargazerDavies() {
