@@ -248,6 +248,10 @@ float ledSpinSpeed[4] = {0.3f, 0.25f, 0.2f, 0.15f};
 std::atomic<bool> bezelDragging[4];
 bool playReversed[4] = {false, false, false, false};
 
+std::atomic<bool> xyDragging{false};
+float xyFinalX = 0.5f;
+float xyFinalY = 0.5f;
+
 void process(const ProcessArgs& args) override {
     // --- RECORD toggles ---
     for (int i = 0; i < 4; i++) {
@@ -304,14 +308,29 @@ void process(const ProcessArgs& args) override {
 		    }
 		}
 
-		// XY Pad 
-        float x = params[XPOS_PARAM].getValue();
-        float y = params[YPOS_PARAM].getValue();
-
-        outputs[XCVOUT_OUTPUT].setVoltage(x * 10.f);
-        outputs[YCVOUT_OUTPUT].setVoltage(y * 10.f);
-
 		}
+
+        // XY Pad — compute target from param + CV (CV bypassed while dragging)
+        float targetX, targetY;
+        if (!xyDragging.load()) {
+            float cvX = inputs[XCVIN_INPUT].isConnected() ? inputs[XCVIN_INPUT].getVoltage() / 10.f : 0.f;
+            float cvY = inputs[YCVIN_INPUT].isConnected() ? inputs[YCVIN_INPUT].getVoltage() / 10.f : 0.f;
+            targetX = clamp(params[XPOS_PARAM].getValue() + cvX, 0.f, 1.f);
+            targetY = clamp(params[YPOS_PARAM].getValue() + cvY, 0.f, 1.f);
+        } else {
+            targetX = params[XPOS_PARAM].getValue();
+            targetY = params[YPOS_PARAM].getValue();
+        }
+
+        // Slew — one-pole lowpass toward target
+        float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? inputs[SLEWCVIN_INPUT].getVoltage() / 10.f : 0.f), 0.f, 1.f);
+        float slewTime = slewParam; // param maps 0–1 to 0–1 seconds (displayed as 0–1000ms)
+        float alpha = (slewTime < 1e-6f) ? 1.f : clamp(args.sampleTime / slewTime, 0.f, 1.f);
+        xyFinalX += (targetX - xyFinalX) * alpha;
+        xyFinalY += (targetY - xyFinalY) * alpha;
+
+        outputs[XCVOUT_OUTPUT].setVoltage((xyFinalX - 0.5f) * 10.f);
+        outputs[YCVOUT_OUTPUT].setVoltage((xyFinalY - 0.5f) * 10.f);
 	}
 };
 
@@ -500,8 +519,13 @@ struct QuadLooperXYDisplay : Widget {
         if (!module) return;
         if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS) {
             dragging = true;
+            module->xyDragging.store(true);
 
-            // e.pos is already relative to this widget
+            // Snap param to current CV-modulated position so cursor doesn't jump
+            dragPos.x = module->xyFinalX * box.size.x;
+            dragPos.y = (1.f - module->xyFinalY) * box.size.y;
+
+            // Move to clicked position
             dragPos = e.pos;
             dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
             dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
@@ -511,6 +535,7 @@ struct QuadLooperXYDisplay : Widget {
         }
         if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_RELEASE) {
             dragging = false;
+            module->xyDragging.store(false);
         }
     }
 
@@ -525,18 +550,23 @@ struct QuadLooperXYDisplay : Widget {
         updateFromPos();
     }
 
+    void onDragEnd(const event::DragEnd &e) override {
+        if (module) module->xyDragging.store(false);
+        dragging = false;
+    }
+
     void draw(const DrawArgs &args) override {
+        float radius = 6.f;
+
         nvgBeginPath(args.vg);
-        nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, radius);
         nvgFillColor(args.vg, nvgRGB(18, 18, 18));
         nvgFill(args.vg);
 
         if (!module) return;
 
-        float radius = 6.f;
-
-        float px = module->params[Tehom::XPOS_PARAM].getValue() * box.size.x;
-        float py = (1.f - module->params[Tehom::YPOS_PARAM].getValue()) * box.size.y;
+        float px = module->xyFinalX * box.size.x;
+        float py = (1.f - module->xyFinalY) * box.size.y;
 
         px = clamp(px, radius, box.size.x - radius);
         py = clamp(py, radius, box.size.y - radius);
