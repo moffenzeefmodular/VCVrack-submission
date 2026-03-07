@@ -1,4 +1,48 @@
 #include "plugin.hpp"
+#include <cstring>
+
+// Base64 encode/decode for saving audio buffer content in patch JSON
+static const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static std::string b64Encode(const void* data, size_t len) {
+    const uint8_t* b = (const uint8_t*)data;
+    std::string out;
+    out.reserve(((len + 2) / 3) * 4);
+    for (size_t i = 0; i < len; i += 3) {
+        uint32_t v = (uint32_t)b[i] << 16;
+        if (i + 1 < len) v |= (uint32_t)b[i+1] << 8;
+        if (i + 2 < len) v |= (uint32_t)b[i+2];
+        out += b64chars[(v >> 18) & 0x3f];
+        out += b64chars[(v >> 12) & 0x3f];
+        out += (i + 1 < len) ? b64chars[(v >> 6) & 0x3f] : '=';
+        out += (i + 2 < len) ? b64chars[(v >> 0) & 0x3f] : '=';
+    }
+    return out;
+}
+static std::vector<uint8_t> b64Decode(const char* s, size_t slen) {
+    static const int8_t T[128] = {
+        -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,
+        52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1,
+        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,
+        15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,
+        -1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,
+        41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1,
+    };
+    std::vector<uint8_t> out;
+    out.reserve(slen * 3 / 4);
+    for (size_t i = 0; i + 3 < slen; i += 4) {
+        uint8_t a = (uint8_t)s[i], b = (uint8_t)s[i+1], c = (uint8_t)s[i+2], d = (uint8_t)s[i+3];
+        if (a >= 128 || b >= 128) break;
+        uint32_t v = ((uint32_t)T[a] << 18) | ((uint32_t)T[b] << 12)
+                   | ((c != '=' && c < 128) ? (uint32_t)T[c] << 6 : 0)
+                   | ((d != '=' && d < 128) ? (uint32_t)T[d]       : 0);
+        out.push_back((v >> 16) & 0xff);
+        if (c != '=') out.push_back((v >> 8) & 0xff);
+        if (d != '=') out.push_back(v & 0xff);
+    }
+    return out;
+}
 
 struct Tehom : Module {
     enum ParamId {
@@ -142,7 +186,7 @@ struct Tehom : Module {
 	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
     configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
-    configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "HiFi Tape Hiss", "LoFi Tape Hiss", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
+    configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "Reel to Reel", "Cassette", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
 
 	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
@@ -270,6 +314,21 @@ void resizeBuffers(float sampleRate) {
 
 void onSampleRateChange(const SampleRateChangeEvent& e) override {
     resizeBuffers(e.sampleRate);
+    // Apply any buffer data deferred from dataFromJson (runs before sample rate is known)
+    for (int i = 0; i < 4; i++) {
+        if (!pendingBuf[i].pending) continue;
+        int len = std::min(pendingBuf[i].len, bufferSize);
+        if (len > 0 && (int)pendingBuf[i].L.size() >= len && (int)pendingBuf[i].R.size() >= len) {
+            std::copy(pendingBuf[i].L.begin(), pendingBuf[i].L.begin() + len, bufL[i].begin());
+            std::copy(pendingBuf[i].R.begin(), pendingBuf[i].R.begin() + len, bufR[i].begin());
+            recordedLength[i] = len;
+            hasContent[i]     = pendingBuf[i].hasContent;
+            playState[i]      = pendingBuf[i].playState;
+            playReversed[i]   = pendingBuf[i].playReversed;
+            readPos[i]        = clamp(pendingBuf[i].readPos, 0.f, (float)(len - 1));
+        }
+        pendingBuf[i] = PendingBuf{};  // clear
+    }
 }
 
 void onReset(const ResetEvent& e) override {
@@ -291,11 +350,19 @@ void onReset(const ResetEvent& e) override {
     }
     xyFinalX = 0.5f;
     xyFinalY = 0.5f;
+    showCrosshairs = false;
+    persist        = true;
 }
 
 json_t* dataToJson() override {
     json_t* root = json_object();
-    json_object_set_new(root, "bufferDuration", json_real(bufferDuration));
+
+    // Settings
+    json_object_set_new(root, "bufferDuration",  json_real(bufferDuration));
+    json_object_set_new(root, "showCrosshairs",  json_boolean(showCrosshairs));
+    json_object_set_new(root, "persist",         json_boolean(persist));
+
+    // Per-channel toggles
     json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array();
     for (int i = 0; i < 4; i++) {
         json_array_append_new(ap,   json_boolean(autoPlay[i]));
@@ -305,18 +372,85 @@ json_t* dataToJson() override {
     json_object_set_new(root, "autoPlay",     ap);
     json_object_set_new(root, "autoPlayFull", apf);
     json_object_set_new(root, "playCVMode",   pcvm);
+
+    // Audio buffers
+    json_t* bufs = json_array();
+    for (int i = 0; i < 4; i++) {
+        json_t* ch = json_object();
+        json_object_set_new(ch, "hasContent",     json_boolean(hasContent[i]));
+        json_object_set_new(ch, "recordedLength", json_integer(recordedLength[i]));
+        json_object_set_new(ch, "playState",      json_boolean(playState[i]));
+        json_object_set_new(ch, "playReversed",   json_boolean(playReversed[i]));
+        json_object_set_new(ch, "readPos",        json_real(readPos[i]));
+        if (hasContent[i] && recordedLength[i] > 0) {
+            int len = recordedLength[i];
+            json_object_set_new(ch, "bufL", json_string(b64Encode(bufL[i].data(), len * sizeof(float)).c_str()));
+            json_object_set_new(ch, "bufR", json_string(b64Encode(bufR[i].data(), len * sizeof(float)).c_str()));
+        }
+        json_array_append_new(bufs, ch);
+    }
+    json_object_set_new(root, "buffers", bufs);
+
     return root;
 }
 
 void dataFromJson(json_t* root) override {
+    // Settings
     json_t* bd = json_object_get(root, "bufferDuration");
     if (bd) { bufferDuration = (float)json_real_value(bd); if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate); }
+    json_t* sc = json_object_get(root, "showCrosshairs");
+    if (sc) showCrosshairs = json_boolean_value(sc);
+    json_t* ps = json_object_get(root, "persist");
+    if (ps) persist = json_boolean_value(ps);
+
+    // Per-channel toggles
     json_t* ap = json_object_get(root, "autoPlay");
-    if (ap)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap,  i); if (v) autoPlay[i]     = json_boolean_value(v); }
+    if (ap)   for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap,   i); if (v) autoPlay[i]    = json_boolean_value(v); }
     json_t* apf = json_object_get(root, "autoPlayFull");
-    if (apf) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf, i); if (v) autoPlayFull[i]  = json_boolean_value(v); }
+    if (apf)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf,  i); if (v) autoPlayFull[i] = json_boolean_value(v); }
     json_t* pcvm = json_object_get(root, "playCVMode");
-    if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i]  = (int)json_integer_value(v); }
+    if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i]   = (int)json_integer_value(v); }
+
+    // Audio buffers
+    json_t* bufs = json_object_get(root, "buffers");
+    if (bufs) {
+        for (int i = 0; i < 4; i++) {
+            json_t* ch = json_array_get(bufs, i);
+            if (!ch) continue;
+            json_t* v;
+            bool hc  = false; v = json_object_get(ch, "hasContent");     if (v) hc = json_boolean_value(v);
+            int  len = 0;     v = json_object_get(ch, "recordedLength"); if (v) len = (int)json_integer_value(v);
+            bool ps2 = false; v = json_object_get(ch, "playState");      if (v) ps2 = json_boolean_value(v);
+            bool pr  = false; v = json_object_get(ch, "playReversed");   if (v) pr  = json_boolean_value(v);
+            float rp = 0.f;  v = json_object_get(ch, "readPos");        if (v) rp  = (float)json_real_value(v);
+
+            json_t* jbl = json_object_get(ch, "bufL");
+            json_t* jbr = json_object_get(ch, "bufR");
+
+            if (!hc || len <= 0 || !jbl || !jbr) continue;
+
+            auto decL = b64Decode(json_string_value(jbl), strlen(json_string_value(jbl)));
+            auto decR = b64Decode(json_string_value(jbr), strlen(json_string_value(jbr)));
+            int floatBytes = len * (int)sizeof(float);
+
+            if ((int)decL.size() < floatBytes || (int)decR.size() < floatBytes) continue;
+
+            std::vector<float> fL(len), fR(len);
+            memcpy(fL.data(), decL.data(), floatBytes);
+            memcpy(fR.data(), decR.data(), floatBytes);
+
+            // Always defer: onSampleRateChange fires after dataFromJson and would
+            // wipe a direct copy via resizeBuffers. Apply in onSampleRateChange instead.
+            pendingBuf[i].L            = std::move(fL);
+            pendingBuf[i].R            = std::move(fR);
+            pendingBuf[i].len          = len;
+            pendingBuf[i].hasContent   = hc;
+            pendingBuf[i].playState    = ps2;
+            pendingBuf[i].playReversed = pr;
+            pendingBuf[i].readPos      = rp;
+            pendingBuf[i].pending      = true;
+        }
+    }
 }
 
 
@@ -341,6 +475,10 @@ bool playReversed[4] = {false, false, false, false};
 float eraseFlash[4] = {};
 bool autoPlay[4]     = {true, true, true, true};
 bool autoPlayFull[4] = {true, true, true, true};
+
+// XY Pad display settings (UI state, reset on Init)
+bool showCrosshairs = false;
+bool persist        = true;
 int playCVMode[4] = {0, 0, 0, 0}; // 0=Play/Stop, 1=Retrigger, 2=Forward/Reverse
 
 std::atomic<bool> xyDragging{false};
@@ -361,6 +499,17 @@ int writePos[4] = {};
 float readPos[4] = {};
 int recordedLength[4] = {};
 bool hasContent[4] = {};
+
+// Deferred buffer data loaded from JSON — applied once sample rate is known
+struct PendingBuf {
+    std::vector<float> L, R;
+    int len = 0;
+    bool hasContent = false;
+    bool playState = false;
+    bool playReversed = false;
+    float readPos = 0.f;
+    bool pending = false;
+} pendingBuf[4];
 
 void processBypass(const ProcessArgs& args) override {
     float inL = inputs[AUDIOLEFTIN_INPUT].getVoltage();
@@ -810,6 +959,10 @@ struct QuadLooperXYDisplay : Widget {
     Vec dragPos;
     bool dragging = false;
 
+    struct TrailPoint { Vec pos; float alpha; };
+    std::vector<TrailPoint> trail;
+    Vec lastTrailPos = {-1.f, -1.f};  // sentinel: uninitialized
+
     void updateFromPos() {
         dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
         dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
@@ -877,14 +1030,51 @@ struct QuadLooperXYDisplay : Widget {
         px = clamp(px, radius, box.size.x - radius);
         py = clamp(py, radius, box.size.y - radius);
 
-        // Crosshair
-        nvgBeginPath(args.vg);
-        nvgMoveTo(args.vg, px, 0);
-        nvgLineTo(args.vg, px, box.size.y);
-        nvgMoveTo(args.vg, 0, py);
-        nvgLineTo(args.vg, box.size.x, py);
-        nvgStrokeColor(args.vg, nvgRGB(60, 60, 60));
-        nvgStroke(args.vg);
+        // Persist trail — comet tail: each point starts at cursor radius and shrinks as it fades
+        if (module->persist) {
+            Vec cur(px, py);
+            if (lastTrailPos.x < 0.f) lastTrailPos = cur;
+            // Interpolate between last and current position at 2px steps
+            Vec delta = cur.minus(lastTrailPos);
+            float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+            int steps = std::max(1, (int)(dist / 2.f));
+            for (int s = 0; s <= steps; s++) {
+                float t = (float)s / (float)steps;
+                Vec p = lastTrailPos.plus(delta.mult(t));
+                trail.push_back({p, 1.f});
+            }
+            lastTrailPos = cur;
+            if (trail.size() > 600)
+                trail.erase(trail.begin(), trail.begin() + (int)(trail.size() - 600));
+            for (auto& tp : trail) {
+                float r = radius * tp.alpha;
+                if (r > 0.f) {
+                    nvgBeginPath(args.vg);
+                    nvgCircle(args.vg, tp.pos.x, tp.pos.y, r);
+                    nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, tp.alpha * 0.7f));
+                    nvgFill(args.vg);
+                }
+                tp.alpha -= 0.04f;
+            }
+            trail.erase(
+                std::remove_if(trail.begin(), trail.end(), [](const TrailPoint& tp) { return tp.alpha <= 0.f; }),
+                trail.end()
+            );
+        } else if (!trail.empty()) {
+            trail.clear();
+            lastTrailPos = {-1.f, -1.f};
+        }
+
+        // Crosshairs
+        if (module->showCrosshairs) {
+            nvgBeginPath(args.vg);
+            nvgMoveTo(args.vg, px, 0);
+            nvgLineTo(args.vg, px, box.size.y);
+            nvgMoveTo(args.vg, 0, py);
+            nvgLineTo(args.vg, box.size.x, py);
+            nvgStrokeColor(args.vg, nvgRGB(60, 60, 60));
+            nvgStroke(args.vg);
+        }
 
         // Cursor dot
         nvgBeginPath(args.vg);
@@ -1090,6 +1280,19 @@ struct TehomWidget : ModuleWidget {
         ModuleWidget::appendContextMenu(menu);
         auto* tehom = dynamic_cast<Tehom*>(module);
         if (!tehom) return;
+
+        // XY Pad display options
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createSubmenuItem("XY Pad", "", [=](Menu* subMenu) {
+            subMenu->addChild(createCheckMenuItem("Draw Crosshairs", "",
+                [=]() { return tehom->showCrosshairs; },
+                [=]() { tehom->showCrosshairs = !tehom->showCrosshairs; }
+            ));
+            subMenu->addChild(createCheckMenuItem("Persist", "",
+                [=]() { return tehom->persist; },
+                [=]() { tehom->persist = !tehom->persist; }
+            ));
+        }));
 
         // Buffer Size — global, flat list
         menu->addChild(new MenuSeparator);
