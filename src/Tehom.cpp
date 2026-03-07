@@ -231,6 +231,30 @@ struct Tehom : Module {
     configOutput(YCVOUT_OUTPUT, "Y CV");
 }
 
+void eraseBuffer(int i) {
+    if (i < 0 || i > 3) return;
+    if (!bufL[i].empty()) std::fill(bufL[i].begin(), bufL[i].end(), 0.f);
+    if (!bufR[i].empty()) std::fill(bufR[i].begin(), bufR[i].end(), 0.f);
+    writePos[i] = 0;
+    readPos[i] = 0.f;
+    recordedLength[i] = 0;
+    hasContent[i] = false;
+    recordState[i] = false;
+    playState[i] = false;
+}
+
+void onSampleRateChange(const SampleRateChangeEvent& e) override {
+    bufferSize = (int)(5.f * e.sampleRate);
+    for (int i = 0; i < 4; i++) {
+        bufL[i].assign(bufferSize, 0.f);
+        bufR[i].assign(bufferSize, 0.f);
+        writePos[i] = 0;
+        readPos[i] = 0.f;
+        recordedLength[i] = 0;
+        hasContent[i] = false;
+    }
+}
+
 // Current state of record/play toggles
 bool recordState[4] = {false, false, false, false};
 bool playState[4] = {false, false, false, false};
@@ -252,6 +276,15 @@ std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
 float xyFinalY = 0.5f;
 
+// Audio buffers (5 seconds per channel, stereo)
+int bufferSize = 0;
+std::vector<float> bufL[4];
+std::vector<float> bufR[4];
+int writePos[4] = {};
+float readPos[4] = {};
+int recordedLength[4] = {};
+bool hasContent[4] = {};
+
 void process(const ProcessArgs& args) override {
     // --- RECORD toggles ---
     for (int i = 0; i < 4; i++) {
@@ -263,10 +296,14 @@ void process(const ProcessArgs& args) override {
         bool cvRising = cv && !lastRecordCV[i];
         lastRecordCV[i] = cv;
 
-        if (btnRising || cvRising)
+        if (btnRising || cvRising) {
             recordState[i] = !recordState[i];
+            if (recordState[i] && !hasContent[i]) {
+                writePos[i] = 0;
+                recordedLength[i] = 0;
+            }
+        }
 
-        // Update light smoothly
         lights[RECORD1_LIGHT + i].setBrightnessSmooth(recordState[i] ? 1.f : 0.f, args.sampleTime);
     }
 
@@ -280,58 +317,141 @@ void process(const ProcessArgs& args) override {
         bool cvRising = cv && !lastPlayCV[i];
         lastPlayCV[i] = cv;
 
-        if (btnRising || cvRising)
+        if (btnRising || cvRising) {
             playState[i] = !playState[i];
-
-        // Green when playing forward, blue when playing reversed
-        lights[PLAY1_LIGHT + i].setBrightnessSmooth((playState[i] && !playReversed[i]) ? 1.f : 0.f, args.sampleTime);
-        lights[PLAY1_BLUE_LIGHT + i].setBrightnessSmooth((playState[i] && playReversed[i]) ? 1.f : 0.f, args.sampleTime);
-
-		// --- BEZEL SPINNING ---
-		for (int i = 0; i < 4; i++) {
-		    // Only spin if PLAY is active and user isn't clicking the bezel
-		    if (playState[i] && !bezelDragging[i].load()) {
-		        float pitchVal = clamp(params[Tehom::SPEED1_PARAM + i].getValue() + inputs[Tehom::SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f);
-
-		        float minSpeed = 0.02f;
-		        float maxSpeed = 0.2f;
-
-		        float spinSpeed = minSpeed + pitchVal * (maxSpeed - minSpeed);
-		        float spinDir = playReversed[i] ? -1.f : 1.f;
-
-		        float newValue = params[Tehom::LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
-
-		        if (newValue > 1.f) newValue -= 1.f;
-		        if (newValue < 0.f) newValue += 1.f;
-
-		        params[Tehom::LEDBEZEL1_PARAM + i].setValue(newValue);
-		    }
-		}
-
-		}
-
-        // XY Pad — compute target from param + CV (CV bypassed while dragging)
-        float targetX, targetY;
-        if (!xyDragging.load()) {
-            float cvX = inputs[XCVIN_INPUT].isConnected() ? inputs[XCVIN_INPUT].getVoltage() / 10.f : 0.f;
-            float cvY = inputs[YCVIN_INPUT].isConnected() ? inputs[YCVIN_INPUT].getVoltage() / 10.f : 0.f;
-            targetX = clamp(params[XPOS_PARAM].getValue() + cvX, 0.f, 1.f);
-            targetY = clamp(params[YPOS_PARAM].getValue() + cvY, 0.f, 1.f);
-        } else {
-            targetX = params[XPOS_PARAM].getValue();
-            targetY = params[YPOS_PARAM].getValue();
+            if (playState[i]) {
+                readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+            }
         }
 
-        // Slew — one-pole lowpass toward target
-        float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? inputs[SLEWCVIN_INPUT].getVoltage() / 10.f : 0.f), 0.f, 1.f);
-        float slewTime = slewParam; // param maps 0–1 to 0–1 seconds (displayed as 0–1000ms)
-        float alpha = (slewTime < 1e-6f) ? 1.f : clamp(args.sampleTime / slewTime, 0.f, 1.f);
-        xyFinalX += (targetX - xyFinalX) * alpha;
-        xyFinalY += (targetY - xyFinalY) * alpha;
+        lights[PLAY1_LIGHT + i].setBrightnessSmooth((playState[i] && !playReversed[i]) ? 1.f : 0.f, args.sampleTime);
+        lights[PLAY1_BLUE_LIGHT + i].setBrightnessSmooth((playState[i] && playReversed[i]) ? 1.f : 0.f, args.sampleTime);
+    }
 
-        outputs[XCVOUT_OUTPUT].setVoltage((xyFinalX - 0.5f) * 10.f);
-        outputs[YCVOUT_OUTPUT].setVoltage((xyFinalY - 0.5f) * 10.f);
-	}
+    // --- BEZEL SPINNING (pauses audio readPos when held) ---
+    for (int i = 0; i < 4; i++) {
+        if (playState[i] && !bezelDragging[i].load()) {
+            float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f);
+            float spinSpeed = 0.02f + pitchVal * 0.18f;
+            float spinDir = playReversed[i] ? -1.f : 1.f;
+            float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
+            if (newValue > 1.f) newValue -= 1.f;
+            if (newValue < 0.f) newValue += 1.f;
+            params[LEDBEZEL1_PARAM + i].setValue(newValue);
+        }
+    }
+
+    // === AUDIO DSP ===
+    float inL = inputs[AUDIOLEFTIN_INPUT].getVoltage();
+    float inR = inputs[AUDIORIGHTIN_INPUT].getVoltage();
+
+    // XY mixer — 2x2 bilinear: each corner owns one channel at full volume
+    // ch1=top-left, ch2=top-right, ch3=bottom-left, ch4=bottom-right
+    // xyFinalX=0 → left, xyFinalX=1 → right; xyFinalY=1 → top, xyFinalY=0 → bottom
+    float vol[4] = {
+        (1.f - xyFinalX) * xyFinalY,         // ch1: top-left
+        xyFinalX * xyFinalY,                   // ch2: top-right
+        (1.f - xyFinalX) * (1.f - xyFinalY),  // ch3: bottom-left
+        xyFinalX * (1.f - xyFinalY),           // ch4: bottom-right
+    };
+
+    // Playback + source crossfade per channel (bezel held = paused, output silent)
+    // chanMix holds the post-pitch, post-source-crossfade signal for each channel.
+    // This is both what gets recorded and what contributes to the module output.
+    float chanMixL[4] = {}, chanMixR[4] = {};
+    float outL = 0.f, outR = 0.f;
+
+    for (int i = 0; i < 4; i++) {
+        float sampL = 0.f, sampR = 0.f;
+
+        if (playState[i] && hasContent[i] && bufferSize > 0 && !bezelDragging[i].load()) {
+            int len = recordedLength[i];
+            if (len >= 2) {
+                int rp0 = clamp((int)readPos[i], 0, len - 1);
+                int rp1 = clamp(rp0 + 1, 0, len - 1);
+                float frac = readPos[i] - (float)rp0;
+                sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
+                sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
+
+                float speed = clamp(params[SPEED1_PARAM + i].getValue() + inputs[SPEED1CVIN_INPUT + i].getVoltage() / 10.f, 0.f, 1.f) * 2.f;
+                float dir = playReversed[i] ? -1.f : 1.f;
+                readPos[i] += dir * speed;
+
+                bool looping = params[LOOP1_PARAM + i].getValue() > 0.5f;
+                if (looping) {
+                    if (readPos[i] >= (float)len) readPos[i] -= (float)len;
+                    if (readPos[i] < 0.f) readPos[i] += (float)len;
+                } else {
+                    if (readPos[i] >= (float)len || readPos[i] < 0.f) {
+                        playState[i] = false;
+                        readPos[i] = playReversed[i] ? (float)(len - 1) : 0.f;
+                    }
+                }
+            }
+        }
+
+        // Source crossfade: left = incoming audio, right = post-pitch loop sample
+        float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + inputs[SOURCE1CVIN_INPUT + i].getVoltage() / 10.f, -1.f, 1.f);
+        float t = (srcParam + 1.f) * 0.5f; // 0 = audio input only, 1 = loop sample only
+        chanMixL[i] = inL * (1.f - t) + sampL * t;
+        chanMixR[i] = inR * (1.f - t) + sampR * t;
+
+        outL += chanMixL[i] * vol[i];
+        outR += chanMixR[i] * vol[i];
+
+        // LED brightness from this channel's contribution
+        float level = (std::abs(chanMixL[i]) + std::abs(chanMixR[i])) * 0.5f * vol[i] / 10.f;
+        lights[BUFFER1LED_LIGHT + i].setBrightnessSmooth(level, args.sampleTime * 20.f);
+    }
+
+    outL = clamp(outL, -10.f, 10.f);
+    outR = clamp(outR, -10.f, 10.f);
+
+    outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(outL);
+    outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
+
+    // Recording pass — write the crossfaded mix into the buffer (sound on sound)
+    for (int i = 0; i < 4; i++) {
+        if (!recordState[i] || bufferSize == 0) continue;
+
+        bufL[i][writePos[i]] = chanMixL[i];
+        bufR[i][writePos[i]] = chanMixR[i];
+
+        writePos[i]++;
+        if (recordedLength[i] < bufferSize) recordedLength[i]++;
+        hasContent[i] = true;
+
+        // Buffer full — stop recording and auto-start playback
+        if (writePos[i] >= bufferSize) {
+            writePos[i] = 0;
+            recordState[i] = false;
+            if (!playState[i]) {
+                playState[i] = true;
+                readPos[i] = 0.f;
+            }
+        }
+    }
+
+    // XY Pad — param + CV offset (CV bypassed while dragging), then slewed
+    float targetX, targetY;
+    if (!xyDragging.load()) {
+        float cvX = inputs[XCVIN_INPUT].isConnected() ? inputs[XCVIN_INPUT].getVoltage() / 10.f : 0.f;
+        float cvY = inputs[YCVIN_INPUT].isConnected() ? inputs[YCVIN_INPUT].getVoltage() / 10.f : 0.f;
+        targetX = clamp(params[XPOS_PARAM].getValue() + cvX, 0.f, 1.f);
+        targetY = clamp(params[YPOS_PARAM].getValue() + cvY, 0.f, 1.f);
+    } else {
+        targetX = params[XPOS_PARAM].getValue();
+        targetY = params[YPOS_PARAM].getValue();
+    }
+
+    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? inputs[SLEWCVIN_INPUT].getVoltage() / 10.f : 0.f), 0.f, 1.f);
+    float alpha = (slewParam < 1e-6f) ? 1.f : clamp(args.sampleTime / slewParam, 0.f, 1.f);
+    xyFinalX += (targetX - xyFinalX) * alpha;
+    xyFinalY += (targetY - xyFinalY) * alpha;
+
+    outputs[XCVOUT_OUTPUT].setVoltage((xyFinalX - 0.5f) * 10.f);
+    outputs[YCVOUT_OUTPUT].setVoltage((xyFinalY - 0.5f) * 10.f);
+}
 };
 
 
@@ -411,22 +531,25 @@ struct RecordWidget : LEDBezel {
 	int channel = 0;
 	ui::Tooltip* tooltip = nullptr;
 	bool isHovered = false;
+	float eraseFlashTimer = 0.f; // counts down in seconds
 
 	void onButton(const ButtonEvent& e) override {
-		if (e.button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (e.button == GLFW_MOUSE_BUTTON_RIGHT && e.action == GLFW_PRESS) {
+			if (tehom) {
+				tehom->eraseBuffer(channel);
+				eraseFlashTimer = 1.2f;
+			}
 			e.consume(this);
 			return;
 		}
 		LEDBezel::onButton(e);
 	}
 
-	void onEnter(const EnterEvent& e) override {
-		isHovered = true;
-	}
+	void onEnter(const EnterEvent& e) override { isHovered = true; }
 
 	void onLeave(const LeaveEvent& e) override {
 		isHovered = false;
-		if (tooltip) {
+		if (tooltip && eraseFlashTimer <= 0.f) {
 			APP->scene->removeChild(tooltip);
 			delete tooltip;
 			tooltip = nullptr;
@@ -435,15 +558,48 @@ struct RecordWidget : LEDBezel {
 
 	void step() override {
 		LEDBezel::step();
-		bool shouldShow = isHovered && tehom && tehom->recordState[channel];
-		if (shouldShow && !tooltip) {
-			tooltip = new ui::Tooltip;
-			tooltip->text = "Recording ...";
-			APP->scene->addChild(tooltip);
-		} else if (!shouldShow && tooltip) {
-			APP->scene->removeChild(tooltip);
-			delete tooltip;
-			tooltip = nullptr;
+
+		float dt = APP->window->getLastFrameDuration();
+		if (eraseFlashTimer > 0.f) {
+			eraseFlashTimer -= dt;
+			// Show "Erased" tooltip while flashing
+			if (!tooltip) {
+				tooltip = new ui::Tooltip;
+				tooltip->text = "Erased";
+				APP->scene->addChild(tooltip);
+			} else {
+				tooltip->text = "Erased";
+			}
+			if (eraseFlashTimer <= 0.f) {
+				eraseFlashTimer = 0.f;
+				APP->scene->removeChild(tooltip);
+				delete tooltip;
+				tooltip = nullptr;
+			}
+		} else {
+			// Normal: show "Recording..." on hover while active
+			bool shouldShow = isHovered && tehom && tehom->recordState[channel];
+			if (shouldShow && !tooltip) {
+				tooltip = new ui::Tooltip;
+				tooltip->text = "Recording ...";
+				APP->scene->addChild(tooltip);
+			} else if (!shouldShow && tooltip) {
+				APP->scene->removeChild(tooltip);
+				delete tooltip;
+				tooltip = nullptr;
+			}
+		}
+	}
+
+	void drawLayer(const DrawArgs& args, int layer) override {
+		LEDBezel::drawLayer(args, layer);
+		if (layer == 1 && eraseFlashTimer > 0.f) {
+			// White flash: bright at first, fades over 0.4 seconds
+			float alpha = clamp(eraseFlashTimer / 0.4f, 0.f, 1.f);
+			nvgBeginPath(args.vg);
+			nvgCircle(args.vg, box.size.x * 0.5f, box.size.y * 0.5f, box.size.x * 0.5f);
+			nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, alpha));
+			nvgFill(args.vg);
 		}
 	}
 };
@@ -588,6 +744,12 @@ struct QuadLooperXYDisplay : Widget {
     }
 };
 
+// Custom channel colors: Cyan, Magenta, Orange, Purple
+struct ChanLight0 : GrayModuleLightWidget { ChanLight0() { addBaseColor(SCHEME_CYAN); } };
+struct ChanLight1 : GrayModuleLightWidget { ChanLight1() { addBaseColor(SCHEME_PURPLE); } };
+struct ChanLight2 : GrayModuleLightWidget { ChanLight2() { addBaseColor(SCHEME_ORANGE); } };
+struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_YELLOW); } };
+
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
@@ -722,11 +884,11 @@ struct TehomWidget : ModuleWidget {
 			addParam(bezel);
 		}
 
-		// Lights
-		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(26.9, 10.166)), module, Tehom::BUFFER1LED_LIGHT));
-		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(125.315, 10.166)), module, Tehom::BUFFER2LED_LIGHT));
-		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(26.9, 71.937)), module, Tehom::BUFFER3LED_LIGHT));
-		addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(125.315, 71.937)), module, Tehom::BUFFER4LED_LIGHT));
+		// Lights — each channel has a distinct color, brightness driven by audio output
+		addChild(createLightCentered<LargeLight<ChanLight0>>(mm2px(Vec(26.9, 10.166)), module, Tehom::BUFFER1LED_LIGHT));
+		addChild(createLightCentered<LargeLight<ChanLight1>>(mm2px(Vec(125.315, 10.166)), module, Tehom::BUFFER2LED_LIGHT));
+		addChild(createLightCentered<LargeLight<ChanLight2>>(mm2px(Vec(26.9, 71.937)), module, Tehom::BUFFER3LED_LIGHT));
+		addChild(createLightCentered<LargeLight<ChanLight3>>(mm2px(Vec(125.315, 71.937)), module, Tehom::BUFFER4LED_LIGHT));
 	}
 };
 Model* modelTehom = createModel<Tehom, TehomWidget>("Tehom");
