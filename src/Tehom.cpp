@@ -139,8 +139,8 @@ struct Tehom : Module {
 	Tehom() {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-	configParam(XPOS_PARAM, 0.f, 1.f, 0.f, "X Position");
-    configParam(YPOS_PARAM, 0.f, 1.f, 0.f, "Y Position");
+	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
+    configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
     configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "HiFi Tape Hiss", "LoFi Tape Hiss", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
 
@@ -267,6 +267,14 @@ void resizeBuffers(float sampleRate) {
 
 void onSampleRateChange(const SampleRateChangeEvent& e) override {
     resizeBuffers(e.sampleRate);
+}
+
+void onReset(const ResetEvent& e) override {
+    Module::onReset(e);
+    for (int i = 0; i < 4; i++)
+        eraseBuffer(i);
+    xyFinalX = 0.5f;
+    xyFinalY = 0.5f;
 }
 
 json_t* dataToJson() override {
