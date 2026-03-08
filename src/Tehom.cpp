@@ -369,6 +369,7 @@ void onReset(const ResetEvent& e) override {
     xyFinalY = 0.5f;
     showCrosshairs    = false;
     persist           = true;
+    xyPadPansAudio    = false;
     bgScrollSpeed     = 2;
     bgScrollRight     = true;
     noiseAuxPreFader  = true;
@@ -386,6 +387,7 @@ json_t* dataToJson() override {
     json_object_set_new(root, "bgScrollSpeed",    json_integer(bgScrollSpeed));
     json_object_set_new(root, "bgScrollRight",    json_boolean(bgScrollRight));
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
+    json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio));
 
     // Per-channel toggles
     json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
@@ -435,6 +437,8 @@ void dataFromJson(json_t* root) override {
     if (bss) bgScrollSpeed = (int)json_integer_value(bss);
     json_t* bsr = json_object_get(root, "bgScrollRight");
     if (bsr) bgScrollRight = json_boolean_value(bsr);
+    json_t* xyp = json_object_get(root, "xyPadPansAudio");
+    if (xyp) xyPadPansAudio = json_boolean_value(xyp);
     json_t* napf = json_object_get(root, "noiseAuxPreFader");
     if (napf) noiseAuxPreFader = json_boolean_value(napf);
 
@@ -518,8 +522,9 @@ bool continuousRecord[4]   = {false, false, false, false};
 bool recordMainOutput[4]   = {false, false, false, false};
 
 // XY Pad display settings (UI state, reset on Init)
-bool showCrosshairs = false;
-bool persist        = true;
+bool showCrosshairs  = false;
+bool persist         = true;
+bool xyPadPansAudio  = false;
 
 // Background scroll speed: 0=Off, 1=Slow, 2=Medium, 3=Fast
 int  bgScrollSpeed = 2;
@@ -795,8 +800,16 @@ void process(const ProcessArgs& args) override {
         chanMixL[i] = inL * (1.f - t) + sampL * t;
         chanMixR[i] = inR * (1.f - t) + sampR * t;
 
-        outL += chanMixL[i] * vol[i];
-        outR += chanMixR[i] * vol[i];
+        if (xyPadPansAudio) {
+            // X=0 → 100% left, X=1 → 100% right, X=0.5 → center (constant-power pan law)
+            float panL = std::cos(xyFinalX * float(M_PI) * 0.5f);
+            float panR = std::sin(xyFinalX * float(M_PI) * 0.5f);
+            outL += chanMixL[i] * vol[i] * panL;
+            outR += chanMixR[i] * vol[i] * panR;
+        } else {
+            outL += chanMixL[i] * vol[i];
+            outR += chanMixR[i] * vol[i];
+        }
 
         float level = (std::abs(chanMixL[i]) + std::abs(chanMixR[i])) * 0.5f * vol[i];
         lights[BUFFER1LED_LIGHT + i].setBrightnessSmooth(level, args.sampleTime * 20.f);
@@ -1464,6 +1477,10 @@ struct TehomWidget : ModuleWidget {
         // Global section
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("Global"));
+        menu->addChild(createCheckMenuItem("XY Pad Pans Audio", "",
+            [=]() { return tehom->xyPadPansAudio; },
+            [=]() { tehom->xyPadPansAudio = !tehom->xyPadPansAudio; }
+        ));
         menu->addChild(createSubmenuItem("Buffer Size", "", [=](Menu* subMenu) {
             const float durations[] = {1.f, 2.f, 5.f, 10.f, 20.f, 30.f, 60.f};
             const char* labels[]    = {"1 second", "2 seconds", "5 seconds", "10 seconds", "20 seconds", "30 seconds", "1 minute"};
