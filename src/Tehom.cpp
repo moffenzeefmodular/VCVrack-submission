@@ -367,6 +367,7 @@ void onReset(const ResetEvent& e) override {
     }
     xyFinalX = 0.5f;
     xyFinalY = 0.5f;
+    xyResetPending.store(true);
     showCrosshairs    = false;
     persist           = true;
     xyPadPansAudio    = false;
@@ -388,6 +389,7 @@ json_t* dataToJson() override {
     json_object_set_new(root, "bgScrollRight",    json_boolean(bgScrollRight));
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
     json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio));
+    json_object_set_new(root, "cursorStyle",      json_integer(cursorStyle));
 
     // Per-channel toggles
     json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
@@ -439,6 +441,8 @@ void dataFromJson(json_t* root) override {
     if (bsr) bgScrollRight = json_boolean_value(bsr);
     json_t* xyp = json_object_get(root, "xyPadPansAudio");
     if (xyp) xyPadPansAudio = json_boolean_value(xyp);
+    json_t* cs = json_object_get(root, "cursorStyle");
+    if (cs) cursorStyle = (int)json_integer_value(cs);
     json_t* napf = json_object_get(root, "noiseAuxPreFader");
     if (napf) noiseAuxPreFader = json_boolean_value(napf);
 
@@ -525,6 +529,7 @@ bool recordMainOutput[4]   = {false, false, false, false};
 bool showCrosshairs  = false;
 bool persist         = true;
 bool xyPadPansAudio  = false;
+int  cursorStyle     = 0; // 0=Fish, 1=Circle
 
 // Background scroll speed: 0=Off, 1=Slow, 2=Medium, 3=Fast
 int  bgScrollSpeed = 2;
@@ -534,6 +539,7 @@ int playCVMode[4] = {0, 0, 0, 0}; // 0=Play/Stop, 1=Retrigger, 2=Forward/Reverse
 std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
 float xyFinalY = 0.5f;
+std::atomic<bool> xyResetPending{false};
 
 // Warble LFO phases (per channel, advance while playing)
 float wowPhase[4]     = {};
@@ -1099,9 +1105,18 @@ struct QuadLooperXYDisplay : Widget {
     bool dragging = false;
     double lastClickTime = -1.0;
 
-    struct TrailPoint { Vec pos; float alpha; };
+    struct TrailPoint { Vec pos; float alpha; float angle; bool facingRight; };
     std::vector<TrailPoint> trail;
     Vec lastTrailPos = {-1.f, -1.f};  // sentinel: uninitialized
+
+    std::shared_ptr<window::Svg> fishSvg;
+
+    // Fish orientation state
+    float prevPx      = -1.f, prevPy = -1.f;
+    float smoothVx    = 0.f,  smoothVy = 0.f;
+    float fishAngle   = 0.f;
+    bool  fishFacingRight = false;
+    Vec   rawMouseDelta   = {0.f, 0.f};  // accumulated raw mouse delta between draw calls
 
     void updateFromPos() {
         dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
@@ -1124,6 +1139,14 @@ struct QuadLooperXYDisplay : Widget {
                 dragPos.x = box.size.x * 0.5f;
                 dragPos.y = box.size.y * 0.5f;
                 updateFromPos();
+                // Reset fish to centered, facing right
+                fishFacingRight = true;
+                fishAngle       = 0.f;
+                smoothVx        = 0.f;
+                smoothVy        = 0.f;
+                prevPx          = -1.f;
+                prevPy          = -1.f;
+                rawMouseDelta   = {0.f, 0.f};
                 e.consume(this);
                 return;
             }
@@ -1153,8 +1176,10 @@ struct QuadLooperXYDisplay : Widget {
     void onDragMove(const event::DragMove &e) override {
         if (!module || !dragging) return;
 
-        dragPos = dragPos.plus(e.mouseDelta.div(getAbsoluteZoom()));
+        Vec delta = e.mouseDelta.div(getAbsoluteZoom());
+        rawMouseDelta = rawMouseDelta.plus(delta);
 
+        dragPos = dragPos.plus(delta);
         dragPos.x = clamp(dragPos.x, 0.f, box.size.x);
         dragPos.y = clamp(dragPos.y, 0.f, box.size.y);
 
@@ -1164,6 +1189,22 @@ struct QuadLooperXYDisplay : Widget {
     void onDragEnd(const event::DragEnd &e) override {
         if (module) module->xyDragging.store(false);
         dragging = false;
+    }
+
+    // Helper: draw fish SVG centered at (cx, cy), rotated by angle, optionally flipped, scaled to fishW x fishH
+    void drawFish(const DrawArgs& args, float cx, float cy,
+                  float fishW, float fishH, float fishSvgW,
+                  float angle, bool facingRight, float alpha) {
+        if (fishW <= 0.f) return;
+        nvgSave(args.vg);
+        if (alpha < 1.f) nvgGlobalAlpha(args.vg, alpha);
+        nvgTranslate(args.vg, cx, cy);
+        nvgRotate(args.vg, angle);
+        if (facingRight) nvgScale(args.vg, -1.f, 1.f);
+        nvgTranslate(args.vg, -fishW * 0.5f, -fishH * 0.5f);
+        nvgScale(args.vg, fishW / fishSvgW, fishW / fishSvgW);
+        window::svgDraw(args.vg, fishSvg->handle);
+        nvgRestore(args.vg);
     }
 
     void draw(const DrawArgs &args) override {
@@ -1176,35 +1217,134 @@ struct QuadLooperXYDisplay : Widget {
 
         if (!module) return;
 
+        // Lazy-load fish SVG
+        if (!fishSvg)
+            fishSvg = window::Svg::load(asset::plugin(pluginInstance, "res/components/Fish.svg"));
+
+        bool useFish = (module->cursorStyle == 0) && fishSvg && fishSvg->handle;
+        float fishW = 0.f, fishH = 0.f, fishSvgW = 0.f;
+        if (useFish) {
+            fishSvgW = fishSvg->handle->width;
+            fishW    = radius * 2.5f;
+            fishH    = fishSvg->handle->height * (fishW / fishSvgW);
+        }
+
         float px = module->xyFinalX * box.size.x;
         float py = (1.f - module->xyFinalY) * box.size.y;
 
-        px = clamp(px, radius, box.size.x - radius);
-        py = clamp(py, radius, box.size.y - radius);
+        // Clamp cursor within bounds
+        if (useFish) {
+            float ca = std::abs(std::cos(fishAngle));
+            float sa = std::abs(std::sin(fishAngle));
+            float halfBoundW = (fishW * 0.5f) * ca + (fishH * 0.5f) * sa;
+            float halfBoundH = (fishW * 0.5f) * sa + (fishH * 0.5f) * ca;
+            px = clamp(px, halfBoundW, box.size.x - halfBoundW);
+            py = clamp(py, halfBoundH, box.size.y - halfBoundH);
+        } else {
+            px = clamp(px, radius, box.size.x - radius);
+            py = clamp(py, radius, box.size.y - radius);
+        }
 
-        // Persist trail — comet tail: each point starts at cursor radius and shrinks as it fades
+        // --- Fish orientation: velocity tracking ---
+        if (module->xyResetPending.exchange(false)) {
+            fishFacingRight = true;
+            fishAngle       = 0.f;
+            smoothVx        = 0.f;
+            smoothVy        = 0.f;
+            prevPx          = -1.f;
+            prevPy          = -1.f;
+            rawMouseDelta   = {0.f, 0.f};
+        }
+        if (useFish) {
+            float dvx, dvy;
+            if (dragging && (rawMouseDelta.x != 0.f || rawMouseDelta.y != 0.f)) {
+                // Use raw mouse input for immediate, slew-independent direction
+                dvx = rawMouseDelta.x;
+                dvy = rawMouseDelta.y;
+            } else {
+                if (prevPx < 0.f) { prevPx = px; prevPy = py; }
+                dvx = px - prevPx;
+                dvy = py - prevPy;
+            }
+            // Always drain rawMouseDelta so it can't accumulate noise at walls
+            rawMouseDelta = {0.f, 0.f};
+            prevPx = px; prevPy = py;
+
+            // Lighter smoothing so fast moves register quickly
+            float emaK = dragging ? 0.55f : 0.80f;
+            smoothVx = smoothVx * emaK + dvx * (1.f - emaK);
+            smoothVy = smoothVy * emaK + dvy * (1.f - emaK);
+
+            float speed = std::sqrt(smoothVx * smoothVx + smoothVy * smoothVy);
+            // Higher threshold prevents atan2 noise when near-stationary or clamped at a wall
+            if (speed > 0.4f) {
+                // Flip hysteresis: wider dead zone prevents oscillation near vx=0
+                bool newFacing = fishFacingRight;
+                if (smoothVx >  0.25f) newFacing = true;
+                if (smoothVx < -0.25f) newFacing = false;
+
+                // If facing flipped, rotate fishAngle by π so the fish doesn't visually jump
+                if (newFacing != fishFacingRight) {
+                    fishAngle += float(M_PI);
+                    while (fishAngle >  float(M_PI)) fishAngle -= 2.f * float(M_PI);
+                    while (fishAngle < -float(M_PI)) fishAngle += 2.f * float(M_PI);
+                    fishFacingRight = newFacing;
+                }
+
+                // Target angle: align fish head with velocity direction
+                float targetAngle;
+                if (fishFacingRight) {
+                    targetAngle = std::atan2(smoothVy, smoothVx);
+                } else {
+                    targetAngle = std::atan2(smoothVy, smoothVx) - float(M_PI);
+                    while (targetAngle >  float(M_PI)) targetAngle -= 2.f * float(M_PI);
+                    while (targetAngle < -float(M_PI)) targetAngle += 2.f * float(M_PI);
+                }
+
+                // Smooth angle (shortest arc)
+                float diff = targetAngle - fishAngle;
+                while (diff >  float(M_PI)) diff -= 2.f * float(M_PI);
+                while (diff < -float(M_PI)) diff += 2.f * float(M_PI);
+                float lerpK = dragging ? 0.45f : 0.25f;
+                fishAngle += diff * lerpK;
+            }
+        } else {
+            // Reset when switching away from fish cursor
+            prevPx = -1.f; prevPy = -1.f;
+            smoothVx = 0.f; smoothVy = 0.f;
+            fishAngle = 0.f; fishFacingRight = false;
+        }
+
+        // --- Trail ---
         if (module->persist) {
             Vec cur(px, py);
             if (lastTrailPos.x < 0.f) lastTrailPos = cur;
-            // Interpolate between last and current position at 2px steps
             Vec delta = cur.minus(lastTrailPos);
             float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
             int steps = std::max(1, (int)(dist / 2.f));
             for (int s = 0; s <= steps; s++) {
                 float t = (float)s / (float)steps;
                 Vec p = lastTrailPos.plus(delta.mult(t));
-                trail.push_back({p, 1.f});
+                trail.push_back({p, 1.f, fishAngle, fishFacingRight});
             }
             lastTrailPos = cur;
             if (trail.size() > 600)
                 trail.erase(trail.begin(), trail.begin() + (int)(trail.size() - 600));
+
             for (auto& tp : trail) {
-                float r = radius * tp.alpha;
-                if (r > 0.f) {
-                    nvgBeginPath(args.vg);
-                    nvgCircle(args.vg, tp.pos.x, tp.pos.y, r);
-                    nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, tp.alpha * 0.7f));
-                    nvgFill(args.vg);
+                if (useFish) {
+                    float tW = fishW * tp.alpha;
+                    float tH = fishH * tp.alpha;
+                    drawFish(args, tp.pos.x, tp.pos.y, tW, tH, fishSvgW,
+                             tp.angle, tp.facingRight, tp.alpha * 0.7f);
+                } else {
+                    float r = radius * tp.alpha;
+                    if (r > 0.f) {
+                        nvgBeginPath(args.vg);
+                        nvgCircle(args.vg, tp.pos.x, tp.pos.y, r);
+                        nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, tp.alpha * 0.7f));
+                        nvgFill(args.vg);
+                    }
                 }
                 tp.alpha -= 0.04f;
             }
@@ -1217,7 +1357,7 @@ struct QuadLooperXYDisplay : Widget {
             lastTrailPos = {-1.f, -1.f};
         }
 
-        // Crosshairs
+        // --- Crosshairs ---
         if (module->showCrosshairs) {
             nvgBeginPath(args.vg);
             nvgMoveTo(args.vg, px, 0);
@@ -1228,11 +1368,16 @@ struct QuadLooperXYDisplay : Widget {
             nvgStroke(args.vg);
         }
 
-        // Cursor dot
-        nvgBeginPath(args.vg);
-        nvgCircle(args.vg, px, py, radius);
-        nvgFillColor(args.vg, nvgRGB(230, 230, 230));
-        nvgFill(args.vg);
+        // --- Cursor ---
+        if (useFish) {
+            float swimOffset = std::sin((float)glfwGetTime() * 2.5f) * 0.07f;
+            drawFish(args, px, py, fishW, fishH, fishSvgW, fishAngle + swimOffset, fishFacingRight, 1.f);
+        } else {
+            nvgBeginPath(args.vg);
+            nvgCircle(args.vg, px, py, radius);
+            nvgFillColor(args.vg, nvgRGB(230, 230, 230));
+            nvgFill(args.vg);
+        }
     }
 };
 
@@ -1440,6 +1585,7 @@ struct TehomWidget : ModuleWidget {
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("GUI"));
         menu->addChild(createSubmenuItem("XY Pad", "", [=](Menu* subMenu) {
+            subMenu->addChild(createMenuLabel("Behavior"));
             subMenu->addChild(createCheckMenuItem("Draw Crosshairs", "",
                 [=]() { return tehom->showCrosshairs; },
                 [=]() { tehom->showCrosshairs = !tehom->showCrosshairs; }
@@ -1447,6 +1593,16 @@ struct TehomWidget : ModuleWidget {
             subMenu->addChild(createCheckMenuItem("Cursor Trails", "",
                 [=]() { return tehom->persist; },
                 [=]() { tehom->persist = !tehom->persist; }
+            ));
+            subMenu->addChild(new MenuSeparator);
+            subMenu->addChild(createMenuLabel("Cursor"));
+            subMenu->addChild(createCheckMenuItem("Fish", "",
+                [=]() { return tehom->cursorStyle == 0; },
+                [=]() { tehom->cursorStyle = 0; }
+            ));
+            subMenu->addChild(createCheckMenuItem("Circle", "",
+                [=]() { return tehom->cursorStyle == 1; },
+                [=]() { tehom->cursorStyle = 1; }
             ));
         }));
         menu->addChild(createSubmenuItem("Background Scroll", "", [=](Menu* subMenu) {
