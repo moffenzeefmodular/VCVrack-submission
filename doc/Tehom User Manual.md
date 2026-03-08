@@ -38,7 +38,7 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 * **LOOP switch:** A two-position toggle that enables or disables looping. When **On**, the playhead wraps around within the loop window continuously. When **Off**, the channel plays through the loop window once and stops.
 
-* **LED Bezel (spinning indicator):** A visual indicator that rotates in proportion to the current playback speed of the channel. It spins forward during forward playback and in reverse during reverse playback. Clicking and holding the bezel **pauses the playhead** for that channel — useful for manual scratching and stuttering effects. While held, a "Paused" tooltip appears. Right-clicking the bezel opens a context menu with a **Reverse** toggle. The bezel does not respond to Randomize or Init.
+* **LED Bezel (spinning indicator):** A visual indicator that rotates in proportion to the current playback speed of the channel. It spins forward during forward playback and in reverse during reverse playback. Clicking and holding the bezel **pauses the playhead** for that channel — useful for stuttering effects. 
 
 ---
 
@@ -62,7 +62,7 @@ These knobs and their associated CV inputs apply globally across the entire modu
 
 # PLACEHOLDER FOR SCREENSHOT
 
-The XY pad is the central element of Tehom's mixing section. It is a 40×40 mm touch pad that blends the four loop channels using bilinear mixing — each channel is assigned to a corner of the pad, and the position of the cursor determines the relative contribution of each channel to the stereo output.
+The XY pad is the central element of Tehom's mixing section. It has a touch pad that blends the four loop channels together — each channel is assigned to a corner of the pad, and the position of the cursor determines the relative contribution of each channel to the stereo output.
 
 * **Channel 1** occupies the top-left corner.
 * **Channel 2** occupies the top-right corner.
@@ -85,9 +85,9 @@ Moving the cursor toward any corner brings that channel up to full volume while 
 
 These global controls shape the portion of each buffer that is played back. They apply simultaneously to all four channels.
 
-* **SIZE:** Determines what fraction of the recorded buffer is used as the active loop window. At fully right, the entire recorded buffer plays back. As the knob is turned left, the loop window shrinks toward a minimum of 100 samples. The relationship is cubic — most of the knob's travel creates large loops, and the smallest window sizes are compressed into the leftmost portion. A CV input is provided for bipolar modulation.
+* **SIZE:** Determines what fraction of the recorded buffer is used as the active loop window. At fully right, the entire recorded buffer plays back. As the knob is turned left, the loop window shrinks toward a minimum of 100 samples. A CV input is provided for bipolar modulation.
 
-* **POSITION:** Moves the start point of the loop window within the recorded buffer. At fully left, the window starts at the beginning of the recording. At fully right, the window is pushed as far toward the end as the current size allows. A CV input is provided for bipolar modulation.
+* **POSITION:** Moves the start point of the loop window within the recorded buffer. At fully left, the window starts at the beginning of the recording. At fully right, the window is pushed as far toward the end as the current size allows. Using this knob with small size will allow you to scrub through the audio in the buffer. A CV input is provided for bipolar modulation.
 
 * **XFADE:** Applies a linear fade in and fade out at both edges of the loop window to prevent clicks and pops at the loop point. At zero, no fading is applied and the loop repeats with a hard edge. As the knob is turned right, the fade zones grow until at maximum they each span half the loop — creating a triangle-shaped amplitude envelope across the entire loop. A CV input is provided for bipolar modulation.
 
