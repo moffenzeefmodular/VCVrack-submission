@@ -47,7 +47,7 @@ static std::vector<uint8_t> b64Decode(const char* s, size_t slen) {
 struct Tehom : Module {
     enum ParamId {
         WARBLE_PARAM,
-        SELECT_PARAM,
+        MEDIA_PARAM,
         AMOUNT_PARAM,
         SLEW_PARAM,
         SIZE_PARAM,
@@ -101,7 +101,7 @@ struct Tehom : Module {
         AUDIOLEFTIN_INPUT,
         AUDIORIGHTIN_INPUT,
         WARBLECVIN_INPUT,
-        SELECTCVIN_INPUT,
+        MEDIACVIN_INPUT,
         AMOUNTCVIN_INPUT,
         RETURN_INPUT,
         XCVIN_INPUT,
@@ -186,7 +186,7 @@ struct Tehom : Module {
 	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
     configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
-    configSwitch(SELECT_PARAM, 0.f, 8.f, 0.f, "Select", {"Vinyl Crackle Clean", "Vinyl Crackle Dirty", "Reel to Reel", "Cassette", "60hz Hum", "50hz Hum", "Cafe Ambience", "City Ambience", "Forest Ambience"});
+    configSwitch(MEDIA_PARAM, 0.f, 7.f, 0.f, "Type", {"Mic Preamp", "Reel To Reel", "Cassette", "VHS", "Vinyl Clean", "Vinyl Dirty", "8mm Film", "16mm Film"});
 
 	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
@@ -242,7 +242,7 @@ struct Tehom : Module {
 
     // Global CV inputs
     configInput(WARBLECVIN_INPUT, "Warble CV");
-    configInput(SELECTCVIN_INPUT, "Noise Select CV");
+    configInput(MEDIACVIN_INPUT, "Noise Select CV");
     configInput(AMOUNTCVIN_INPUT, "Noise Amount CV");
     configInput(RETURN_INPUT, "Noise Return");
     configInput(XCVIN_INPUT, "X CV");
@@ -1214,7 +1214,7 @@ struct TehomWidget : ModuleWidget {
 
 		// Small knobs 
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(60.972, 36.448)), module, Tehom::WARBLE_PARAM));
-		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 36.448)), module, Tehom::SELECT_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 36.448)), module, Tehom::MEDIA_PARAM));
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(81.457, 36.448)), module, Tehom::AMOUNT_PARAM));
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(60.972, 114.136)), module, Tehom::SLEW_PARAM));
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 114.136)), module, Tehom::SIZE_PARAM));
@@ -1237,7 +1237,7 @@ struct TehomWidget : ModuleWidget {
 
 		// Inputs 
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 26.591)), module, Tehom::WARBLECVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 26.591)), module, Tehom::SELECTCVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 26.591)), module, Tehom::MEDIACVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.457, 26.591)), module, Tehom::AMOUNTCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.627, 36.448)), module, Tehom::RETURN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.968, 90.436)), module, Tehom::XCVIN_INPUT));
