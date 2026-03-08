@@ -1244,6 +1244,7 @@ struct TehomScrollingBG : Widget {
         nvgRestore(args.vg);
     }
 };
+constexpr float TehomScrollingBG::speeds[];
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
