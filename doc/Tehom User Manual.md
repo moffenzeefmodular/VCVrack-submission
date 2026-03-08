@@ -113,6 +113,16 @@ Moving the cursor toward any corner brings that channel up to full volume while 
 * **Fish** *(default)*: Replaces the cursor dot with a fish icon. The fish rotates to face the direction of movement and flips horizontally depending on travel direction. Double-clicking the XY pad or initialising the module resets the fish to center facing right.
 * **Circle:** Displays the classic circular cursor dot.
 
+#### Wander Speed (GUI > XY Pad > Wander Speed)
+
+Wander is an animation mode designed to mimic a fish swimming organically around a tank. When active, the cursor moves autonomously across the XY pad using a combination of Brownian angular drift and a loose attraction toward slowly shifting target points, producing natural, unpredictable paths rather than mechanical loops or straight lines. A gentle wall repulsion keeps the cursor away from the edges. Wander works with both cursor styles and respects the Cursor Trails setting. It is off by default and the selected mode saves with the patch. Clicking the active option again turns Wander off.
+
+While dragging the cursor manually, Wander is suspended and resumes automatically on release.
+
+* **Slow:** Lazy, dreamy drift — long gentle arcs, barely moving, like a fish resting in still water.
+* **Medium:** A steady, relaxed swim across the pad with occasional changes in direction.
+* **Fast:** Erratic, darting movement with frequent sharp turns, like a fish startled or chasing something.
+
 #### XY Pad Pans Audio (Global > XY Pad Pans Audio)
 
 When enabled, the X axis of the XY pad acts as a master stereo pan for all four channel outputs. X fully left sends all channels to the left output only; X fully right sends all channels to the right output only; X at center produces an equal stereo image. This panning is applied before warble and noise are added. Default is off.
