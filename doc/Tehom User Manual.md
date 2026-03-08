@@ -24,6 +24,8 @@
 
 # Audio I/O
 
+# PLACEHOLDER FOR SCREENSHOT
+
 * **AUDIO L IN / AUDIO R IN:** Stereo audio inputs. If only the left input is patched, the signal is summed to mono and used for both channels internally.
 
 * **AUDIO L OUT / AUDIO R OUT:** Stereo audio outputs. The output is the sum of the four XY-mixed loop channels plus the machine noise mix.
@@ -51,6 +53,8 @@ There are four identical channels arranged in the corners of the module. Each ch
 ---
 
 # XY Pad
+
+# PLACEHOLDER FOR SCREENSHOT
 
 The XY pad blends the four loop channels together — each channel is assigned to a corner of the pad, and the position of the cursor determines the relative contribution of each channel to the stereo output.
 
@@ -114,6 +118,8 @@ This section controls Tehom's degradation and noise features — warble for dest
 ---
 
 # Context Menu
+
+# PLACEHOLDER FOR SCREENSHOT
 
 Right-clicking on the module panel opens the context menu. All settings save with the patch and respond to **Init**.
 
