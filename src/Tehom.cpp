@@ -362,7 +362,8 @@ void onReset(const ResetEvent& e) override {
         autoPlayFull[i]     = true;
         playCVMode[i]       = 0;
         playReversed[i]     = false;
-        continuousRecord[i] = false;
+        continuousRecord[i]   = false;
+        recordMainOutput[i]   = false;
     }
     xyFinalX = 0.5f;
     xyFinalY = 0.5f;
@@ -387,17 +388,19 @@ json_t* dataToJson() override {
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
 
     // Per-channel toggles
-    json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array();
+    json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
     for (int i = 0; i < 4; i++) {
         json_array_append_new(ap,   json_boolean(autoPlay[i]));
         json_array_append_new(apf,  json_boolean(autoPlayFull[i]));
         json_array_append_new(pcvm, json_integer(playCVMode[i]));
         json_array_append_new(cr,   json_boolean(continuousRecord[i]));
+        json_array_append_new(rmo,  json_boolean(recordMainOutput[i]));
     }
-    json_object_set_new(root, "autoPlay",         ap);
-    json_object_set_new(root, "autoPlayFull",     apf);
-    json_object_set_new(root, "playCVMode",       pcvm);
-    json_object_set_new(root, "continuousRecord", cr);
+    json_object_set_new(root, "autoPlay",           ap);
+    json_object_set_new(root, "autoPlayFull",       apf);
+    json_object_set_new(root, "playCVMode",         pcvm);
+    json_object_set_new(root, "continuousRecord",   cr);
+    json_object_set_new(root, "recordMainOutput",   rmo);
 
     // Audio buffers
     json_t* bufs = json_array();
@@ -443,7 +446,9 @@ void dataFromJson(json_t* root) override {
     json_t* pcvm = json_object_get(root, "playCVMode");
     if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i]   = (int)json_integer_value(v); }
     json_t* crj = json_object_get(root, "continuousRecord");
-    if (crj)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(crj,  i); if (v) continuousRecord[i] = json_boolean_value(v); }
+    if (crj)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(crj,  i); if (v) continuousRecord[i]  = json_boolean_value(v); }
+    json_t* rmoj = json_object_get(root, "recordMainOutput");
+    if (rmoj) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(rmoj, i); if (v) recordMainOutput[i]  = json_boolean_value(v); }
 
     // Audio buffers
     json_t* bufs = json_object_get(root, "buffers");
@@ -507,9 +512,10 @@ std::atomic<bool> bezelDragging[4];
 bool playReversed[4] = {false, false, false, false};
 
 float eraseFlash[4] = {};
-bool autoPlay[4]          = {true, true, true, true};
-bool autoPlayFull[4]      = {true, true, true, true};
-bool continuousRecord[4]  = {false, false, false, false};
+bool autoPlay[4]           = {true, true, true, true};
+bool autoPlayFull[4]       = {true, true, true, true};
+bool continuousRecord[4]   = {false, false, false, false};
+bool recordMainOutput[4]   = {false, false, false, false};
 
 // XY Pad display settings (UI state, reset on Init)
 bool showCrosshairs = false;
@@ -853,10 +859,16 @@ void process(const ProcessArgs& args) override {
     for (int i = 0; i < 4; i++) {
         if (!recordState[i] || bufferSize == 0) continue;
 
-        float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, -1.f, 1.f);
-        float t = (srcParam + 1.f) * 0.5f; // 0 = record input only, 1 = layer over existing buffer
-        bufL[i][writePos[i]] = inL * (1.f - t) + bufL[i][writePos[i]] * t;
-        bufR[i][writePos[i]] = inR * (1.f - t) + bufR[i][writePos[i]] * t;
+        if (recordMainOutput[i]) {
+            // Capture the full post-mixer/warble/noise output directly — source knob is bypassed
+            bufL[i][writePos[i]] = outL;
+            bufR[i][writePos[i]] = outR;
+        } else {
+            float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, -1.f, 1.f);
+            float t = (srcParam + 1.f) * 0.5f; // 0 = record input only, 1 = layer over existing buffer
+            bufL[i][writePos[i]] = inL * (1.f - t) + bufL[i][writePos[i]] * t;
+            bufR[i][writePos[i]] = inR * (1.f - t) + bufR[i][writePos[i]] * t;
+        }
 
         writePos[i]++;
         if (recordedLength[i] < bufferSize) recordedLength[i]++;
@@ -1486,6 +1498,11 @@ struct TehomWidget : ModuleWidget {
                     "Continuous Record", "",
                     [=]() { return tehom->continuousRecord[i]; },
                     [=]() { tehom->continuousRecord[i] = !tehom->continuousRecord[i]; }
+                ));
+                subMenu->addChild(createCheckMenuItem(
+                    "Record Source: Main Output", "",
+                    [=]() { return tehom->recordMainOutput[i]; },
+                    [=]() { tehom->recordMainOutput[i] = !tehom->recordMainOutput[i]; }
                 ));
                 subMenu->addChild(new MenuSeparator);
                 subMenu->addChild(createMenuLabel("Auto-Play"));
