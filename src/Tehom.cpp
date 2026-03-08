@@ -49,6 +49,14 @@ static std::vector<uint8_t> b64Decode(const char* s, size_t slen) {
     return out;
 }
 
+struct MediaSwitchQuantity : SwitchQuantity {
+    std::string getString() override {
+        int i = (int)std::round(getValue());
+        i = clamp(i, 0, (int)labels.size() - 1);
+        return labels[i];
+    }
+};
+
 struct Tehom : Module {
     enum ParamId {
         WARBLE_PARAM,
@@ -191,7 +199,7 @@ struct Tehom : Module {
 	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
     configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
-    configSwitch(MEDIA_PARAM, 0.f, 7.f, 0.f, "Type", {"Mic Preamp", "Reel To Reel", "Cassette", "VHS", "Vinyl Clean", "Vinyl Dirty", "8mm Film", "16mm Film"});
+    configSwitch<MediaSwitchQuantity>(MEDIA_PARAM, 0.f, 7.f, 0.f, "Type", {"Mic Preamp", "Reel To Reel", "Cassette", "VHS", "Vinyl Clean", "Vinyl Dirty", "8mm Film", "16mm Film"});
 
 	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
@@ -247,7 +255,7 @@ struct Tehom : Module {
 
     // Global CV inputs
     configInput(WARBLECVIN_INPUT, "Warble CV");
-    configInput(MEDIACVIN_INPUT, "Noise Select CV");
+    configInput(MEDIACVIN_INPUT, "Media Select CV");
     configInput(AMOUNTCVIN_INPUT, "Noise Amount CV");
     configInput(RETURN_INPUT, "Noise Return");
     configInput(XCVIN_INPUT, "X CV");
@@ -954,14 +962,10 @@ struct RecordWidget : LEDBezel {
 	int channel = 0;
 	ui::Tooltip* tooltip = nullptr;
 	bool isHovered = false;
-	float eraseFlashTimer = 0.f; // counts down in seconds
 
 	void onButton(const ButtonEvent& e) override {
 		if (e.button == GLFW_MOUSE_BUTTON_RIGHT && e.action == GLFW_PRESS) {
-			if (tehom) {
-				tehom->eraseBuffer(channel);
-				eraseFlashTimer = 1.2f;
-			}
+			if (tehom) tehom->eraseBuffer(channel);
 			e.consume(this);
 			return;
 		}
@@ -972,7 +976,7 @@ struct RecordWidget : LEDBezel {
 
 	void onLeave(const LeaveEvent& e) override {
 		isHovered = false;
-		if (tooltip && eraseFlashTimer <= 0.f) {
+		if (tooltip) {
 			APP->scene->removeChild(tooltip);
 			delete tooltip;
 			tooltip = nullptr;
@@ -981,36 +985,24 @@ struct RecordWidget : LEDBezel {
 
 	void step() override {
 		LEDBezel::step();
+		if (!tehom) return;
 
-		float dt = APP->window->getLastFrameDuration();
-		if (eraseFlashTimer > 0.f) {
-			eraseFlashTimer -= dt;
-			// Show "Erased" tooltip while flashing
-			if (!tooltip) {
-				tooltip = new ui::Tooltip;
-				tooltip->text = "Erased";
-				APP->scene->addChild(tooltip);
-			} else {
-				tooltip->text = "Erased";
-			}
-			if (eraseFlashTimer <= 0.f) {
-				eraseFlashTimer = 0.f;
+		bool flashing = tehom->eraseFlash[channel] > 0.f;
+		std::string desiredText = flashing ? "Erased" :
+		                          (isHovered ? (tehom->recordState[channel] ? "Recording..." : "Record") : "");
+
+		if (desiredText.empty()) {
+			if (tooltip) {
 				APP->scene->removeChild(tooltip);
 				delete tooltip;
 				tooltip = nullptr;
 			}
 		} else {
-			// Normal: show "Recording..." on hover while active
-			bool shouldShow = isHovered && tehom && tehom->recordState[channel];
-			if (shouldShow && !tooltip) {
+			if (!tooltip) {
 				tooltip = new ui::Tooltip;
-				tooltip->text = "Recording ...";
 				APP->scene->addChild(tooltip);
-			} else if (!shouldShow && tooltip) {
-				APP->scene->removeChild(tooltip);
-				delete tooltip;
-				tooltip = nullptr;
 			}
+			tooltip->text = desiredText;
 		}
 	}
 
@@ -1071,6 +1063,7 @@ struct QuadLooperXYDisplay : Widget {
     Tehom *module;
     Vec dragPos;
     bool dragging = false;
+    double lastClickTime = -1.0;
 
     struct TrailPoint { Vec pos; float alpha; };
     std::vector<TrailPoint> trail;
@@ -1090,6 +1083,18 @@ struct QuadLooperXYDisplay : Widget {
     void onButton(const event::Button &e) override {
         if (!module) return;
         if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS) {
+            // Double-click snaps cursor to center
+            double now = glfwGetTime();
+            if (now - lastClickTime < 0.3) {
+                lastClickTime = -1.0;
+                dragPos.x = box.size.x * 0.5f;
+                dragPos.y = box.size.y * 0.5f;
+                updateFromPos();
+                e.consume(this);
+                return;
+            }
+            lastClickTime = now;
+
             dragging = true;
             module->xyDragging.store(true);
 
@@ -1405,7 +1410,7 @@ struct TehomWidget : ModuleWidget {
                 [=]() { return tehom->showCrosshairs; },
                 [=]() { tehom->showCrosshairs = !tehom->showCrosshairs; }
             ));
-            subMenu->addChild(createCheckMenuItem("Persist", "",
+            subMenu->addChild(createCheckMenuItem("Cursor Trails", "",
                 [=]() { return tehom->persist; },
                 [=]() { tehom->persist = !tehom->persist; }
             ));

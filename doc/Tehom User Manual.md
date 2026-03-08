@@ -75,6 +75,8 @@ The XY pad blends the four loop channels together — each channel is assigned t
 
 Moving the cursor toward any corner brings that channel up to full volume while the others fade out. The XY mixing is bilinear, meaning the four volumes always sum to 1.0 — unity gain is preserved regardless of cursor position.
 
+**Double-clicking** the XY pad snaps the cursor back to the center position (equal blend of all four channels).
+
 ---
 
 # Global
@@ -137,7 +139,7 @@ Right-clicking on the module panel opens the context menu. All settings save wit
 
 * **XY Pad**
   * **Draw Crosshairs:** Overlays horizontal and vertical lines on the XY pad that cross at the current cursor position. Useful for precise placement.
-  * **Persist:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. When disabled, the pad shows only the cursor dot.
+  * **Cursor Trails:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. When disabled, the pad shows only the cursor dot.
 
 * **Background Scroll**
   * **Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
