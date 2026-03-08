@@ -847,13 +847,16 @@ void process(const ProcessArgs& args) override {
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(outL);
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
 
-    // Recording: first take always records inL at full level so playback volume matches input.
-    // Overdubs record chanMixL so the source knob blends in loop content (sound on sound).
+    // Recording: blend input with the sample already at the write position (sound-on-sound).
+    // Warble is NOT involved — chanMixL uses a warble-modulated readPos and must not be
+    // written back into the buffer, or the warble effect would accumulate across overdubs.
     for (int i = 0; i < 4; i++) {
         if (!recordState[i] || bufferSize == 0) continue;
 
-        bufL[i][writePos[i]] = chanMixL[i];
-        bufR[i][writePos[i]] = chanMixR[i];
+        float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, -1.f, 1.f);
+        float t = (srcParam + 1.f) * 0.5f; // 0 = record input only, 1 = layer over existing buffer
+        bufL[i][writePos[i]] = inL * (1.f - t) + bufL[i][writePos[i]] * t;
+        bufR[i][writePos[i]] = inR * (1.f - t) + bufR[i][writePos[i]] * t;
 
         writePos[i]++;
         if (recordedLength[i] < bufferSize) recordedLength[i]++;
