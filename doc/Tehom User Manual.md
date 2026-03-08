@@ -12,7 +12,7 @@
 
 # Overview
 
-**Tehom** is a four-channel sound-on-sound looper with a built-in XY mixer, machine noise engine, warble, and a suite of per-channel loop window controls. Each of the four channels records and plays back audio independently, with its own playback speed, loop size, loop position, crossfade, and source blend. The four channels feed into a bilinear XY mixer that pans and balances between them spatially. A library of eight machine noise loops can be mixed into the final output, routed through an external effects chain via a send-return path, and blended in at any level. Nothing in Tehom is designed to stay pristine. The more you push it, the more it degrades.
+**Tehom** is a four-channel sound-on-sound looper with a built-in XY mixer, machine noise engine, warble, and a suite of global loop window controls. Each of the four channels records and plays back audio independently, with its own playback speed, source blend, and playback direction. The four channels feed into a bilinear XY mixer that pans and balances between them spatially. A library of eight machine noise loops can be mixed into the final output, routed through an external effects chain via a send-return path, and blended in at any level. Nothing in Tehom is designed to stay pristine. The more you push it, the more it degrades.
 
 ---
 
@@ -22,11 +22,19 @@
 
 ---
 
+# Audio I/O
+
+* **AUDIO L IN / AUDIO R IN:** Stereo audio inputs. If only the left input is patched, the signal is summed to mono and used for both channels internally.
+
+* **AUDIO L OUT / AUDIO R OUT:** Stereo audio outputs. The output is the sum of the four XY-mixed loop channels plus the machine noise mix.
+
+---
+
 # Individual Channels
 
 # PLACEHOLDER FOR SCREENSHOT
 
-There are four identical channels arranged in the corners of the module. Each channel records and plays back audio into its own independent buffer, with full control over speed, source blend, loop window, and playback direction. The channels are labeled 1 (top-left), 2 (top-right), 3 (bottom-left), and 4 (bottom-right).
+There are four identical channels arranged in the corners of the module. Each channel records and plays back audio into its own independent buffer, with full control over speed, source blend, and playback direction. The channels are labeled 1 (top-left), 2 (top-right), 3 (bottom-left), and 4 (bottom-right).
 
 * **SOURCE:** A blend knob between the audio input and the loop buffer. Turned fully left, the channel hears and records only the live audio input. Turned fully right, the channel hears and records only its own loop — this is sound-on-sound mode, where each record pass layers on top of the previous one. The middle position mixes both. A CV input is provided for bipolar modulation.
 
@@ -38,31 +46,13 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 * **LOOP switch:** A two-position toggle that enables or disables looping. When **On**, the playhead wraps around within the loop window continuously. When **Off**, the channel plays through the loop window once and stops.
 
-* **LED Bezel (spinning indicator):** A visual indicator that rotates in proportion to the current playback speed of the channel. It spins forward during forward playback and in reverse during reverse playback. Clicking and holding the bezel **pauses the playhead** for that channel — useful for stuttering effects. 
+* **LED Bezel (spinning indicator):** A visual indicator that rotates in proportion to the current playback speed of the channel. It spins forward during forward playback and in reverse during reverse playback. Clicking and holding the bezel **pauses the playhead** for that channel — useful for stuttering effects.
 
 ---
 
-# Degredation Controls
+# XY Pad
 
-# PLACEHOLDER FOR SCREENSHOT
-
-These knobs and their associated CV inputs apply a warble effect and also mix in pre-recorded noise loops
-
-* **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. A CV input is provided for bipolar modulation.
-
-* **MEDIA:** Selects one of eight machine noise loops to blend into the final output. The options in order are: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film. Each is a looping audio file with its own character and spectral content. A CV input is provided for bipolar modulation.
-
-* **AMOUNT:** Controls the volume of the selected machine noise loop in the final output mix. At fully left, no noise is present. At fully right, the noise loop plays at full level. A CV input is provided for bipolar modulation.
-
-* **SLEW:** Controls the response time of the XY pad. At fully left, the XY position responds almost instantly to changes. As the knob is turned right, the position moves more slowly toward its target, creating smooth, gliding transitions between XY positions. A CV input is provided for bipolar modulation.
-
----
-
-# XY Mixer
-
-# PLACEHOLDER FOR SCREENSHOT
-
-The XY pad is the central element of Tehom's mixing section. It has a touch pad that blends the four loop channels together — each channel is assigned to a corner of the pad, and the position of the cursor determines the relative contribution of each channel to the stereo output.
+The XY pad blends the four loop channels together — each channel is assigned to a corner of the pad, and the position of the cursor determines the relative contribution of each channel to the stereo output.
 
 * **Channel 1** occupies the top-left corner.
 * **Channel 2** occupies the top-right corner.
@@ -71,43 +61,51 @@ The XY pad is the central element of Tehom's mixing section. It has a touch pad 
 
 Moving the cursor toward any corner brings that channel up to full volume while the others fade out. The XY mixing is bilinear, meaning the four volumes always sum to 1.0 — unity gain is preserved regardless of cursor position.
 
-* **X POS / Y POS:** The internal parameters for the horizontal and vertical position of the XY cursor. These are set by clicking and dragging on the pad, and can also be offset by CV.
+---
 
-* **X CV IN / Y CV IN:** Bipolar CV inputs that offset the XY position. When the cursor is being held (dragging), CV is bypassed for that axis to prevent jumping.
+# Global
+
+# PLACEHOLDER FOR SCREENSHOT
+
+This section sits at the bottom center of the module. The XY CV and Slew controls govern the XY mixer's inputs, outputs, and response time. The Size, Position, and Xfade controls shape the loop playback window and apply simultaneously to all four channels.
+
+## XY CV I/O
+
+* **X CV IN / Y CV IN:** Bipolar CV inputs that offset the XY position. When the cursor is being dragged, CV is bypassed for that axis to prevent jumping.
 
 * **X CV OUT / Y CV OUT:** Outputs the current slewed XY position as a bipolar voltage (−5 V to +5 V). These can be used to modulate other modules in sync with the XY movement.
 
----
+## XY Slew
 
-# Loop Window Controls
+* **SLEW:** Controls the response time of the XY pad. At fully left, the XY position responds almost instantly to changes. As the knob is turned right, the position moves more slowly toward its target, creating smooth, gliding transitions between XY positions. A CV input is provided for bipolar modulation.
 
-# PLACEHOLDER FOR SCREENSHOT
+## Loop Window
 
-These global controls shape the portion of each buffer that is played back. They apply simultaneously to all four channels.
+* **SIZE:** Determines what fraction of the recorded buffer is used as the active loop window. At fully right, the entire recorded buffer plays back. As the knob is turned left, the loop window shrinks toward a minimum of 100 samples. Applies to all four channels simultaneously. A CV input is provided for bipolar modulation.
 
-* **SIZE:** Determines what fraction of the recorded buffer is used as the active loop window. At fully right, the entire recorded buffer plays back. As the knob is turned left, the loop window shrinks toward a minimum of 100 samples. A CV input is provided for bipolar modulation.
+* **POSITION:** Moves the start point of the loop window within the recorded buffer. At fully left, the window starts at the beginning of the recording. At fully right, the window is pushed as far toward the end as the current size allows. Using this knob with a small SIZE will allow you to scrub through the audio in the buffer. Applies to all four channels simultaneously. A CV input is provided for bipolar modulation.
 
-* **POSITION:** Moves the start point of the loop window within the recorded buffer. At fully left, the window starts at the beginning of the recording. At fully right, the window is pushed as far toward the end as the current size allows. Using this knob with small size will allow you to scrub through the audio in the buffer. A CV input is provided for bipolar modulation.
-
-* **XFADE:** Applies a linear fade in and fade out at both edges of the loop window to prevent clicks and pops at the loop point. At zero, no fading is applied and the loop repeats with a hard edge. As the knob is turned right, the fade zones grow until at maximum they each span half the loop — creating a triangle-shaped amplitude envelope across the entire loop. A CV input is provided for bipolar modulation.
+* **XFADE:** Applies a linear fade in and fade out at both edges of the loop window to prevent clicks and pops at the loop point. At zero, no fading is applied and the loop repeats with a hard edge. As the knob is turned right, the fade zones grow until at maximum they each span half the loop — creating a triangle-shaped amplitude envelope across the entire loop. Applies to all four channels simultaneously. A CV input is provided for bipolar modulation.
 
 ---
 
-# Audio I/O
+# Degrade
 
 # PLACEHOLDER FOR SCREENSHOT
 
-* **AUDIO L IN / AUDIO R IN:** Stereo audio inputs. If only the left input is patched, the signal is summed to mono and used for both channels internally.
+This section controls Tehom's degradation and noise features — warble for destabilizing loop playback pitch, a machine noise player, and a send-return path for processing the noise externally.
 
-* **AUDIO L OUT / AUDIO R OUT:** Stereo audio outputs. The output is the sum of the four XY-mixed loop channels plus the machine noise mix.
+## Warble
 
----
+* **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. A CV input is provided for bipolar modulation.
 
-# Noise Send-Return
+## Noise
 
-# PLACEHOLDER FOR SCREENSHOT
+* **MEDIA:** Selects one of eight machine noise loops to blend into the final output. The options in order are: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film. Each is a looping audio file with its own character and spectral content. A CV input is provided for bipolar modulation.
 
-The machine noise engine has a dedicated send-return path for routing the noise loops through an external effects chain.
+* **AMOUNT:** Controls the volume of the selected machine noise loop in the final output mix. At fully left, no noise is present. At fully right, the noise loop plays at full level. A CV input is provided for bipolar modulation.
+
+## Noise Send-Return
 
 * **SEND:** A mono output that carries the currently selected machine noise loop signal. The send can be **Pre-Fader** (the default) or **Post-Fader**, selectable from the context menu. Pre-Fader sends the raw noise loop signal before the Amount knob is applied. Post-Fader sends the noise loop after the Amount knob is applied.
 
