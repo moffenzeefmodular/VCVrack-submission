@@ -52,13 +52,38 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 * **ERASE:** A **right-click** on the Record button erases the buffer entirely and flashes white to confirm.
 
-* **PLAY (green/blue button):** Toggles playback on and off. A **left-click** starts and stops playback. A CV input is provided — behavior depends on the **Play CV Mode** setting in the context menu (see Context Menu section).
+* **PLAY (green/blue button):** Toggles playback on and off. A **left-click** starts and stops playback. A CV input is provided — behavior depends on the **Play CV Mode** setting in the context menu.
 
 * **REVERSE:** A **right-click** on the Play button toggles the playback direction between forward (green light) and reverse (blue light).
 
 * **LOOP switch:** A two-position toggle that enables or disables looping. When **On**, the playhead wraps around within the loop window continuously. When **Off**, the channel plays through the loop window once and stops.
 
 * **LED Bezel (spinning indicator):** A visual indicator that rotates in proportion to the current playback speed of the channel. It spins forward during forward playback and in reverse during reverse playback. Clicking and holding the bezel **pauses the playhead** for that channel — useful for stuttering effects.
+
+### Context Menu Options (right click)
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
+
+Each of the four channels has its own submenu. Settings save with the patch and respond to **Init**.
+
+#### Recording
+
+* **Continuous Record:** When enabled, the record head wraps around and continues recording from the beginning of the buffer when it reaches the end, instead of stopping. The Record button light stays on indefinitely. Useful for continuously overwriting a buffer in real time. Default is off.
+
+* **Record Source: Main Output:** By default, each channel records its own input signal blended with its own playback through the source knob. The XY mixer, warble, and noise are not part of what gets written to the buffer — each buffer captures a clean, pre-mixer signal. When **Record Source: Main Output** is enabled, the channel instead records the final stereo output of the entire module: post-XY mixer, post-warble, and post-noise. This means the spatial position of the XY cursor, the warble effect, and any machine noise present at that moment are all printed directly into the buffer. The source knob is bypassed in this mode. Because warble is included in the captured signal, it will be baked into the buffer and played back as a fixed pitch artifact on subsequent passes. Default is off.
+
+#### Auto-Play
+
+* **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped. Default is on.
+
+* **Auto-Play when buffer full:** When enabled, the channel automatically begins playing back when the recording buffer fills to capacity. Default is on.
+
+#### Play CV Mode
+
+* **Play CV Mode:** Determines how a rising-edge signal at the Play CV input behaves.
+  * **Play/Stop** *(default)*: Each trigger toggles between playing and stopped, resetting the playhead to the start when play begins.
+  * **Retrigger:** Each trigger resets the playhead to the start of the loop without toggling stop. Playback continues uninterrupted after the trigger, restarting from the beginning each time.
+  * **Forward/Reverse:** Each trigger flips the playback direction between forward and reverse.
 
 ---
 
@@ -76,6 +101,24 @@ The XY pad blends the four loop channels together — each channel is assigned t
 Moving the cursor toward any corner brings that channel up to full volume while the others fade out. The XY mixing is bilinear, meaning the four volumes always sum to 1.0 — unity gain is preserved regardless of cursor position.
 
 **Double-clicking** the XY pad snaps the cursor back to the center position (equal blend of all four channels).
+
+### Context Menu Options (right click)
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
+
+#### Behavior
+
+* **Draw Crosshairs:** Overlays horizontal and vertical lines on the XY pad that cross at the current cursor position. Useful for precise placement.
+* **Cursor Trails:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. The trail matches the active cursor style. When disabled, the pad shows only the cursor.
+
+#### Cursor
+
+* **Fish** *(default)*: Replaces the cursor dot with a fish icon. The fish rotates to face the direction of movement and flips horizontally depending on travel direction. Double-clicking the XY pad or initialising the module resets the fish to center facing right.
+* **Circle:** Displays the classic circular cursor dot.
+
+#### XY Pad Pans Audio
+
+When enabled, the X axis of the XY pad acts as a master stereo pan for all four channel outputs. X fully left sends all channels to the left output only; X fully right sends all channels to the right output only; X at center produces an equal stereo image. This panning is applied before warble and noise are added. Default is off.
 
 ---
 
@@ -103,6 +146,16 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 * **XFADE:** Applies a linear fade in and fade out at both edges of the loop window to prevent clicks and pops at the loop point. At zero, no fading is applied and the loop repeats with a hard edge. As the knob is turned right, the fade zones grow until at maximum they each span half the loop — creating a triangle-shaped amplitude envelope across the entire loop. Applies to all four channels simultaneously. A CV input is provided for bipolar modulation.
 
+### Context Menu Options (right click)
+
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
+
+* **Buffer Size:** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
+
+* **Background Scroll**
+  * **Speed — Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
+  * **Direction — Right / Left:** Sets the scroll direction.
+
 ---
 
 # Degrade
@@ -127,59 +180,13 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 * **RETURN:** A mono input. When a cable is patched into this input, it replaces the noise loop signal for both the left and right channels before the Amount knob is applied. This means the return signal's level in the final mix is still controlled by the Amount knob, regardless of pre- or post-fader setting.
 
----
-
-# Context Menu
+### Context Menu Options (right click)
 
 <img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
-
-Right-clicking on the module panel opens the context menu. All settings save with the patch and respond to **Init**.
-
-## GUI
-
-* **XY Pad**
-  * **Behavior**
-    * **Draw Crosshairs:** Overlays horizontal and vertical lines on the XY pad that cross at the current cursor position. Useful for precise placement.
-    * **Cursor Trails:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. The trail matches the active cursor style. When disabled, the pad shows only the cursor.
-  * **Cursor**
-    * **Fish** *(default)*: Replaces the cursor dot with a fish icon. The fish rotates to face the direction of movement and flips horizontally depending on travel direction. Double-clicking the XY pad or initialising the module resets the fish to the center facing right.
-    * **Circle:** Displays the classic circular cursor dot.
-
-* **Background Scroll**
-  * **Speed — Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
-  * **Direction — Right / Left:** Sets the scroll direction.
-
-## Global
-
-* **XY Pad Pans Audio:** When enabled, the X axis of the XY pad acts as a master stereo pan for all four channel outputs. X fully left sends all channels to the left output only; X fully right sends all channels to the right output only; X at center produces an equal stereo image. This panning is applied before warble and noise are added. Default is off.
-
-* **Buffer Size:** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
 
 * **Noise Aux Send**
   * **Pre-Fader** *(default)*: The Send output carries the raw noise loop signal before the Amount knob. Changing the Amount knob does not affect the send level.
   * **Post-Fader:** The Send output carries the noise loop after the Amount knob. The send level tracks the Amount setting.
 
-## Channels
-
-Each of the four channels has its own submenu. Settings are grouped under the following labels:
-
-### Recording
-
-* **Continuous Record:** When enabled, the record head wraps around and continues recording from the beginning of the buffer when it reaches the end, instead of stopping. The Record button light stays on indefinitely. Useful for continuously overwriting a buffer in real time. Default is off.
-
-* **Record Source: Main Output:** By default, each channel records its own input signal blended with its own playback through the source knob. The XY mixer, warble, and noise are not part of what gets written to the buffer — each buffer captures a clean, pre-mixer signal. When **Record Source: Main Output** is enabled, the channel instead records the final stereo output of the entire module: post-XY mixer, post-warble, and post-noise. This means the spatial position of the XY cursor, the warble effect, and any machine noise present at that moment are all printed directly into the buffer. The source knob is bypassed in this mode. Because warble is included in the captured signal, it will be baked into the buffer and played back as a fixed pitch artifact on subsequent passes. Default is off.
-
-### Auto-Play
-
-* **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped. Default is on.
-
-* **Auto-Play when buffer full:** When enabled, the channel automatically begins playing back when the recording buffer fills to capacity. Default is on.
-
-### Play CV Mode
-
-* **Play CV Mode:** Determines how a rising-edge signal at the Play CV input behaves.
-  * **Play/Stop** *(default)*: Each trigger toggles between playing and stopped, resetting the playhead to the start when play begins.
-  * **Retrigger:** Each trigger resets the playhead to the start of the loop without toggling stop. Playback continues uninterrupted after the trigger, restarting from the beginning each time.
-  * **Forward/Reverse:** Each trigger flips the playback direction between forward and reverse.
-
 ---
+
