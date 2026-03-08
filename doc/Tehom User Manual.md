@@ -64,19 +64,19 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 Each of the four channels has its own submenu. Settings save with the patch and respond to **Init**.
 
-#### Recording
+#### Recording (Channels > Channel N > Recording)
 
 * **Continuous Record:** When enabled, the record head wraps around and continues recording from the beginning of the buffer when it reaches the end, instead of stopping. The Record button light stays on indefinitely. Useful for continuously overwriting a buffer in real time. Default is off.
 
 * **Record Source: Main Output:** By default, each channel records its own input signal blended with its own playback through the source knob. The XY mixer, warble, and noise are not part of what gets written to the buffer — each buffer captures a clean, pre-mixer signal. When **Record Source: Main Output** is enabled, the channel instead records the final stereo output of the entire module: post-XY mixer, post-warble, and post-noise. This means the spatial position of the XY cursor, the warble effect, and any machine noise present at that moment are all printed directly into the buffer. The source knob is bypassed in this mode. Because warble is included in the captured signal, it will be baked into the buffer and played back as a fixed pitch artifact on subsequent passes. Default is off.
 
-#### Auto-Play
+#### Auto-Play (Channels > Channel N > Auto-Play)
 
 * **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped. Default is on.
 
 * **Auto-Play when buffer full:** When enabled, the channel automatically begins playing back when the recording buffer fills to capacity. Default is on.
 
-#### Play CV Mode
+#### Play CV Mode (Channels > Channel N > Play CV Mode)
 
 * **Play CV Mode:** Determines how a rising-edge signal at the Play CV input behaves.
   * **Play/Stop** *(default)*: Each trigger toggles between playing and stopped, resetting the playhead to the start when play begins.
@@ -102,17 +102,17 @@ Moving the cursor toward any corner brings that channel up to full volume while 
 
 ### Context Menu Options (right click)
 
-#### Behavior
+#### Behavior (GUI > XY Pad > Behavior)
 
 * **Draw Crosshairs:** Overlays horizontal and vertical lines on the XY pad that cross at the current cursor position. Useful for precise placement.
 * **Cursor Trails:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. The trail matches the active cursor style. When disabled, the pad shows only the cursor.
 
-#### Cursor
+#### Cursor (GUI > XY Pad > Cursor)
 
 * **Fish** *(default)*: Replaces the cursor dot with a fish icon. The fish rotates to face the direction of movement and flips horizontally depending on travel direction. Double-clicking the XY pad or initialising the module resets the fish to center facing right.
 * **Circle:** Displays the classic circular cursor dot.
 
-#### XY Pad Pans Audio
+#### XY Pad Pans Audio (Global > XY Pad Pans Audio)
 
 When enabled, the X axis of the XY pad acts as a master stereo pan for all four channel outputs. X fully left sends all channels to the left output only; X fully right sends all channels to the right output only; X at center produces an equal stereo image. This panning is applied before warble and noise are added. Default is off.
 
@@ -144,9 +144,9 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 ### Context Menu Options (right click)
 
-* **Buffer Size:** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
+* **Buffer Size (Global > Buffer Size):** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
 
-* **Background Scroll**
+* **Background Scroll (GUI > Background Scroll)**
   * **Speed — Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
   * **Direction — Right / Left:** Sets the scroll direction.
 
@@ -176,7 +176,7 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 ### Context Menu Options (right click)
 
-* **Noise Aux Send**
+* **Noise Aux Send (Global > Noise Aux Send)**
   * **Pre-Fader** *(default)*: The Send output carries the raw noise loop signal before the Amount knob. Changing the Amount knob does not affect the send level.
   * **Post-Fader:** The Send output carries the noise loop after the Amount knob. The send level tracks the Amount setting.
 
