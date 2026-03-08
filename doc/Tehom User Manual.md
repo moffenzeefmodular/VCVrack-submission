@@ -62,8 +62,6 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 ### Context Menu Options (right click)
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
-
 Each of the four channels has its own submenu. Settings save with the patch and respond to **Init**.
 
 #### Recording
@@ -103,8 +101,6 @@ Moving the cursor toward any corner brings that channel up to full volume while 
 **Double-clicking** the XY pad snaps the cursor back to the center position (equal blend of all four channels).
 
 ### Context Menu Options (right click)
-
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
 
 #### Behavior
 
@@ -148,8 +144,6 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 ### Context Menu Options (right click)
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
-
 * **Buffer Size:** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
 
 * **Background Scroll**
@@ -181,8 +175,6 @@ This section controls Tehom's degradation and noise features — warble for dest
 * **RETURN:** A mono input. When a cable is patched into this input, it replaces the noise loop signal for both the left and right channels before the Amount knob is applied. This means the return signal's level in the final mix is still controlled by the Amount knob, regardless of pre- or post-fader setting.
 
 ### Context Menu Options (right click)
-
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
 
 * **Noise Aux Send**
   * **Pre-Fader** *(default)*: The Send output carries the raw noise loop signal before the Amount knob. Changing the Amount knob does not affect the send level.
