@@ -1328,8 +1328,8 @@ struct QuadLooperXYDisplay : Widget {
                 trail.push_back({p, 1.f, fishAngle, fishFacingRight});
             }
             lastTrailPos = cur;
-            if (trail.size() > 600)
-                trail.erase(trail.begin(), trail.begin() + (int)(trail.size() - 600));
+            if (trail.size() > 200)
+                trail.erase(trail.begin(), trail.begin() + (int)(trail.size() - 200));
 
             for (auto& tp : trail) {
                 if (useFish) {
@@ -1346,7 +1346,7 @@ struct QuadLooperXYDisplay : Widget {
                         nvgFill(args.vg);
                     }
                 }
-                tp.alpha -= 0.04f;
+                tp.alpha -= 0.12f;
             }
             trail.erase(
                 std::remove_if(trail.begin(), trail.end(), [](const TrailPoint& tp) { return tp.alpha <= 0.f; }),
