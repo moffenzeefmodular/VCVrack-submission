@@ -42,11 +42,11 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 ---
 
-# Global Controls
+# Degredation Controls
 
 # PLACEHOLDER FOR SCREENSHOT
 
-These knobs and their associated CV inputs apply globally across the entire module.
+These knobs and their associated CV inputs apply a warble effect and also mix in pre-recorded noise loops
 
 * **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. A CV input is provided for bipolar modulation.
 
