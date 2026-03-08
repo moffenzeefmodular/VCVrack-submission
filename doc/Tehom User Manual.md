@@ -24,7 +24,7 @@
 
 # Audio I/O
 
-# PLACEHOLDER FOR SCREENSHOT
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomAudioIOScreenshot.png" width="400">
 
 * **AUDIO L IN / AUDIO R IN:** Stereo audio inputs. If only the left input is patched, the signal is summed to mono and used for both channels internally.
 
@@ -34,7 +34,7 @@
 
 # Individual Channels
 
-# PLACEHOLDER FOR SCREENSHOT
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomChannelScreenshot.png" width="300">
 
 There are four identical channels arranged in the corners of the module. Each channel records and plays back audio into its own independent buffer, with full control over speed, source blend, and playback direction. The channels are labeled 1 (top-left), 2 (top-right), 3 (bottom-left), and 4 (bottom-right).
 
@@ -54,7 +54,7 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 # XY Pad
 
-# PLACEHOLDER FOR SCREENSHOT
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomXYPadScreenshot.png" width="250">
 
 The XY pad blends the four loop channels together — each channel is assigned to a corner of the pad, and the position of the cursor determines the relative contribution of each channel to the stereo output.
 
@@ -69,7 +69,7 @@ Moving the cursor toward any corner brings that channel up to full volume while 
 
 # Global
 
-# PLACEHOLDER FOR SCREENSHOT
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomGlobalScreenshot.png" width="500">
 
 This section sits at the bottom center of the module. The XY CV and Slew controls govern the XY mixer's inputs, outputs, and response time. The Size, Position, and Xfade controls shape the loop playback window and apply simultaneously to all four channels.
 
@@ -95,7 +95,7 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 # Degrade
 
-# PLACEHOLDER FOR SCREENSHOT
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomDegradeScreenshot.png" width="500">
 
 This section controls Tehom's degradation and noise features — warble for destabilizing loop playback pitch, a machine noise player, and a send-return path for processing the noise externally.
 
@@ -119,7 +119,7 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 # Context Menu
 
-# PLACEHOLDER FOR SCREENSHOT
+<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomContextMenuScreenshot.png" width="200">
 
 Right-clicking on the module panel opens the context menu. All settings save with the patch and respond to **Init**.
 
