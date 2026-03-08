@@ -78,7 +78,8 @@ Each of the four channels has its own submenu. Settings save with the patch and 
 
 #### Play CV Mode (Channels > Channel Num. > Play CV Mode)
 
-* **Play CV Mode:** Determines how a rising-edge signal at the Play CV input behaves.
+* **Play CV Mode** Determines how a rising-edge signal at the Play CV input behaves.
+  
   * **Play/Stop** *(default)*: Each trigger toggles between playing and stopped, resetting the playhead to the start when play begins.
   * **Retrigger:** Each trigger resets the playhead to the start of the loop without toggling stop. Playback continues uninterrupted after the trigger, restarting from the beginning each time.
   * **Forward/Reverse:** Each trigger flips the playback direction between forward and reverse.
