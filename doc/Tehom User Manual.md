@@ -115,9 +115,7 @@ Moving the cursor toward any corner brings that channel up to full volume while 
 
 #### Wander Speed (GUI > XY Pad > Wander Speed)
 
-Wander is an animation mode designed to mimic a fish swimming organically around a tank. When active, the cursor moves autonomously across the XY pad using a combination of Brownian angular drift and a loose attraction toward slowly shifting target points, producing natural, unpredictable paths rather than mechanical loops or straight lines. A gentle wall repulsion keeps the cursor away from the edges. Wander works with both cursor styles and respects the Cursor Trails setting. It is off by default and the selected mode saves with the patch. Clicking the active option again turns Wander off.
-
-While dragging the cursor manually, Wander is suspended and resumes automatically on release.
+Wander is an animation mode designed to mimic a fish swimming organically around a tank. When active, the cursor moves autonomously across the XY pad using a combination of Brownian angular drift and a loose attraction toward slowly shifting target points, producing natural, unpredictable paths rather than mechanical loops or straight lines. Wander works with both cursor styles and respects the Cursor Trails setting. While dragging the cursor manually, Wander is suspended and resumes automatically on release. Wander is off by default.
 
 * **Slow:** Lazy, dreamy drift — long gentle arcs, barely moving, like a fish resting in still water.
 * **Medium:** A steady, relaxed swim across the pad with occasional changes in direction.
