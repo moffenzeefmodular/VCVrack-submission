@@ -373,6 +373,10 @@ void onReset(const ResetEvent& e) override {
     xyPadPansAudio    = false;
     bgScrollSpeed     = 2;
     bgScrollRight     = true;
+    wanderMode        = 0;
+    wanderTimer       = 0.f;
+    wanderSpeed       = 0.15f;
+    wanderAngle       = 0.f;
     noiseAuxPreFader  = true;
     oggPlayPos        = 0.f;
     currentOggIdx     = -1;
@@ -390,6 +394,7 @@ json_t* dataToJson() override {
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
     json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio));
     json_object_set_new(root, "cursorStyle",      json_integer(cursorStyle));
+    json_object_set_new(root, "wanderMode",       json_integer(wanderMode));
 
     // Per-channel toggles
     json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
@@ -443,6 +448,8 @@ void dataFromJson(json_t* root) override {
     if (xyp) xyPadPansAudio = json_boolean_value(xyp);
     json_t* cs = json_object_get(root, "cursorStyle");
     if (cs) cursorStyle = (int)json_integer_value(cs);
+    json_t* wm = json_object_get(root, "wanderMode");
+    if (wm) wanderMode = (int)json_integer_value(wm);
     json_t* napf = json_object_get(root, "noiseAuxPreFader");
     if (napf) noiseAuxPreFader = json_boolean_value(napf);
 
@@ -540,6 +547,14 @@ std::atomic<bool> xyDragging{false};
 float xyFinalX = 0.5f;
 float xyFinalY = 0.5f;
 std::atomic<bool> xyResetPending{false};
+
+// Wander animation
+int   wanderMode     = 0;      // 0=Off, 1=Slow, 2=Medium, 3=Fast
+float wanderTargetX  = 0.5f;
+float wanderTargetY  = 0.5f;
+float wanderTimer    = 0.f;    // seconds until next target
+float wanderSpeed    = 0.15f;  // current swim speed (units/sec), slowly varies
+float wanderAngle    = 0.f;    // current heading in radians
 
 // Warble LFO phases (per channel, advance while playing)
 float wowPhase[4]     = {};
@@ -901,6 +916,64 @@ void process(const ProcessArgs& args) override {
                 }
             }
         }
+    }
+
+    // Wander animation — fish-in-tank swim behaviour
+    if (wanderMode > 0 && !xyDragging.load()) {
+        float cx = params[XPOS_PARAM].getValue();
+        float cy = params[YPOS_PARAM].getValue();
+
+        // Per-mode tuning: driftAmp (chaos), speedMin/Max (units/sec), targetInterval (sec)
+        float modeDrift, speedMin, speedMax, targetInterval;
+        if (wanderMode == 1) {        // Slow — lazy, dreamy drift
+            modeDrift      = 0.5f;   speedMin = 0.04f;  speedMax = 0.10f;  targetInterval = 4.f;
+        } else if (wanderMode == 2) { // Medium — steady swim
+            modeDrift      = 1.5f;   speedMin = 0.14f;  speedMax = 0.26f;  targetInterval = 2.5f;
+        } else {                      // Fast — darting, erratic
+            modeDrift      = 3.5f;   speedMin = 0.28f;  speedMax = 0.50f;  targetInterval = 1.2f;
+        }
+
+        // Pick a loose target area every 2–5 s, kept away from edges
+        wanderTimer -= args.sampleTime;
+        if (wanderTimer <= 0.f) {
+            wanderTargetX = 0.15f + random::uniform() * 0.70f;
+            wanderTargetY = 0.15f + random::uniform() * 0.70f;
+            wanderTimer   = targetInterval * (0.6f + random::uniform() * 0.8f);
+        }
+
+        // Brownian angular drift — 1/sqrt(SR) scaling gives sample-rate-independent
+        // diffusion; multiplying by sampleTime would make it effectively zero.
+        float driftAmp = modeDrift / std::sqrt(args.sampleRate);
+        wanderAngle += (random::uniform() * 2.f - 1.f) * driftAmp;
+
+        // Weak, lazy pull toward target — low gain so it never dominates the drift
+        float dx = wanderTargetX - cx;
+        float dy = wanderTargetY - cy;
+        float dist = std::sqrt(dx * dx + dy * dy);
+        if (dist > 0.06f) {
+            float targetAngle = std::atan2(dy, dx);
+            float diff = targetAngle - wanderAngle;
+            while (diff >  float(M_PI)) diff -= 2.f * float(M_PI);
+            while (diff < -float(M_PI)) diff += 2.f * float(M_PI);
+            wanderAngle += diff * 0.7f * args.sampleTime;
+        }
+
+        // Speed random-walks within mode range
+        wanderSpeed += (random::uniform() * 2.f - 1.f) * 0.15f * args.sampleTime;
+        wanderSpeed  = clamp(wanderSpeed, speedMin, speedMax);
+
+        float vx = std::cos(wanderAngle) * wanderSpeed;
+        float vy = std::sin(wanderAngle) * wanderSpeed;
+
+        // Wall repulsion
+        const float margin = 0.1f;
+        if (cx < margin)         vx += (1.f - cx / margin) * 0.35f;
+        if (cx > 1.f - margin)   vx -= (1.f - (1.f - cx) / margin) * 0.35f;
+        if (cy < margin)         vy += (1.f - cy / margin) * 0.35f;
+        if (cy > 1.f - margin)   vy -= (1.f - (1.f - cy) / margin) * 0.35f;
+
+        params[XPOS_PARAM].setValue(clamp(cx + vx * args.sampleTime, 0.f, 1.f));
+        params[YPOS_PARAM].setValue(clamp(cy + vy * args.sampleTime, 0.f, 1.f));
     }
 
     // XY Pad — param + CV offset (CV bypassed while dragging), then slewed
@@ -1270,18 +1343,18 @@ struct QuadLooperXYDisplay : Widget {
             rawMouseDelta = {0.f, 0.f};
             prevPx = px; prevPy = py;
 
-            // Lighter smoothing so fast moves register quickly
-            float emaK = dragging ? 0.55f : 0.80f;
+            // Lighter smoothing so fast moves and CV/wander motion register quickly
+            float emaK = dragging ? 0.55f : 0.50f;
             smoothVx = smoothVx * emaK + dvx * (1.f - emaK);
             smoothVy = smoothVy * emaK + dvy * (1.f - emaK);
 
             float speed = std::sqrt(smoothVx * smoothVx + smoothVy * smoothVy);
-            // Higher threshold prevents atan2 noise when near-stationary or clamped at a wall
-            if (speed > 0.4f) {
+            float speedThresh = dragging ? 0.4f : 0.15f;
+            if (speed > speedThresh) {
                 // Flip hysteresis: wider dead zone prevents oscillation near vx=0
                 bool newFacing = fishFacingRight;
-                if (smoothVx >  0.25f) newFacing = true;
-                if (smoothVx < -0.25f) newFacing = false;
+                if (smoothVx >  0.15f) newFacing = true;
+                if (smoothVx < -0.15f) newFacing = false;
 
                 // If facing flipped, rotate fishAngle by π so the fish doesn't visually jump
                 if (newFacing != fishFacingRight) {
@@ -1305,7 +1378,7 @@ struct QuadLooperXYDisplay : Widget {
                 float diff = targetAngle - fishAngle;
                 while (diff >  float(M_PI)) diff -= 2.f * float(M_PI);
                 while (diff < -float(M_PI)) diff += 2.f * float(M_PI);
-                float lerpK = dragging ? 0.45f : 0.25f;
+                float lerpK = dragging ? 0.45f : 0.35f;
                 fishAngle += diff * lerpK;
             }
         } else {
@@ -1603,6 +1676,26 @@ struct TehomWidget : ModuleWidget {
                 [=]() { return tehom->cursorStyle == 1; },
                 [=]() { tehom->cursorStyle = 1; }
             ));
+            subMenu->addChild(new MenuSeparator);
+            subMenu->addChild(createMenuLabel("Wander Speed"));
+            const char* wanderNames[] = {"Slow", "Medium", "Fast"};
+            for (int m = 1; m <= 3; m++) {
+                subMenu->addChild(createCheckMenuItem(wanderNames[m - 1], "",
+                    [=]() { return tehom->wanderMode == m; },
+                    [=]() {
+                        int prev = tehom->wanderMode;
+                        // Clicking active option turns it off; otherwise switch to it
+                        tehom->wanderMode = (tehom->wanderMode == m) ? 0 : m;
+                        if (tehom->wanderMode > 0 && prev == 0) {
+                            tehom->wanderTargetX = tehom->xyFinalX;
+                            tehom->wanderTargetY = tehom->xyFinalY;
+                            tehom->wanderTimer   = 0.f;
+                            tehom->wanderAngle   = random::uniform() * 2.f * float(M_PI);
+                            tehom->wanderSpeed   = 0.15f;
+                        }
+                    }
+                ));
+            }
         }));
         menu->addChild(createSubmenuItem("Background Scroll", "", [=](Menu* subMenu) {
             subMenu->addChild(createMenuLabel("Speed"));
