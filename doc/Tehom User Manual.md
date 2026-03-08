@@ -138,8 +138,12 @@ Right-clicking on the module panel opens the context menu. All settings save wit
 ## GUI
 
 * **XY Pad**
-  * **Draw Crosshairs:** Overlays horizontal and vertical lines on the XY pad that cross at the current cursor position. Useful for precise placement.
-  * **Cursor Trails:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. When disabled, the pad shows only the cursor dot.
+  * **Behavior**
+    * **Draw Crosshairs:** Overlays horizontal and vertical lines on the XY pad that cross at the current cursor position. Useful for precise placement.
+    * **Cursor Trails:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. The trail matches the active cursor style. When disabled, the pad shows only the cursor.
+  * **Cursor**
+    * **Fish** *(default)*: Replaces the cursor dot with a fish icon. The fish rotates to face the direction of movement and flips horizontally depending on travel direction. Double-clicking the XY pad or initialising the module resets the fish to the center facing right.
+    * **Circle:** Displays the classic circular cursor dot.
 
 * **Background Scroll**
   * **Speed — Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
