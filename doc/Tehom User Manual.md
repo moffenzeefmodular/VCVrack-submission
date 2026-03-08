@@ -64,19 +64,19 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 Each of the four channels has its own submenu. Settings save with the patch and respond to **Init**.
 
-#### Recording (Channels > Channel N > Recording)
+#### Recording (Channels > Channel Num. > Recording)
 
 * **Continuous Record:** When enabled, the record head wraps around and continues recording from the beginning of the buffer when it reaches the end, instead of stopping. The Record button light stays on indefinitely. Useful for continuously overwriting a buffer in real time. Default is off.
 
 * **Record Source: Main Output:** By default, each channel records its own input signal blended with its own playback through the source knob. The XY mixer, warble, and noise are not part of what gets written to the buffer — each buffer captures a clean, pre-mixer signal. When **Record Source: Main Output** is enabled, the channel instead records the final stereo output of the entire module: post-XY mixer, post-warble, and post-noise. This means the spatial position of the XY cursor, the warble effect, and any machine noise present at that moment are all printed directly into the buffer. The source knob is bypassed in this mode. Because warble is included in the captured signal, it will be baked into the buffer and played back as a fixed pitch artifact on subsequent passes. Default is off.
 
-#### Auto-Play (Channels > Channel N > Auto-Play)
+#### Auto-Play (Channels > Channel Num. > Auto-Play)
 
 * **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped. Default is on.
 
 * **Auto-Play when buffer full:** When enabled, the channel automatically begins playing back when the recording buffer fills to capacity. Default is on.
 
-#### Play CV Mode (Channels > Channel N > Play CV Mode)
+#### Play CV Mode (Channels > Channel Num. > Play CV Mode)
 
 * **Play CV Mode:** Determines how a rising-edge signal at the Play CV input behaves.
   * **Play/Stop** *(default)*: Each trigger toggles between playing and stopped, resetting the playhead to the start when play begins.
