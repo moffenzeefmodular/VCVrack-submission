@@ -1370,8 +1370,7 @@ struct QuadLooperXYDisplay : Widget {
 
         // --- Cursor ---
         if (useFish) {
-            float swimOffset = std::sin((float)glfwGetTime() * 2.5f) * 0.07f;
-            drawFish(args, px, py, fishW, fishH, fishSvgW, fishAngle + swimOffset, fishFacingRight, 1.f);
+            drawFish(args, px, py, fishW, fishH, fishSvgW, fishAngle, fishFacingRight, 1.f);
         } else {
             nvgBeginPath(args.vg);
             nvgCircle(args.vg, px, py, radius);
