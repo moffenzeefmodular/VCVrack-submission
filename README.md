@@ -57,3 +57,25 @@ By Ross Fish Feb 2025
 
 ## Tehom Beta: v2.6.0-rc1
 - Tehom beta release 
+
+## Tehom Beta: v2.6.0-rc2
+**Audio files:**
+- Cut file sizes down to 1 minute loops to speed up plugin loading time 
+
+**Art updates:**
+- Changed Tehom title to english
+
+**UI updates:**
+- Added fish icon
+- Double click on XY pad to reset to center
+- Add "Record" on hover for record button
+
+**Context menu/ferature updates:**
+- Rename "Persist" to "Cursor Trailing"
+- Re-organized menus and removed sub menus 
+- Added XY Pad Pans Audio 
+- Added Continous Record 
+- Added Record Source: Main Output 
+- Added cursor select - fish / circle 
+
+**User manual updated with all relevant changes** 
