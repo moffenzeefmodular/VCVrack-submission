@@ -1,6 +1,11 @@
 #include "plugin.hpp"
 #include <cstring>
 
+// stb_vorbis OGG decoder (compiled as C in stb_vorbis.c)
+extern "C" {
+    int stb_vorbis_decode_filename(const char *filename, int *channels, int *sample_rate, short **output);
+}
+
 // Base64 encode/decode for saving audio buffer content in patch JSON
 static const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static std::string b64Encode(const void* data, size_t len) {
@@ -282,6 +287,8 @@ struct Tehom : Module {
     configOutput(SEND_OUTPUT, "Noise Send");
     configOutput(XCVOUT_OUTPUT, "X CV");
     configOutput(YCVOUT_OUTPUT, "Y CV");
+
+    loadOggFiles();
 }
 
 void eraseBuffer(int i) {
@@ -350,21 +357,25 @@ void onReset(const ResetEvent& e) override {
     }
     xyFinalX = 0.5f;
     xyFinalY = 0.5f;
-    showCrosshairs = false;
-    persist        = true;
-    bgScrollSpeed  = 2;
-    bgScrollRight  = true;
+    showCrosshairs    = false;
+    persist           = true;
+    bgScrollSpeed     = 2;
+    bgScrollRight     = true;
+    noiseAuxPreFader  = true;
+    oggPlayPos        = 0.f;
+    currentOggIdx     = -1;
 }
 
 json_t* dataToJson() override {
     json_t* root = json_object();
 
     // Settings
-    json_object_set_new(root, "bufferDuration",  json_real(bufferDuration));
-    json_object_set_new(root, "showCrosshairs",  json_boolean(showCrosshairs));
-    json_object_set_new(root, "persist",         json_boolean(persist));
-    json_object_set_new(root, "bgScrollSpeed",   json_integer(bgScrollSpeed));
-    json_object_set_new(root, "bgScrollRight",   json_boolean(bgScrollRight));
+    json_object_set_new(root, "bufferDuration",   json_real(bufferDuration));
+    json_object_set_new(root, "showCrosshairs",   json_boolean(showCrosshairs));
+    json_object_set_new(root, "persist",          json_boolean(persist));
+    json_object_set_new(root, "bgScrollSpeed",    json_integer(bgScrollSpeed));
+    json_object_set_new(root, "bgScrollRight",    json_boolean(bgScrollRight));
+    json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
 
     // Per-channel toggles
     json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array();
@@ -410,6 +421,8 @@ void dataFromJson(json_t* root) override {
     if (bss) bgScrollSpeed = (int)json_integer_value(bss);
     json_t* bsr = json_object_get(root, "bgScrollRight");
     if (bsr) bgScrollRight = json_boolean_value(bsr);
+    json_t* napf = json_object_get(root, "noiseAuxPreFader");
+    if (napf) noiseAuxPreFader = json_boolean_value(napf);
 
     // Per-channel toggles
     json_t* ap = json_object_get(root, "autoPlay");
@@ -522,6 +535,49 @@ struct PendingBuf {
     float readPos = 0.f;
     bool pending = false;
 } pendingBuf[4];
+
+// OGG media loops
+struct OggLoop {
+    std::vector<float> L, R;
+    int numSamples = 0;
+    int nativeSampleRate = 44100;
+    bool loaded = false;
+} oggLoops[8];
+
+float    oggPlayPos    = 0.f;
+int      currentOggIdx = -1;
+bool     noiseAuxPreFader = true;
+
+const char* const oggFilenames[8] = {
+    "res/audio/MicPre.ogg",
+    "res/audio/ReelToReel.ogg",
+    "res/audio/Cassette.ogg",
+    "res/audio/VHS.ogg",
+    "res/audio/VinylClean.ogg",
+    "res/audio/VinylDirty.ogg",
+    "res/audio/Film8mm.ogg",
+    "res/audio/Film16mm.ogg",
+};
+
+void loadOggFiles() {
+    for (int i = 0; i < 8; i++) {
+        std::string path = asset::plugin(pluginInstance, oggFilenames[i]);
+        int ch = 0, sr = 0;
+        short* data = nullptr;
+        int n = stb_vorbis_decode_filename(path.c_str(), &ch, &sr, &data);
+        if (n <= 0 || !data) continue;
+        oggLoops[i].L.resize(n);
+        oggLoops[i].R.resize(n);
+        oggLoops[i].nativeSampleRate = sr;
+        oggLoops[i].numSamples = n;
+        for (int s = 0; s < n; s++) {
+            oggLoops[i].L[s] = data[s * ch + 0] / 32768.f;
+            oggLoops[i].R[s] = (ch >= 2) ? data[s * ch + 1] / 32768.f : oggLoops[i].L[s];
+        }
+        free(data);
+        oggLoops[i].loaded = true;
+    }
+}
 
 void processBypass(const ProcessArgs& args) override {
     float inL = inputs[AUDIOLEFTIN_INPUT].getVoltage();
@@ -728,6 +784,51 @@ void process(const ProcessArgs& args) override {
 
     outL = clamp(outL, -5.f, 5.f);
     outR = clamp(outR, -5.f, 5.f);
+
+    // === MEDIA (OGG LOOPS) — mixed in after XY mixer ===
+    int mediaIdx = clamp((int)std::round(params[MEDIA_PARAM].getValue()
+        + clamp(inputs[MEDIACVIN_INPUT].getVoltage(), -5.f, 5.f) * 7.f / 10.f), 0, 7);
+
+    if (mediaIdx != currentOggIdx) {
+        currentOggIdx = mediaIdx;
+        oggPlayPos = 0.f;
+    }
+
+    float mediaL = 0.f, mediaR = 0.f;
+    OggLoop& loop = oggLoops[mediaIdx];
+    if (loop.loaded && loop.numSamples > 1) {
+        float advance = (float)loop.nativeSampleRate / args.sampleRate;
+        int i0 = (int)oggPlayPos;
+        int i1 = (i0 + 1) % loop.numSamples;
+        float frac = oggPlayPos - (float)i0;
+        mediaL = (loop.L[i0] + (loop.L[i1] - loop.L[i0]) * frac) * 5.f;
+        mediaR = (loop.R[i0] + (loop.R[i1] - loop.R[i0]) * frac) * 5.f;
+        oggPlayPos += advance;
+        if (oggPlayPos >= (float)loop.numSamples) oggPlayPos -= (float)loop.numSamples;
+    }
+
+    // Pre-fader send: raw media before amount knob
+    if (noiseAuxPreFader)
+        outputs[SEND_OUTPUT].setVoltage((mediaL + mediaR) * 0.5f);
+
+    // Return replaces media (both L and R) before amount knob
+    if (inputs[RETURN_INPUT].isConnected()) {
+        float ret = inputs[RETURN_INPUT].getVoltage();
+        mediaL = ret;
+        mediaR = ret;
+    }
+
+    float amount = clamp(params[AMOUNT_PARAM].getValue()
+        + clamp(inputs[AMOUNTCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+    float noiseMixL = mediaL * amount;
+    float noiseMixR = mediaR * amount;
+
+    // Post-fader send: after amount knob
+    if (!noiseAuxPreFader)
+        outputs[SEND_OUTPUT].setVoltage((noiseMixL + noiseMixR) * 0.5f);
+
+    outL = clamp(outL + noiseMixL, -5.f, 5.f);
+    outR = clamp(outR + noiseMixR, -5.f, 5.f);
 
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(outL);
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
@@ -1328,6 +1429,18 @@ struct TehomWidget : ModuleWidget {
                     [=]() { tehom->bgScrollRight = false; }
                 ));
             }));
+        }));
+
+        // Noise Aux Send routing
+        menu->addChild(createSubmenuItem("Noise Aux Send", "", [=](Menu* subMenu) {
+            subMenu->addChild(createCheckMenuItem("Pre-Fader", "",
+                [=]() { return tehom->noiseAuxPreFader; },
+                [=]() { tehom->noiseAuxPreFader = true; }
+            ));
+            subMenu->addChild(createCheckMenuItem("Post-Fader", "",
+                [=]() { return !tehom->noiseAuxPreFader; },
+                [=]() { tehom->noiseAuxPreFader = false; }
+            ));
         }));
 
         // Buffer Size — global, flat list
