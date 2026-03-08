@@ -10,6 +10,12 @@
 
 ---
 
+# Translation 
+
+**Tehom** (Hebrew: **תְּהוֹם**, təhôm) translates to **"the deep,"** **"the abyss,"** or **"surging waters,"** referring to the primordial ocean or chaotic, unformed waters existing before creation in Genesis 1:2. It represents chaotic, untamed raw energy or the deep, dark, and uncontrolled forces of the ocean.
+
+---
+
 # Overview
 
 **Tehom** is a four-channel sound-on-sound looper with a built-in XY mixer, machine noise engine, warble, and a suite of global loop window controls. Each of the four channels records and plays back audio independently, with its own playback speed, source blend, and playback direction. The four channels feed into a bilinear XY mixer that pans and balances between them spatially. A library of eight machine noise loops can be mixed into the final output, routed through an external effects chain via a send-return path, and blended in at any level. Nothing in Tehom is designed to stay pristine. The more you push it, the more it degrades.
