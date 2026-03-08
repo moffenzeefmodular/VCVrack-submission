@@ -358,10 +358,11 @@ void onReset(const ResetEvent& e) override {
     if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate);
     for (int i = 0; i < 4; i++) {
         eraseBuffer(i);
-        autoPlay[i]     = true;
-        autoPlayFull[i] = true;
-        playCVMode[i]   = 0;
-        playReversed[i] = false;
+        autoPlay[i]         = true;
+        autoPlayFull[i]     = true;
+        playCVMode[i]       = 0;
+        playReversed[i]     = false;
+        continuousRecord[i] = false;
     }
     xyFinalX = 0.5f;
     xyFinalY = 0.5f;
@@ -386,15 +387,17 @@ json_t* dataToJson() override {
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
 
     // Per-channel toggles
-    json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array();
+    json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array();
     for (int i = 0; i < 4; i++) {
         json_array_append_new(ap,   json_boolean(autoPlay[i]));
         json_array_append_new(apf,  json_boolean(autoPlayFull[i]));
         json_array_append_new(pcvm, json_integer(playCVMode[i]));
+        json_array_append_new(cr,   json_boolean(continuousRecord[i]));
     }
-    json_object_set_new(root, "autoPlay",     ap);
-    json_object_set_new(root, "autoPlayFull", apf);
-    json_object_set_new(root, "playCVMode",   pcvm);
+    json_object_set_new(root, "autoPlay",         ap);
+    json_object_set_new(root, "autoPlayFull",     apf);
+    json_object_set_new(root, "playCVMode",       pcvm);
+    json_object_set_new(root, "continuousRecord", cr);
 
     // Audio buffers
     json_t* bufs = json_array();
@@ -439,6 +442,8 @@ void dataFromJson(json_t* root) override {
     if (apf)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf,  i); if (v) autoPlayFull[i] = json_boolean_value(v); }
     json_t* pcvm = json_object_get(root, "playCVMode");
     if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i]   = (int)json_integer_value(v); }
+    json_t* crj = json_object_get(root, "continuousRecord");
+    if (crj)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(crj,  i); if (v) continuousRecord[i] = json_boolean_value(v); }
 
     // Audio buffers
     json_t* bufs = json_object_get(root, "buffers");
@@ -502,8 +507,9 @@ std::atomic<bool> bezelDragging[4];
 bool playReversed[4] = {false, false, false, false};
 
 float eraseFlash[4] = {};
-bool autoPlay[4]     = {true, true, true, true};
-bool autoPlayFull[4] = {true, true, true, true};
+bool autoPlay[4]          = {true, true, true, true};
+bool autoPlayFull[4]      = {true, true, true, true};
+bool continuousRecord[4]  = {false, false, false, false};
 
 // XY Pad display settings (UI state, reset on Init)
 bool showCrosshairs = false;
@@ -855,10 +861,14 @@ void process(const ProcessArgs& args) override {
 
         if (writePos[i] >= bufferSize) {
             writePos[i] = 0;
-            recordState[i] = false;
-            if (autoPlayFull[i] && !playState[i]) {
-                playState[i] = true;
-                readPos[i] = 0.f;
+            if (continuousRecord[i]) {
+                // Keep recording — wrap and overwrite from the start
+            } else {
+                recordState[i] = false;
+                if (autoPlayFull[i] && !playState[i]) {
+                    playState[i] = true;
+                    readPos[i] = 0.f;
+                }
             }
         }
     }
@@ -1416,6 +1426,7 @@ struct TehomWidget : ModuleWidget {
             ));
         }));
         menu->addChild(createSubmenuItem("Background Scroll", "", [=](Menu* subMenu) {
+            subMenu->addChild(createMenuLabel("Speed"));
             const char* names[] = {"Off", "Slow", "Medium", "Fast"};
             for (int s = 0; s < 4; s++) {
                 subMenu->addChild(createCheckMenuItem(names[s], "",
@@ -1424,16 +1435,15 @@ struct TehomWidget : ModuleWidget {
                 ));
             }
             subMenu->addChild(new MenuSeparator);
-            subMenu->addChild(createSubmenuItem("Direction", "", [=](Menu* dirMenu) {
-                dirMenu->addChild(createCheckMenuItem("Right", "",
-                    [=]() { return tehom->bgScrollRight; },
-                    [=]() { tehom->bgScrollRight = true; }
-                ));
-                dirMenu->addChild(createCheckMenuItem("Left", "",
-                    [=]() { return !tehom->bgScrollRight; },
-                    [=]() { tehom->bgScrollRight = false; }
-                ));
-            }));
+            subMenu->addChild(createMenuLabel("Direction"));
+            subMenu->addChild(createCheckMenuItem("Right", "",
+                [=]() { return tehom->bgScrollRight; },
+                [=]() { tehom->bgScrollRight = true; }
+            ));
+            subMenu->addChild(createCheckMenuItem("Left", "",
+                [=]() { return !tehom->bgScrollRight; },
+                [=]() { tehom->bgScrollRight = false; }
+            ));
         }));
 
         // Global section
@@ -1468,15 +1478,14 @@ struct TehomWidget : ModuleWidget {
         const std::vector<std::string> modeNames = {"Play/Stop", "Retrigger", "Forward/Reverse"};
         for (int i = 0; i < 4; i++) {
             menu->addChild(createSubmenuItem("Channel " + std::to_string(i + 1), "", [=](Menu* subMenu) {
-                subMenu->addChild(createMenuLabel("Play CV Mode"));
-                for (int m = 0; m < 3; m++) {
-                    subMenu->addChild(createCheckMenuItem(
-                        modeNames[m], "",
-                        [=]() { return tehom->playCVMode[i] == m; },
-                        [=]() { tehom->playCVMode[i] = m; }
-                    ));
-                }
+                subMenu->addChild(createMenuLabel("Recording"));
+                subMenu->addChild(createCheckMenuItem(
+                    "Continuous Record", "",
+                    [=]() { return tehom->continuousRecord[i]; },
+                    [=]() { tehom->continuousRecord[i] = !tehom->continuousRecord[i]; }
+                ));
                 subMenu->addChild(new MenuSeparator);
+                subMenu->addChild(createMenuLabel("Auto-Play"));
                 subMenu->addChild(createCheckMenuItem(
                     "Auto-Play when recording complete", "",
                     [=]() { return tehom->autoPlay[i]; },
@@ -1487,6 +1496,15 @@ struct TehomWidget : ModuleWidget {
                     [=]() { return tehom->autoPlayFull[i]; },
                     [=]() { tehom->autoPlayFull[i] = !tehom->autoPlayFull[i]; }
                 ));
+                subMenu->addChild(new MenuSeparator);
+                subMenu->addChild(createMenuLabel("Play CV Mode"));
+                for (int m = 0; m < 3; m++) {
+                    subMenu->addChild(createCheckMenuItem(
+                        modeNames[m], "",
+                        [=]() { return tehom->playCVMode[i] == m; },
+                        [=]() { tehom->playCVMode[i] = m; }
+                    ));
+                }
             }));
         }
     }
