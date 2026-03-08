@@ -292,11 +292,10 @@
         {
       "slug": "Tehom",
       "name": "Tehom",
-      "description": "",
-      "manualUrl": "",
+      "description": "Quad sound on sound looper with wow & flutter + built in loops of noise sources.",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Tehom%20User%20Manual.md",
       "tags": [
-       "",
-       ""
+       "effect", "sampler", "recording", "noise", "granular"
       ]
     }
   ]
