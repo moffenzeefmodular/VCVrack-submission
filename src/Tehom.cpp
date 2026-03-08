@@ -1678,15 +1678,18 @@ struct TehomWidget : ModuleWidget {
             ));
             subMenu->addChild(new MenuSeparator);
             subMenu->addChild(createMenuLabel("Wander Speed"));
+            subMenu->addChild(createCheckMenuItem("Off", "",
+                [=]() { return tehom->wanderMode == 0; },
+                [=]() { tehom->wanderMode = 0; }
+            ));
             const char* wanderNames[] = {"Slow", "Medium", "Fast"};
             for (int m = 1; m <= 3; m++) {
                 subMenu->addChild(createCheckMenuItem(wanderNames[m - 1], "",
                     [=]() { return tehom->wanderMode == m; },
                     [=]() {
                         int prev = tehom->wanderMode;
-                        // Clicking active option turns it off; otherwise switch to it
-                        tehom->wanderMode = (tehom->wanderMode == m) ? 0 : m;
-                        if (tehom->wanderMode > 0 && prev == 0) {
+                        tehom->wanderMode = m;
+                        if (prev == 0) {
                             tehom->wanderTargetX = tehom->xyFinalX;
                             tehom->wanderTargetY = tehom->xyFinalY;
                             tehom->wanderTimer   = 0.f;
