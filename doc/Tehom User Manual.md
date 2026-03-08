@@ -42,9 +42,13 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 * **SPEED:** Controls the playback speed of the loop buffer. At center (12 o'clock), playback runs at 1× speed. Turned fully left, playback slows to a near-stop. Turned fully right, playback runs at 2× speed. A CV input is provided for bipolar modulation. The LED Bezel spinning indicator tracks this value visually.
 
-* **RECORD (red button):** Toggles recording on and off. A **left-click** starts and stops recording. When recording is started on a buffer that has no content, it begins recording from the top. When recording is stopped manually, the channel will auto-play back what was recorded if **Auto-Play when recording complete** is enabled in the context menu. A **right-click** erases the buffer entirely and flashes white to confirm. A CV input is provided — recording is toggled on each rising edge.
+* **RECORD (red button):** Toggles recording on and off. A **left-click** starts and stops recording. When recording is started on a buffer that has no content, it begins recording from the top. When recording is stopped manually, the channel will auto-play back what was recorded if **Auto-Play when recording complete** is enabled in the context menu. A CV input is provided — recording is toggled on each rising edge.
 
-* **PLAY (green/blue button):** Toggles playback on and off. A **left-click** starts and stops playback. A **right-click** toggles the playback direction between forward (green light) and reverse (blue light). A CV input is provided — behavior depends on the **Play CV Mode** setting in the context menu (see Context Menu section).
+* **ERASE:** A **right-click** on the Record button erases the buffer entirely and flashes white to confirm.
+
+* **PLAY (green/blue button):** Toggles playback on and off. A **left-click** starts and stops playback. A CV input is provided — behavior depends on the **Play CV Mode** setting in the context menu (see Context Menu section).
+
+* **REVERSE:** A **right-click** on the Play button toggles the playback direction between forward (green light) and reverse (blue light).
 
 * **LOOP switch:** A two-position toggle that enables or disables looping. When **On**, the playhead wraps around within the loop window continuously. When **Off**, the channel plays through the loop window once and stops.
 
