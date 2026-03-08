@@ -70,12 +70,13 @@ By Ross Fish Feb 2025
 - Double click on XY pad to reset to center
 - Add "Record" on hover for record button
 
-**Context menu/ferature updates:**
+**Context menu and feature updates:**
+- **Added Continous Record mode** 
+- **Added Record Source: Main Output** - Buffer records main output instead of internal SOS loop
+- **Added XY Pad Pans Audio** - Audio pans in the stereo field based on X axis.
+- **Added Wander mode to cursor**
 - Rename "Persist" to "Cursor Trailing"
-- Re-organized menus and removed sub menus 
-- Added XY Pad Pans Audio 
-- Added Continous Record 
-- Added Record Source: Main Output 
-- Added cursor select - fish / circle 
+- Re-organized menus and removed sub menus to clean up organization
+- Added cursor select - fish / circle 🐟 
 
 **User manual updated with all relevant changes** 
