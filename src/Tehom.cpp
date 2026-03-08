@@ -1396,8 +1396,9 @@ struct TehomWidget : ModuleWidget {
         auto* tehom = dynamic_cast<Tehom*>(module);
         if (!tehom) return;
 
-        // XY Pad display options
+        // GUI section
         menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("GUI"));
         menu->addChild(createSubmenuItem("XY Pad", "", [=](Menu* subMenu) {
             subMenu->addChild(createCheckMenuItem("Draw Crosshairs", "",
                 [=]() { return tehom->showCrosshairs; },
@@ -1408,8 +1409,6 @@ struct TehomWidget : ModuleWidget {
                 [=]() { tehom->persist = !tehom->persist; }
             ));
         }));
-
-        // Background scroll speed and direction
         menu->addChild(createSubmenuItem("Background Scroll", "", [=](Menu* subMenu) {
             const char* names[] = {"Off", "Slow", "Medium", "Fast"};
             for (int s = 0; s < 4; s++) {
@@ -1431,20 +1430,9 @@ struct TehomWidget : ModuleWidget {
             }));
         }));
 
-        // Noise Aux Send routing
-        menu->addChild(createSubmenuItem("Noise Aux Send", "", [=](Menu* subMenu) {
-            subMenu->addChild(createCheckMenuItem("Pre-Fader", "",
-                [=]() { return tehom->noiseAuxPreFader; },
-                [=]() { tehom->noiseAuxPreFader = true; }
-            ));
-            subMenu->addChild(createCheckMenuItem("Post-Fader", "",
-                [=]() { return !tehom->noiseAuxPreFader; },
-                [=]() { tehom->noiseAuxPreFader = false; }
-            ));
-        }));
-
-        // Buffer Size — global, flat list
+        // Global section
         menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Global"));
         menu->addChild(createSubmenuItem("Buffer Size", "", [=](Menu* subMenu) {
             const float durations[] = {1.f, 2.f, 5.f, 10.f, 20.f, 30.f, 60.f};
             const char* labels[]    = {"1 second", "2 seconds", "5 seconds", "10 seconds", "20 seconds", "30 seconds", "1 minute"};
@@ -1457,9 +1445,20 @@ struct TehomWidget : ModuleWidget {
                 ));
             }
         }));
+        menu->addChild(createSubmenuItem("Noise Aux Send", "", [=](Menu* subMenu) {
+            subMenu->addChild(createCheckMenuItem("Pre-Fader", "",
+                [=]() { return tehom->noiseAuxPreFader; },
+                [=]() { tehom->noiseAuxPreFader = true; }
+            ));
+            subMenu->addChild(createCheckMenuItem("Post-Fader", "",
+                [=]() { return !tehom->noiseAuxPreFader; },
+                [=]() { tehom->noiseAuxPreFader = false; }
+            ));
+        }));
 
-        // Per-channel settings — one submenu per channel
+        // Channels section
         menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Channels"));
         const std::vector<std::string> modeNames = {"Play/Stop", "Retrigger", "Forward/Reverse"};
         for (int i = 0; i < 4; i++) {
             menu->addChild(createSubmenuItem("Channel " + std::to_string(i + 1), "", [=](Menu* subMenu) {
