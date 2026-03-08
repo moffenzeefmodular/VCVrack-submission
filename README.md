@@ -54,3 +54,6 @@ By Ross Fish Feb 2025
 - Repaired Tantz! Sequences (there was all sorts of goofy stuff happening)
 - Added user manuals for Stargazer, Quad Deviant, Tantz!, and Kleztizer
 - Added themed screws and themed jacks to Quad Deviant
+
+## Tehom Beta: v2.6.0-rc1
+- Tehom beta release 
