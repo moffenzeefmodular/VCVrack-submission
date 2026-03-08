@@ -67,7 +67,7 @@ The Zhok is a playful, dance-oriented klezmer tune, usually in 2/4 or 4/4 time. 
 ---
 # Overview
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzScreenshot.png" width="500">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzScreenshot.png" width="500"></p>
 
 **Tantz!** is a preset drum sequencer inspired by organ drum machines. There are 6 tracks, each with 8 pattern variations. Changing the **Style** shifts the global bank for all tracks to a completely new set of patterns and time signatures. Global swing is provided mainly for the patterns in 3/4, to mimic the sound of the cimbalom.  
 
@@ -83,7 +83,7 @@ Although the knobs are labeled Kick, Snare, Hat, etc., these are just modern wor
 
 # Global
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzGlobal.png" width="250">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzGlobal.png" width="250"></p>
 
 This section controls the functionality of the entire **Tantz!** module.
 
@@ -96,7 +96,7 @@ This section controls the functionality of the entire **Tantz!** module.
 
 # Individual Tracks 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzTracks.png" width="400">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzTracks.png" width="400"></p>
 
 The individual tracks of Tantz! are responsible for selecting eight sub-variations of patterns within each bank of rhythms. The banks of rhytmic patterns are controlled by the **Style** parameter. 
 
@@ -107,7 +107,7 @@ The individual tracks of Tantz! are responsible for selecting eight sub-variatio
 
 # I/O 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzIO.png" width="600">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzIO.png" width="600"></p>
 
 This section is responsible for clocking I/O, voltage control, and gate outputs. 
 

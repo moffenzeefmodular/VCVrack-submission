@@ -12,7 +12,7 @@ As Deviant was originally a hardware device and part of System Moffenzeef, it ne
 
 # Overview
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantScreenshot.png" width="750">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantScreenshot.png" width="750"></p>
 
 **Quad Deviant** is a four-channel stepped random voltage generator with Max/Min control per channel. Each channel’s random voltage can be dialed into a window defined by the **Top** and **Bottom** parameters, while the **Range** switch determines the overall spread of this window. CV inputs are provided for both aspects of the window: **Top** and **Bottom**.
 
@@ -29,7 +29,7 @@ The four outputs are combined into an assignable **CV Bus** at the far right of 
 --- 
 # Individual Channels 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantChannel.png" width="100">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantChannel.png" width="100"></p>
 
 There are four identical channels within **Quad Deviant**. Each channel, when triggered, outputs a random voltage between the settings dialed in at **Top** and **Bottom**. The overall voltage range is dictated by the **Range** switch.
 
@@ -45,7 +45,7 @@ There are four identical channels within **Quad Deviant**. Each channel, when tr
 
 # CV Bus 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantCVBus.png" width="150">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantCVBus.png" width="150"></p>
 
 The CV Bus has four buttons that allow the user to enable and disable which channel is routed to it. Each output performs a math function on whatever channels are enabled in the bus. 
 

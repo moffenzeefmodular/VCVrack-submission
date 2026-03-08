@@ -16,7 +16,7 @@ While the VCV module adds a robust new feature set, I made a point to keep the c
 
 # Overview
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerScreenshot.png" width="1000">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerScreenshot.png" width="1000"></p>
 
 Stargazer is a stereo dual wavetable based drone synth with two multimode filters, sample rate and bit depth reduction, and three LFOs. While a wide variety of sounds are possible with this device, it was designed with the intention of creating slow morphing timbral shifts over time. For this reason, the device is monophonic and has a restricted pitch range dedicated to low frequencies. This is also why the device does not have onboard amplitude or filter envelopes.
 
@@ -36,7 +36,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ## Oscillators
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOscillator.jpg" width="300">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOscillator.jpg" width="300"></p>
 
 ### The oscillator section contains a primary and secondary oscillator that share the same wavetable selection, 1v/Octave pitch input, and FM CV input. The wavetables smoothly interpolate between one another creating a morphing and organic sound. The secondary oscillator can be detuned and mixed in with the primary oscillator to create frequency beating and chorus-like effects. The pitch tracking is restricted to the overall oscillator range of 1hz - 500hz. If you would like the oscillators tuned to a specific chromatic note, you can click on the pitch knob and type in the MIDI note of your preference (example C0, or Eb1). See Normalization Schema and Block Diagram below for more information.
 
@@ -52,7 +52,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ## Filters 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerFilter.jpg" width="300">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerFilter.jpg" width="300"></p>
 
 ### There are two identical filter sections provided for Stargazer. The difference between the two sections is their location in the signal chain, and their modulation routing. Both filters are multimode and have the ability to be bypassed from the signal chain entirely. See Normalization Schema and Block Diagram below for more information. 
 
@@ -64,7 +64,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ## Sample Rate + Bit Depth Reduction 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBitReduction.png" width="250">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBitReduction.png" width="250"></p>
 
 ### Control over sample rate and bit depth are provided between both filters. The rationale for the signal routing is that the user would use the first filter to modify the wavetables and then add harmonically rich content back into the signal. The second filter would then subtract this content back out of the signal. This is a weird kind of way of thinking about subtractive synthesis, but yields some aesthetically pleasing results. See Block Diagram below for more information.
 
@@ -75,7 +75,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ## Modulation 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerLFO.png" width="300">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerLFO.png" width="300"></p>
 
 ### There are three identical LFOs inside of Stargazer. The difference between each LFO is their place in the signal chain. See Normalization Schema and Block Diagram below for more information.
 
@@ -89,7 +89,7 @@ All CV inputs respond to -5v...+5v. Every knob is treated as an offset - with th
 
 ## Output Stage 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOutput.png" width="300">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerOutput.png" width="300"></p>
 
 ### The output stage consists of a VCA, a mono to stereo spatialization section, as well as a distortion. LFO 2 is normalled to Stargazer's VCA volume. Following the VCA, a Spread knob is provided, which controls the panning relationship between Stargazer, and a 20ms delayed copy of the signal. After the spatialization section, a simple gain stage and output volume attenuator are provided. See Normalization Schema and Block Diagram below for more information.
 
@@ -112,4 +112,4 @@ Several parts of the circuit are "normalized" together. This means that with no 
 
 # Block Diagram 
 
-<img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBlockDiagram.jpg">
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerBlockDiagram.jpg"></p>
