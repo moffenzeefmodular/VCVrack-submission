@@ -113,7 +113,7 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 ## Warble
 
-* **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. A CV input is provided for bipolar modulation.
+* **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. Warble is a playback-only effect and is never recorded back into the buffers. A CV input is provided for bipolar modulation.
 
 ## Noise
 
@@ -142,10 +142,12 @@ Right-clicking on the module panel opens the context menu. All settings save wit
   * **Cursor Trails:** When enabled, the XY pad draws a comet trail that follows the cursor and fades over time. When disabled, the pad shows only the cursor dot.
 
 * **Background Scroll**
-  * **Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
-  * **Direction:** Sets the scroll direction to **Right** or **Left**.
+  * **Speed — Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
+  * **Direction — Right / Left:** Sets the scroll direction.
 
 ## Global
+
+* **XY Pad Pans Audio:** When enabled, the X axis of the XY pad acts as a master stereo pan for all four channel outputs. X fully left sends all channels to the left output only; X fully right sends all channels to the right output only; X at center produces an equal stereo image. This panning is applied before warble and noise are added. Default is off.
 
 * **Buffer Size:** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
 
@@ -155,15 +157,25 @@ Right-clicking on the module panel opens the context menu. All settings save wit
 
 ## Channels
 
-Each of the four channels has its own submenu with the following settings:
+Each of the four channels has its own submenu. Settings are grouped under the following labels:
+
+### Recording
+
+* **Continuous Record:** When enabled, the record head wraps around and continues recording from the beginning of the buffer when it reaches the end, instead of stopping. The Record button light stays on indefinitely. Useful for continuously overwriting a buffer in real time. Default is off.
+
+* **Record Source: Main Output:** By default, each channel records its own input signal blended with its own playback through the source knob. The XY mixer, warble, and noise are not part of what gets written to the buffer — each buffer captures a clean, pre-mixer signal. When **Record Source: Main Output** is enabled, the channel instead records the final stereo output of the entire module: post-XY mixer, post-warble, and post-noise. This means the spatial position of the XY cursor, the warble effect, and any machine noise present at that moment are all printed directly into the buffer. The source knob is bypassed in this mode. Because warble is included in the captured signal, it will be baked into the buffer and played back as a fixed pitch artifact on subsequent passes. Default is off.
+
+### Auto-Play
+
+* **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped. Default is on.
+
+* **Auto-Play when buffer full:** When enabled, the channel automatically begins playing back when the recording buffer fills to capacity. Default is on.
+
+### Play CV Mode
 
 * **Play CV Mode:** Determines how a rising-edge signal at the Play CV input behaves.
   * **Play/Stop** *(default)*: Each trigger toggles between playing and stopped, resetting the playhead to the start when play begins.
   * **Retrigger:** Each trigger resets the playhead to the start of the loop without toggling stop. Playback continues uninterrupted after the trigger, restarting from the beginning each time.
   * **Forward/Reverse:** Each trigger flips the playback direction between forward and reverse.
-
-* **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped. Default is on.
-
-* **Auto-Play when buffer full:** When enabled, the channel automatically begins playing back when the recording buffer fills to capacity. Default is on.
 
 ---
