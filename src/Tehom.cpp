@@ -745,8 +745,23 @@ void process(const ProcessArgs& args) override {
                 params[LEDBEZEL1_PARAM + i].setValue(bv);
             }
 
-            if (hasContent[i] && recordedLength[i] >= 2)
-                readPos[i] = clamp(readPos[i] + scrubVelocity[i], 0.f, (float)(recordedLength[i] - 1));
+            if (hasContent[i] && recordedLength[i] >= 2) {
+                // Scrub within the current loop window so a small loop can be scrubbed around
+                int len = recordedLength[i];
+                float sp = clamp(params[SIZE_PARAM].getValue()
+                    + clamp(inputs[SIZECVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+                float pp = clamp(params[POSITION_PARAM].getValue()
+                    + clamp(inputs[POSITIONCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+                int minLoopSize = std::min(100, len);
+                int loopSize  = clamp((int)(sp * sp * sp * (float)len), minLoopSize, len);
+                int loopStart = clamp((int)(pp * (float)(len - loopSize)), 0, len - loopSize);
+                int loopEnd   = loopStart + loopSize;
+
+                readPos[i] += scrubVelocity[i];
+                // Wrap within loop window (like the record looping under your hand)
+                while (readPos[i] >= (float)loopEnd)   readPos[i] -= (float)loopSize;
+                while (readPos[i] <  (float)loopStart) readPos[i] += (float)loopSize;
+            }
         } else {
             // Detect drag release: clamp readPos into loop window and restore playState
             if (prevBezelDragging[i] && hasContent[i] && recordedLength[i] >= 2) {
