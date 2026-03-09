@@ -758,9 +758,11 @@ void process(const ProcessArgs& args) override {
                 int loopEnd   = loopStart + loopSize;
 
                 readPos[i] += scrubVelocity[i];
-                // Wrap within loop window (like the record looping under your hand)
-                while (readPos[i] >= (float)loopEnd)   readPos[i] -= (float)loopSize;
-                while (readPos[i] <  (float)loopStart) readPos[i] += (float)loopSize;
+                // Wrap within loop window using fmod — O(1) regardless of velocity magnitude,
+                // so a tiny loop window with a large scrubVelocity never spins the audio thread.
+                float offset = std::fmod(readPos[i] - (float)loopStart, (float)loopSize);
+                if (offset < 0.f) offset += (float)loopSize;
+                readPos[i] = (float)loopStart + offset;
             }
         } else {
             // Detect drag release: clamp readPos into loop window and restore playState
@@ -1146,13 +1148,16 @@ struct SpinningBezelWidget : LEDBezelSilver {
 	void step() override {
 		LEDBezelSilver::step();
 
-		// SvgKnob keeps its FramebufferWidget as a direct child (not a parent).
-		// Mark it dirty every step so the spin animation always redraws, whether
-		// the update came from the audio thread or a drag.
-		for (widget::Widget* child : children) {
-			if (auto* fb = dynamic_cast<widget::FramebufferWidget*>(child)) {
-				fb->dirty = true;
-				break;
+		// Mark the SvgKnob's internal FramebufferWidget dirty only when the param
+		// value has changed — avoids a full SVG re-render every frame when idle.
+		float v = getParamQuantity() ? getParamQuantity()->getValue() : 0.f;
+		if (v != lastParamValue) {
+			lastParamValue = v;
+			for (widget::Widget* child : children) {
+				if (auto* fb = dynamic_cast<widget::FramebufferWidget*>(child)) {
+					fb->dirty = true;
+					break;
+				}
 			}
 		}
 
