@@ -578,7 +578,7 @@ int bufferSize = 0;
 std::vector<float> bufL[4];
 std::vector<float> bufR[4];
 int writePos[4] = {};
-float readPos[4] = {};
+double readPos[4] = {};
 int recordedLength[4] = {};
 bool hasContent[4] = {};
 
@@ -759,14 +759,14 @@ void process(const ProcessArgs& args) override {
                 int minLoopSize = std::min(100, len);
                 int loopSize  = clamp((int)(sp * sp * sp * (float)len), minLoopSize, len);
                 int loopStart = clamp((int)(pp * (float)(len - loopSize)), 0, len - loopSize);
-                int loopEnd   = loopStart + loopSize;
+                int loopEnd   = loopStart + loopSize; (void)loopEnd;
 
                 readPos[i] += scrubVelocity[i];
                 // Wrap within loop window using fmod — O(1) regardless of velocity magnitude,
                 // so a tiny loop window with a large scrubVelocity never spins the audio thread.
-                float offset = std::fmod(readPos[i] - (float)loopStart, (float)loopSize);
-                if (offset < 0.f) offset += (float)loopSize;
-                readPos[i] = (float)loopStart + offset;
+                double offset = std::fmod(readPos[i] - (double)loopStart, (double)loopSize);
+                if (offset < 0.0) offset += (double)loopSize;
+                readPos[i] = (double)loopStart + offset;
             }
         } else {
             // Detect drag release: clamp readPos into loop window and restore playState
