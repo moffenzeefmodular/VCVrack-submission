@@ -730,11 +730,11 @@ void process(const ProcessArgs& args) override {
             if (scrubFresh[i].exchange(false))
                 scrubTarget[i] = scrubInput[i].load() * 0.25f;  // right/up = forward in buffer
             else
-                scrubTarget[i] *= std::exp(-args.sampleTime / 0.200f);  // 200 ms decay when idle
+                scrubTarget[i] *= std::exp(-args.sampleTime / 1.000f);  // 1 s decay when idle
 
-            // Per-sample slew toward target (200 ms) — smooth vinyl acceleration / deceleration
+            // Per-sample slew toward target (1 s) — smooth vinyl acceleration / deceleration
             scrubVelocity[i] += (scrubTarget[i] - scrubVelocity[i])
-                                 * (1.f - std::exp(-args.sampleTime / 0.200f));
+                                 * (1.f - std::exp(-args.sampleTime / 1.000f));
 
             // Drive bezel visual from slewed velocity so animation matches what you hear
             {
