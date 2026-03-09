@@ -212,6 +212,7 @@ struct Tehom : Module {
 		paramQuantities[LEDBEZEL1_PARAM + i]->randomizeEnabled = false;
 
 	for (int i = 0; i < 4; i++) bezelDragging[i].store(false);
+	for (int i = 0; i < 4; i++) { scrubInput[i].store(0.f); scrubFresh[i].store(false); }
 
 	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
@@ -523,7 +524,13 @@ bool lastPlayCV[4] = {false, false, false, false};
 
 float ledSpinSpeed[4] = {0.3f, 0.25f, 0.2f, 0.15f};
 
-std::atomic<bool> bezelDragging[4];
+std::atomic<bool>  bezelDragging[4];
+std::atomic<float> scrubInput[4];        // UI writes combined drag delta each event
+std::atomic<bool>  scrubFresh[4];        // UI sets true each drag event; audio clears
+float scrubTarget[4]         = {};       // audio-only: target velocity, held between UI events
+float scrubVelocity[4]       = {};       // audio-only: slewed toward scrubTarget each sample
+bool  prevBezelDragging[4]   = {};       // audio-only: previous drag state for transition detection
+bool  wasPlayingOnScrubStart[4] = {};    // audio-only: playState at drag start, restored on release
 bool playReversed[4] = {false, false, false, false};
 
 float eraseFlash[4] = {};
@@ -708,17 +715,70 @@ void process(const ProcessArgs& args) override {
         lights[PLAY1_BLUE_LIGHT + i].setBrightnessSmooth((playState[i] && playReversed[i]) ? 1.f : 0.f, args.sampleTime);
     }
 
-    // --- BEZEL SPINNING (pauses audio readPos when held) ---
+    // --- BEZEL SPINNING / VINYL SCRUB ---
     for (int i = 0; i < 4; i++) {
-        if (playState[i] && !bezelDragging[i].load()) {
-            float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f);
-            float spinSpeed = 0.02f + pitchVal * 0.8f;
-            float spinDir = playReversed[i] ? -1.f : 1.f;
-            float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
-            if (newValue > 1.f) newValue -= 1.f;
-            if (newValue < 0.f) newValue += 1.f;
-            params[LEDBEZEL1_PARAM + i].setValue(newValue);
+        bool isDragging = bezelDragging[i].load();
+
+        // Detect drag start: remember whether we were playing
+        if (!prevBezelDragging[i] && isDragging)
+            wasPlayingOnScrubStart[i] = playState[i];
+
+        if (isDragging) {
+            // Vinyl scrub: UI events update the target; between events the target decays
+            // so the record slows when the hand stops. scrubVelocity slews toward the target
+            // every sample for smooth pitch ramp-up/ramp-down.
+            if (scrubFresh[i].exchange(false))
+                scrubTarget[i] = scrubInput[i].load() * 0.25f;  // right/up = forward in buffer
+            else
+                scrubTarget[i] *= std::exp(-args.sampleTime / 0.200f);  // 200 ms decay when idle
+
+            // Per-sample slew toward target (200 ms) — smooth vinyl acceleration / deceleration
+            scrubVelocity[i] += (scrubTarget[i] - scrubVelocity[i])
+                                 * (1.f - std::exp(-args.sampleTime / 0.200f));
+
+            // Drive bezel visual from slewed velocity so animation matches what you hear
+            {
+                float bezelDelta = scrubVelocity[i] * 0.42f * args.sampleTime;
+                float bv = params[LEDBEZEL1_PARAM + i].getValue() + bezelDelta;
+                if (bv > 1.f) bv -= 1.f;
+                if (bv < 0.f) bv += 1.f;
+                params[LEDBEZEL1_PARAM + i].setValue(bv);
+            }
+
+            if (hasContent[i] && recordedLength[i] >= 2)
+                readPos[i] = clamp(readPos[i] + scrubVelocity[i], 0.f, (float)(recordedLength[i] - 1));
+        } else {
+            // Detect drag release: clamp readPos into loop window and restore playState
+            if (prevBezelDragging[i] && hasContent[i] && recordedLength[i] >= 2) {
+                int len = recordedLength[i];
+                float sp = clamp(params[SIZE_PARAM].getValue()
+                    + clamp(inputs[SIZECVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+                float pp = clamp(params[POSITION_PARAM].getValue()
+                    + clamp(inputs[POSITIONCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+                int minLoopSize = std::min(100, len);
+                int loopSize  = clamp((int)(sp * sp * sp * (float)len), minLoopSize, len);
+                int loopStart = clamp((int)(pp * (float)(len - loopSize)), 0, len - loopSize);
+                int loopEnd   = loopStart + loopSize;
+                if (readPos[i] < (float)loopStart) readPos[i] = (float)loopStart;
+                if (readPos[i] >= (float)loopEnd)  readPos[i] = (float)(loopEnd - 1);
+                if (wasPlayingOnScrubStart[i])
+                    playState[i] = true;
+            }
+            scrubTarget[i]   = 0.f;
+            scrubVelocity[i] = 0.f;
+            // Normal spin while playing
+            if (playState[i]) {
+                float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f);
+                float spinSpeed = 0.02f + pitchVal * 0.8f;
+                float spinDir = playReversed[i] ? -1.f : 1.f;
+                float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
+                if (newValue > 1.f) newValue -= 1.f;
+                if (newValue < 0.f) newValue += 1.f;
+                params[LEDBEZEL1_PARAM + i].setValue(newValue);
+            }
         }
+
+        prevBezelDragging[i] = isDragging;
     }
 
     // === AUDIO DSP ===
@@ -756,61 +816,72 @@ void process(const ProcessArgs& args) override {
 
     for (int i = 0; i < 4; i++) {
         float sampL = 0.f, sampR = 0.f;
+        bool isDraggingNow = bezelDragging[i].load();
 
-        if (playState[i] && hasContent[i] && bufferSize > 0 && !bezelDragging[i].load()) {
+        if (hasContent[i] && bufferSize > 0 && (playState[i] || isDraggingNow)) {
             int len = recordedLength[i];
             if (len >= 2) {
-                // Compute loop window (strictly within recorded content)
-                int minLoopSize = std::min(100, len);
-                int loopSize    = clamp((int)(sizeParam * sizeParam * sizeParam * (float)len), minLoopSize, len);
-                int maxStart    = len - loopSize; // always >= 0 since loopSize <= len
-                int loopStart   = clamp((int)(posParam * (float)maxStart), 0, maxStart);
-                int loopEnd     = loopStart + loopSize; // always <= len, exact
-
-                // Clamp readPos into window (handles init and window changes mid-playback)
-                if (readPos[i] < (float)loopStart) readPos[i] = (float)loopStart;
-                if (readPos[i] >= (float)loopEnd)  readPos[i] = (float)(loopEnd - 1);
-
-                int rp0 = clamp((int)readPos[i], loopStart, loopEnd - 1);
-                int rp1 = clamp(rp0 + 1, loopStart, loopEnd - 1);
-                float frac = readPos[i] - (float)rp0;
-                sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
-                sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
-
-                // XFade envelope: linear fade zones at loop edges, shrinking toward edges as xfade decreases.
-                // xfade=0: no fade (gain=1 everywhere); xfade=1: fade spans full half-loop each side (triangle).
-                if (xfadeParam > 0.f) {
-                    float posInLoop = readPos[i] - (float)loopStart;
-                    float fadeLen   = xfadeParam * (float)(loopSize / 2);
-                    float gain = 1.f;
-                    if (posInLoop < fadeLen)
-                        gain = posInLoop / fadeLen;
-                    else if (posInLoop > (float)loopSize - fadeLen)
-                        gain = ((float)loopSize - posInLoop) / fadeLen;
-                    sampL *= clamp(gain, 0.f, 1.f);
-                    sampR *= clamp(gain, 0.f, 1.f);
-                }
-
-                float speed = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f) * 2.f;
-
-                // Wow and flutter: advance per-channel LFO phases and modulate speed
-                wowPhase[i]     = std::fmod(wowPhase[i]     + wowRate     * args.sampleTime, 1.f);
-                flutterPhase[i] = std::fmod(flutterPhase[i] + flutterRate * args.sampleTime, 1.f);
-                float warbleMod = std::sin(2.f * float(M_PI) * wowPhase[i])     * wowDepth
-                                + std::sin(2.f * float(M_PI) * flutterPhase[i]) * flutterDepth;
-                speed *= (1.f + warbleMod);
-
-                float dir = playReversed[i] ? -1.f : 1.f;
-                readPos[i] += dir * speed;
-
-                bool looping = params[LOOP1_PARAM + i].getValue() > 0.5f;
-                if (looping) {
-                    if (readPos[i] >= (float)loopEnd)   readPos[i] -= (float)loopSize;
-                    if (readPos[i] < (float)loopStart)  readPos[i] += (float)loopSize;
+                if (isDraggingNow) {
+                    // Scrub read: use full buffer at current readPos (already updated by scrub code above)
+                    int rp0 = clamp((int)readPos[i], 0, len - 1);
+                    int rp1 = clamp(rp0 + 1, 0, len - 1);
+                    float frac = readPos[i] - (float)rp0;
+                    sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
+                    sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
                 } else {
-                    if (readPos[i] >= (float)loopEnd || readPos[i] < (float)loopStart) {
-                        playState[i] = false;
-                        readPos[i] = playReversed[i] ? (float)(loopEnd - 1) : (float)loopStart;
+                    // Normal playback with loop window
+                    // Compute loop window (strictly within recorded content)
+                    int minLoopSize = std::min(100, len);
+                    int loopSize    = clamp((int)(sizeParam * sizeParam * sizeParam * (float)len), minLoopSize, len);
+                    int maxStart    = len - loopSize; // always >= 0 since loopSize <= len
+                    int loopStart   = clamp((int)(posParam * (float)maxStart), 0, maxStart);
+                    int loopEnd     = loopStart + loopSize; // always <= len, exact
+
+                    // Clamp readPos into window (handles init and window changes mid-playback)
+                    if (readPos[i] < (float)loopStart) readPos[i] = (float)loopStart;
+                    if (readPos[i] >= (float)loopEnd)  readPos[i] = (float)(loopEnd - 1);
+
+                    int rp0 = clamp((int)readPos[i], loopStart, loopEnd - 1);
+                    int rp1 = clamp(rp0 + 1, loopStart, loopEnd - 1);
+                    float frac = readPos[i] - (float)rp0;
+                    sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
+                    sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
+
+                    // XFade envelope: linear fade zones at loop edges, shrinking toward edges as xfade decreases.
+                    // xfade=0: no fade (gain=1 everywhere); xfade=1: fade spans full half-loop each side (triangle).
+                    if (xfadeParam > 0.f) {
+                        float posInLoop = readPos[i] - (float)loopStart;
+                        float fadeLen   = xfadeParam * (float)(loopSize / 2);
+                        float gain = 1.f;
+                        if (posInLoop < fadeLen)
+                            gain = posInLoop / fadeLen;
+                        else if (posInLoop > (float)loopSize - fadeLen)
+                            gain = ((float)loopSize - posInLoop) / fadeLen;
+                        sampL *= clamp(gain, 0.f, 1.f);
+                        sampR *= clamp(gain, 0.f, 1.f);
+                    }
+
+                    float speed = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f) * 2.f;
+
+                    // Wow and flutter: advance per-channel LFO phases and modulate speed
+                    wowPhase[i]     = std::fmod(wowPhase[i]     + wowRate     * args.sampleTime, 1.f);
+                    flutterPhase[i] = std::fmod(flutterPhase[i] + flutterRate * args.sampleTime, 1.f);
+                    float warbleMod = std::sin(2.f * float(M_PI) * wowPhase[i])     * wowDepth
+                                    + std::sin(2.f * float(M_PI) * flutterPhase[i]) * flutterDepth;
+                    speed *= (1.f + warbleMod);
+
+                    float dir = playReversed[i] ? -1.f : 1.f;
+                    readPos[i] += dir * speed;
+
+                    bool looping = params[LOOP1_PARAM + i].getValue() > 0.5f;
+                    if (looping) {
+                        if (readPos[i] >= (float)loopEnd)   readPos[i] -= (float)loopSize;
+                        if (readPos[i] < (float)loopStart)  readPos[i] += (float)loopSize;
+                    } else {
+                        if (readPos[i] >= (float)loopEnd || readPos[i] < (float)loopStart) {
+                            playState[i] = false;
+                            readPos[i] = playReversed[i] ? (float)(loopEnd - 1) : (float)loopStart;
+                        }
                     }
                 }
             }
@@ -1016,6 +1087,7 @@ struct SpinningBezelWidget : LEDBezelSilver {
 	int channel = 0;
 	ui::Tooltip* tooltip = nullptr;
 	bool isHovered = false;
+	float lastParamValue = -1.f;
 
 	void onDragStart(const DragStartEvent& e) override {
 		if (tehom) tehom->bezelDragging[channel].store(true);
@@ -1023,11 +1095,22 @@ struct SpinningBezelWidget : LEDBezelSilver {
 	}
 
 	void onDragMove(const DragMoveEvent& e) override {
-		// suppress value change from dragging
+		if (!tehom) return;
+		// Combine X and Y: right/up = forward, left/down = backward.
+		// Screen Y is flipped, so subtract mouseDelta.y (up = negative screen Y = forward).
+		float dragDelta = e.mouseDelta.x - e.mouseDelta.y;
+		tehom->scrubInput[channel].store(dragDelta);
+		tehom->scrubFresh[channel].store(true);
+		// Bezel visual is driven by scrubVelocity in process() so it matches
+		// the slewed audio — do not update the param directly here.
 	}
 
 	void onDragEnd(const DragEndEvent& e) override {
-		if (tehom) tehom->bezelDragging[channel].store(false);
+		if (tehom) {
+			tehom->scrubInput[channel].store(0.f);
+			tehom->scrubFresh[channel].store(true);   // signal velocity = 0 on release
+			tehom->bezelDragging[channel].store(false);
+		}
 		// don't call base — suppress knob drag behaviour
 	}
 
@@ -1047,10 +1130,21 @@ struct SpinningBezelWidget : LEDBezelSilver {
 
 	void step() override {
 		LEDBezelSilver::step();
+
+		// SvgKnob keeps its FramebufferWidget as a direct child (not a parent).
+		// Mark it dirty every step so the spin animation always redraws, whether
+		// the update came from the audio thread or a drag.
+		for (widget::Widget* child : children) {
+			if (auto* fb = dynamic_cast<widget::FramebufferWidget*>(child)) {
+				fb->dirty = true;
+				break;
+			}
+		}
+
 		bool shouldShow = isHovered && tehom && tehom->bezelDragging[channel].load();
 		if (shouldShow && !tooltip) {
 			tooltip = new ui::Tooltip;
-			tooltip->text = "Paused";
+			tooltip->text = "Scrub";
 			APP->scene->addChild(tooltip);
 		} else if (!shouldShow && tooltip) {
 			APP->scene->removeChild(tooltip);
