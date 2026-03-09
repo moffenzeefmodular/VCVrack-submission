@@ -79,5 +79,6 @@ By Ross Fish Feb 2025
 - Rename "Persist" to "Cursor Trailing"
 - Re-organized menus and removed sub menus to clean up organization
 - Added cursor select - fish / circle 🐟 
+- Added "Save buffer with patch" option 
 
 **User manual updated with all relevant changes** 

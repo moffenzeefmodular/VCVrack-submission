@@ -390,6 +390,7 @@ json_t* dataToJson() override {
     json_object_set_new(root, "bufferDuration",   json_real(bufferDuration));
     json_object_set_new(root, "showCrosshairs",   json_boolean(showCrosshairs));
     json_object_set_new(root, "persist",          json_boolean(persist));
+    json_object_set_new(root, "persistBuffers",   json_boolean(persistBuffers));
     json_object_set_new(root, "bgScrollSpeed",    json_integer(bgScrollSpeed));
     json_object_set_new(root, "bgScrollRight",    json_boolean(bgScrollRight));
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
@@ -421,7 +422,7 @@ json_t* dataToJson() override {
         json_object_set_new(ch, "playState",      json_boolean(playState[i]));
         json_object_set_new(ch, "playReversed",   json_boolean(playReversed[i]));
         json_object_set_new(ch, "readPos",        json_real(readPos[i]));
-        if (hasContent[i] && recordedLength[i] > 0) {
+        if (persistBuffers && hasContent[i] && recordedLength[i] > 0) {
             int len = recordedLength[i];
             json_object_set_new(ch, "bufL", json_string(b64Encode(bufL[i].data(), len * sizeof(float)).c_str()));
             json_object_set_new(ch, "bufR", json_string(b64Encode(bufR[i].data(), len * sizeof(float)).c_str()));
@@ -441,6 +442,8 @@ void dataFromJson(json_t* root) override {
     if (sc) showCrosshairs = json_boolean_value(sc);
     json_t* ps = json_object_get(root, "persist");
     if (ps) persist = json_boolean_value(ps);
+    json_t* pb = json_object_get(root, "persistBuffers");
+    if (pb) persistBuffers = json_boolean_value(pb);
     json_t* bss = json_object_get(root, "bgScrollSpeed");
     if (bss) bgScrollSpeed = (int)json_integer_value(bss);
     json_t* bsr = json_object_get(root, "bgScrollRight");
@@ -541,7 +544,8 @@ bool recordMainOutput[4]   = {false, false, false, false};
 
 // XY Pad display settings (UI state, reset on Init)
 bool showCrosshairs  = false;
-bool persist         = true;
+bool persist         = true;   // cursor trails
+bool persistBuffers  = false;  // save audio buffer data with patch (can stall UI on large buffers)
 bool xyPadPansAudio  = false;
 int  cursorStyle     = 0; // 0=Fish, 1=Circle
 
@@ -1838,6 +1842,10 @@ struct TehomWidget : ModuleWidget {
         // Global section
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("Global"));
+        menu->addChild(createCheckMenuItem("Save Buffers With Patch", "",
+            [=]() { return tehom->persistBuffers; },
+            [=]() { tehom->persistBuffers = !tehom->persistBuffers; }
+        ));
         menu->addChild(createCheckMenuItem("XY Pad Pans Audio", "",
             [=]() { return tehom->xyPadPansAudio; },
             [=]() { tehom->xyPadPansAudio = !tehom->xyPadPansAudio; }

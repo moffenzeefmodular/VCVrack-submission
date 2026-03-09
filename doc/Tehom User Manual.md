@@ -153,6 +153,8 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 ### Context Menu Options (right click)
 
+* **Save Buffers With Patch (Global > Save Buffers With Patch):** When enabled, the recorded audio in all four buffers is saved into the patch file and restored when the patch is reloaded. Default is **off**. With large buffer sizes (20 seconds or more), enabling this setting can cause the VCV Rack interface to stall briefly every ~15 seconds as buffer data is encoded during autosave. If you notice periodic screen glitches or animation freezes while using large buffers, keep this off. Enable it only if you need the loop content to survive a patch save and reload.
+
 * **Buffer Size (Global > Buffer Size):** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
 
 * **Background Scroll (GUI > Background Scroll)**
