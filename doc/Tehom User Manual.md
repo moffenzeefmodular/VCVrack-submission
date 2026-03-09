@@ -58,7 +58,7 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 * **LOOP switch:** A two-position toggle that enables or disables looping. When **On**, the playhead wraps around within the loop window continuously. When **Off**, the channel plays through the loop window once and stops.
 
-* **LED Bezel (spinning indicator):** A visual indicator that rotates in proportion to the current playback speed of the channel. It spins forward during forward playback and in reverse during reverse playback. Clicking and holding the bezel **pauses the playhead** for that channel — useful for stuttering effects.
+* **LED Bezel (spinning indicator):** A visual indicator that rotates in proportion to the current playback speed of the channel. It spins forward during forward playback and in reverse during reverse playback. Think of it as a vinyl record platter or tape reel — the speed and direction of its spin reflects the speed and direction of the playhead moving through the buffer. **Click and drag** the bezel to scrub the audio manually, exactly like pressing your palm onto a spinning record. The faster you move the mouse, the faster and higher-pitched the playback; slow down and the pitch drops with it; stop and the audio falls silent. Dragging right or up scrubs forward through the buffer; dragging left or down scrubs backward. The bezel rotates visually in sync with what you are hearing. When you release, normal playback resumes from wherever the scrub left the playhead.
 
 ### Context Menu Options (right click)
 
