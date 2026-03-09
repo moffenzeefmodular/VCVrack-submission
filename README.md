@@ -71,6 +71,7 @@ By Ross Fish Feb 2025
 - Add "Record" on hover for record button
 
 **Context menu and feature updates:**
+- **Added scrubbing feature** - LED bezels now behave like a tape reel / vinyl record and let you scrub
 - **Added Continous Record mode** 
 - **Added Record Source: Main Output** - Buffer records main output instead of internal SOS loop
 - **Added XY Pad Pans Audio** - Audio pans in the stereo field based on X axis.
