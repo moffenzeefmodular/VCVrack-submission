@@ -1057,15 +1057,33 @@ void process(const ProcessArgs& args) override {
         float vx = std::cos(wanderAngle) * wanderSpeed;
         float vy = std::sin(wanderAngle) * wanderSpeed;
 
-        // Wall repulsion
-        const float margin = 0.1f;
-        if (cx < margin)         vx += (1.f - cx / margin) * 0.35f;
-        if (cx > 1.f - margin)   vx -= (1.f - (1.f - cx) / margin) * 0.35f;
-        if (cy < margin)         vy += (1.f - cy / margin) * 0.35f;
-        if (cy > 1.f - margin)   vy -= (1.f - (1.f - cy) / margin) * 0.35f;
+        // Use CV-offset effective position for wall sensing so wander steers away
+        // from the boundary the fish actually occupies, not just the raw param value
+        float cvOffX = inputs[XCVIN_INPUT].isConnected() ? clamp(inputs[XCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f;
+        float cvOffY = inputs[YCVIN_INPUT].isConnected() ? clamp(inputs[YCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f;
+        float ex = clamp(cx + cvOffX, 0.f, 1.f);
+        float ey = clamp(cy + cvOffY, 0.f, 1.f);
 
-        params[XPOS_PARAM].setValue(clamp(cx + vx * args.sampleTime, 0.f, 1.f));
-        params[YPOS_PARAM].setValue(clamp(cy + vy * args.sampleTime, 0.f, 1.f));
+        // Wall repulsion based on effective position
+        const float margin = 0.1f;
+        if (ex < margin)         vx += (1.f - ex / margin) * 0.5f;
+        if (ex > 1.f - margin)   vx -= (1.f - (1.f - ex) / margin) * 0.5f;
+        if (ey < margin)         vy += (1.f - ey / margin) * 0.5f;
+        if (ey > 1.f - margin)   vy -= (1.f - (1.f - ey) / margin) * 0.5f;
+
+        // Hard reflect at the actual boundary — prevents the fish fighting the clamp
+        float nx = cx + vx * args.sampleTime;
+        float ny = cy + vy * args.sampleTime;
+        if (nx <= 0.f || nx >= 1.f) vx = -vx;
+        if (ny <= 0.f || ny >= 1.f) vy = -vy;
+
+        // Sync heading to actual velocity direction
+        float vLen = std::sqrt(vx * vx + vy * vy);
+        if (vLen > 0.001f)
+            wanderAngle = std::atan2(vy, vx);
+
+        params[XPOS_PARAM].setValue(clamp(nx, 0.f, 1.f));
+        params[YPOS_PARAM].setValue(clamp(ny, 0.f, 1.f));
     }
 
     // XY Pad — param + CV offset (CV bypassed while dragging), then slewed
