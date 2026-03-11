@@ -829,6 +829,7 @@ void process(const ProcessArgs& args) override {
     // bilinear vol[] always sums to 1.0, so unity gain is preserved across XY positions.
     float outL = 0.f, outR = 0.f;
     float chanMixL[4] = {}, chanMixR[4] = {};
+    float recMixL[4]  = {}, recMixR[4]  = {}; // recording mix: loop component read at 1:1 (no pitch shift)
 
     // Global loop window params
     float sizeParam  = clamp(params[SIZE_PARAM].getValue() + clamp(inputs[SIZECVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
@@ -913,6 +914,19 @@ void process(const ProcessArgs& args) override {
         chanMixL[i] = inL * (1.f - t) + sampL * t;
         chanMixR[i] = inR * (1.f - t) + sampR * t;
 
+        // Recording mix: blend input with raw buffer at 1:1 so pitch doesn't compound on re-record.
+        // Using writePos % recordedLength maps the write head into the existing loop without pitch shift.
+        {
+            float rawBufL = 0.f, rawBufR = 0.f;
+            if (hasContent[i] && recordedLength[i] > 0) {
+                int readIdx = writePos[i] % recordedLength[i];
+                rawBufL = bufL[i][readIdx];
+                rawBufR = bufR[i][readIdx];
+            }
+            recMixL[i] = inL * (1.f - t) + rawBufL * t;
+            recMixR[i] = inR * (1.f - t) + rawBufR * t;
+        }
+
         if (xyPadPansAudio) {
             // X=0 → 100% left, X=1 → 100% right, X=0.5 → center (constant-power pan law)
             float panL = std::cos(xyFinalX * float(M_PI) * 0.5f);
@@ -987,9 +1001,9 @@ void process(const ProcessArgs& args) override {
             bufL[i][writePos[i]] = outL;
             bufR[i][writePos[i]] = outR;
         } else {
-            // Default: record chanMixL/R — the source crossfader output (input blended with playback)
-            bufL[i][writePos[i]] = chanMixL[i];
-            bufR[i][writePos[i]] = chanMixR[i];
+            // Default: record recMixL/R — input blended with raw buffer at 1:1 (no pitch compounding)
+            bufL[i][writePos[i]] = recMixL[i];
+            bufR[i][writePos[i]] = recMixR[i];
         }
 
         writePos[i]++;
