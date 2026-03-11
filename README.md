@@ -82,3 +82,7 @@ By Ross Fish Feb 2025
 - Added "Save buffer with patch" option 
 
 **User manual updated with all relevant changes** 
+
+## Tehom Beta: v2.6.0-rc3
+- Removed clicking from record, pause, stop, play, pause. 
+- Fixed repetative pitch shifting when record mode enabled
