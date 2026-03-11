@@ -310,6 +310,9 @@ void eraseBuffer(int i) {
     hasContent[i] = false;
     recordState[i] = false;
     playState[i] = false;
+    playGain[i]  = 0.f;
+    pendingReverseFlip[i]    = false;
+    pendingScrubTransition[i] = false;
     eraseFlash[i] = 0.4f;
 }
 
@@ -537,6 +540,9 @@ bool  wasPlayingOnScrubStart[4] = {};    // audio-only: playState at drag start,
 bool playReversed[4] = {false, false, false, false};
 
 float eraseFlash[4] = {};
+float playGain[4]  = {};  // per-channel de-click ramp: 0=muted, 1=full, ~2ms ramp
+bool pendingReverseFlip[4]    = {};  // flip direction when playGain reaches 0
+bool pendingScrubTransition[4] = {}; // start scrub when playGain reaches 0
 bool autoPlay[4]           = {true, true, true, true};
 bool autoPlayFull[4]       = {true, true, true, true};
 bool continuousRecord[4]   = {false, false, false, false};
@@ -701,7 +707,7 @@ void process(const ProcessArgs& args) override {
                 readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
             } else if (playCVMode[i] == 2) {
                 // Forward/Reverse toggle
-                playReversed[i] = !playReversed[i];
+                pendingReverseFlip[i] = !pendingReverseFlip[i];  // ramp to 0, flip, ramp back
             } else {
                 // Play/Stop toggle (default)
                 playState[i] = !playState[i];
@@ -723,9 +729,12 @@ void process(const ProcessArgs& args) override {
     for (int i = 0; i < 4; i++) {
         bool isDragging = bezelDragging[i].load();
 
-        // Detect drag start: remember whether we were playing
-        if (!prevBezelDragging[i] && isDragging)
+        // Detect drag start: remember whether we were playing, and queue a gain ramp-down-then-up
+        if (!prevBezelDragging[i] && isDragging) {
             wasPlayingOnScrubStart[i] = playState[i];
+            if (playState[i])
+                pendingScrubTransition[i] = true;  // ramp gain to 0, then ramp back in scrub mode
+        }
 
         if (isDragging) {
             // Vinyl scrub: UI events update the target; between events the target decays
@@ -840,7 +849,7 @@ void process(const ProcessArgs& args) override {
         float sampL = 0.f, sampR = 0.f;
         bool isDraggingNow = bezelDragging[i].load();
 
-        if (hasContent[i] && bufferSize > 0 && (playState[i] || isDraggingNow)) {
+        if (hasContent[i] && bufferSize > 0 && (playState[i] || isDraggingNow || playGain[i] > 0.f)) {
             int len = recordedLength[i];
             if (len >= 2) {
                 if (isDraggingNow) {
@@ -908,6 +917,28 @@ void process(const ProcessArgs& args) override {
                 }
             }
         }
+
+        // De-click ramp: ~2ms fade on any state transition.
+        // Pending flags force gain to 0 first; the action fires at zero-crossing, then gain ramps back up.
+        {
+            float rampRate = args.sampleTime / 0.002f;
+            bool hasPending = pendingReverseFlip[i] || pendingScrubTransition[i];
+            float target = hasPending ? 0.f : ((playState[i] || isDraggingNow) ? 1.f : 0.f);
+            playGain[i] = clamp(playGain[i] + (target >= playGain[i] ? rampRate : -rampRate), 0.f, 1.f);
+
+            // At zero-crossing: execute deferred actions then let gain ramp back up
+            if (playGain[i] <= 0.f) {
+                if (pendingReverseFlip[i]) {
+                    playReversed[i] = !playReversed[i];
+                    pendingReverseFlip[i] = false;
+                }
+                if (pendingScrubTransition[i]) {
+                    pendingScrubTransition[i] = false;
+                }
+            }
+        }
+        sampL *= playGain[i];
+        sampR *= playGain[i];
 
         float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, -1.f, 1.f);
         float t = (srcParam + 1.f) * 0.5f; // 0 = input, 1 = loop
@@ -1127,7 +1158,7 @@ struct ReverseMenuItem : ui::MenuItem {
 	Tehom* tehom;
 	int channel;
 	void onAction(const ActionEvent& e) override {
-		tehom->playReversed[channel] = !tehom->playReversed[channel];
+		tehom->pendingReverseFlip[channel] = !tehom->pendingReverseFlip[channel];
 	}
 	void step() override {
 		rightText = CHECKMARK(tehom->playReversed[channel]);
@@ -1294,7 +1325,8 @@ struct ReversePlayWidget : LEDBezel {
 
 	void onButton(const ButtonEvent& e) override {
 		if (e.button == GLFW_MOUSE_BUTTON_RIGHT && e.action == GLFW_PRESS) {
-			if (tehom) tehom->playReversed[channel] = !tehom->playReversed[channel];
+			if (tehom)
+				tehom->pendingReverseFlip[channel] = !tehom->pendingReverseFlip[channel];
 			e.consume(this);
 			return;
 		}
