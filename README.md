@@ -86,3 +86,6 @@ By Ross Fish Feb 2025
 ## Tehom Beta: v2.6.0-rc3
 - Removed clicking from record, pause, stop, play, pause. 
 - Fixed repetative pitch shifting when record mode enabled
+
+## Tehom Beta: v2.6.0-rc4
+- Record main output behaves similarly to default recording mode and removes repetative pitch shifting when enabled 
