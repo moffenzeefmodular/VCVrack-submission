@@ -1028,9 +1028,19 @@ void process(const ProcessArgs& args) override {
         if (!recordState[i] || bufferSize == 0) continue;
 
         if (recordMainOutput[i]) {
-            // Capture the full post-mixer/warble/noise output directly — source knob is bypassed
-            bufL[i][writePos[i]] = outL;
-            bufR[i][writePos[i]] = outR;
+            // Record main output, but replace channel i's pitched read (readPos) with its
+            // 1:1 write-position-aligned read (recMixL[i]) so the playback and erase heads
+            // stay in sync — prevents pitch compounding when the speed knob is off-center.
+            float corrL = (recMixL[i] - chanMixL[i]) * vol[i];
+            float corrR = (recMixR[i] - chanMixR[i]) * vol[i];
+            if (xyPadPansAudio) {
+                float panL = std::cos(xyFinalX * float(M_PI) * 0.5f);
+                float panR = std::sin(xyFinalX * float(M_PI) * 0.5f);
+                corrL *= panL;
+                corrR *= panR;
+            }
+            bufL[i][writePos[i]] = clamp(outL + corrL, -5.f, 5.f);
+            bufR[i][writePos[i]] = clamp(outR + corrR, -5.f, 5.f);
         } else {
             // Default: record recMixL/R — input blended with raw buffer at 1:1 (no pitch compounding)
             bufL[i][writePos[i]] = recMixL[i];
