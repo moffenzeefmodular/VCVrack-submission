@@ -37,7 +37,7 @@ on:
 env:
   rack-sdk-version: latest
   rack-plugin-toolchain-dir: /home/build/rack-plugin-toolchain
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 defaults:
   run:
@@ -53,7 +53,7 @@ jobs:
       options: --user root
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
 
@@ -70,7 +70,7 @@ jobs:
           make plugin-build-lin-x64
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: linux-x64
           path: ${{ env.rack-plugin-toolchain-dir }}/plugin-build
@@ -84,7 +84,7 @@ jobs:
       options: --user root
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
 
@@ -101,7 +101,7 @@ jobs:
           make plugin-build-win-x64
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: windows-x64
           path: ${{ env.rack-plugin-toolchain-dir }}/plugin-build
@@ -112,7 +112,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
 
@@ -130,7 +130,7 @@ jobs:
           make dist
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: macos-x64
           path: dist/*.vcvplugin
@@ -141,7 +141,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
 
@@ -159,7 +159,7 @@ jobs:
           make dist
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: macos-arm64
           path: dist/*.vcvplugin
@@ -177,9 +177,9 @@ jobs:
       - build-mac-arm64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4.3.0
         with:
           path: artifacts
 

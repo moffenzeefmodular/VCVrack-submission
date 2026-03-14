@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(make install:*)"
+      "Bash(make install:*)",
+      "WebFetch(domain:github.blog)"
     ]
   }
 }
