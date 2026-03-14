@@ -180,13 +180,17 @@ jobs:
         with:
           path: artifacts
 
+      - name: Rename artifacts to match tag
+        run: |
+          PLUGIN_VER=$(jq -r .version plugin.json)
+          TAG_VER=${GITHUB_REF_NAME#v}
+          for f in artifacts/**/*.vcvplugin; do
+            mv "$f" "${f/$PLUGIN_VER/$TAG_VER}"
+          done
+
       - name: Extract latest changelog from README
         run: |
-          awk '
-            /^## v/ { section=$0; content="" }
-            { content = content $0 "\n" }
-            END { print content }
-          ' README.md > release-notes.md
+          awk '/^## /{found=1; content=""} found{content=content $0 "\n"} END{printf "%s", content}' README.md > release-notes.md
 
       - uses: softprops/action-gh-release@v2
         with:
