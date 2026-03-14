@@ -49,18 +49,10 @@ static std::vector<uint8_t> b64Decode(const char* s, size_t slen) {
     return out;
 }
 
-struct MediaSwitchQuantity : SwitchQuantity {
-    std::string getString() override {
-        int i = (int)std::round(getValue());
-        i = clamp(i, 0, (int)labels.size() - 1);
-        return labels[i];
-    }
-};
-
 struct Tehom : Module {
     enum ParamId {
         WARBLE_PARAM,
-        MEDIA_PARAM,
+        FILTER_PARAM,
         AMOUNT_PARAM,
         SLEW_PARAM,
         SIZE_PARAM,
@@ -114,7 +106,7 @@ struct Tehom : Module {
         AUDIOLEFTIN_INPUT,
         AUDIORIGHTIN_INPUT,
         WARBLECVIN_INPUT,
-        MEDIACVIN_INPUT,
+        FILTERCVIN_INPUT,
         AMOUNTCVIN_INPUT,
         RETURN_INPUT,
         XCVIN_INPUT,
@@ -199,7 +191,7 @@ struct Tehom : Module {
 	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
     configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
-    configSwitch<MediaSwitchQuantity>(MEDIA_PARAM, 0.f, 7.f, 0.f, "Type", {"Mic Preamp", "Reel To Reel", "Cassette", "VHS", "Vinyl Clean", "Vinyl Dirty", "8mm Film", "16mm Film"});
+    configParam(FILTER_PARAM, 0.f, 1.f, 1.f, "Filter");
 
 	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
@@ -256,7 +248,7 @@ struct Tehom : Module {
 
     // Global CV inputs
     configInput(WARBLECVIN_INPUT, "Warble CV");
-    configInput(MEDIACVIN_INPUT, "Media Select CV");
+    configInput(FILTERCVIN_INPUT, "Filter CV");
     configInput(AMOUNTCVIN_INPUT, "Noise Amount CV");
     configInput(RETURN_INPUT, "Noise Return");
     configInput(XCVIN_INPUT, "X CV");
@@ -382,6 +374,9 @@ void onReset(const ResetEvent& e) override {
     wanderSpeed       = 0.15f;
     wanderAngle       = 0.f;
     noiseAuxPreFader  = true;
+    mediaTypeIndex    = 0;
+    filterStateL      = 0.f;
+    filterStateR      = 0.f;
     oggPlayPos        = 0.f;
     currentOggIdx     = -1;
 }
@@ -397,6 +392,7 @@ json_t* dataToJson() override {
     json_object_set_new(root, "bgScrollSpeed",    json_integer(bgScrollSpeed));
     json_object_set_new(root, "bgScrollRight",    json_boolean(bgScrollRight));
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
+    json_object_set_new(root, "mediaTypeIndex",   json_integer(mediaTypeIndex));
     json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio));
     json_object_set_new(root, "cursorStyle",      json_integer(cursorStyle));
     json_object_set_new(root, "wanderMode",       json_integer(wanderMode));
@@ -459,6 +455,8 @@ void dataFromJson(json_t* root) override {
     if (wm) wanderMode = (int)json_integer_value(wm);
     json_t* napf = json_object_get(root, "noiseAuxPreFader");
     if (napf) noiseAuxPreFader = json_boolean_value(napf);
+    json_t* mti = json_object_get(root, "mediaTypeIndex");
+    if (mti) mediaTypeIndex = clamp((int)json_integer_value(mti), 0, 7);
 
     // Per-channel toggles
     json_t* ap = json_object_get(root, "autoPlay");
@@ -610,6 +608,15 @@ struct OggLoop {
 float    oggPlayPos    = 0.f;
 int      currentOggIdx = -1;
 bool     noiseAuxPreFader = true;
+int      mediaTypeIndex   = 0;
+
+// One-pole lowpass filter state (applied to main audio before noise mix)
+float    filterStateL  = 0.f;
+float    filterStateR  = 0.f;
+
+// Per-channel correction filter states for Record Main Output (avoids pitch compounding)
+float    corrFilterStateL[4] = {};
+float    corrFilterStateR[4] = {};
 
 const char* const oggFilenames[8] = {
     "res/audio/MicPre.ogg",
@@ -837,6 +844,7 @@ void process(const ProcessArgs& args) override {
     // source left (t=0) = hear/record input; source right (t=1) = hear/record loop (sound on sound).
     // bilinear vol[] always sums to 1.0, so unity gain is preserved across XY positions.
     float outL = 0.f, outR = 0.f;
+    float loopOutL = 0.f, loopOutR = 0.f;  // loop-only portion (filtered separately)
     float chanMixL[4] = {}, chanMixR[4] = {};
     float recMixL[4]  = {}, recMixR[4]  = {}; // recording mix: loop component read at 1:1 (no pitch shift)
 
@@ -964,9 +972,13 @@ void process(const ProcessArgs& args) override {
             float panR = std::sin(xyFinalX * float(M_PI) * 0.5f);
             outL += chanMixL[i] * vol[i] * panL;
             outR += chanMixR[i] * vol[i] * panR;
+            loopOutL += sampL * t * vol[i] * panL;
+            loopOutR += sampR * t * vol[i] * panR;
         } else {
             outL += chanMixL[i] * vol[i];
             outR += chanMixR[i] * vol[i];
+            loopOutL += sampL * t * vol[i];
+            loopOutR += sampR * t * vol[i];
         }
 
         float level = (std::abs(chanMixL[i]) + std::abs(chanMixR[i])) * 0.5f * vol[i];
@@ -976,9 +988,31 @@ void process(const ProcessArgs& args) override {
     outL = clamp(outL, -5.f, 5.f);
     outR = clamp(outR, -5.f, 5.f);
 
+    // === SOFT CLIP then LOWPASS FILTER — loop portions only, input passes through unaffected ===
+    float filterAlpha = 1.f; // stored for use in Record Main Output correction below
+    {
+        // Soft clip the loop signal only
+        const float sc = 20.f;
+        float scLoopL = std::tanh(loopOutL / sc) * sc;
+        float scLoopR = std::tanh(loopOutR / sc) * sc;
+
+        // Filter the soft-clipped loop signal
+        float t  = clamp(params[FILTER_PARAM].getValue()
+            + clamp(inputs[FILTERCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+        // Anti-log taper: sqrt(t) so high-frequency range gets more knob travel
+        // 100 Hz at t=0, 20 kHz at t=1
+        float fc    = 100.f * std::pow(200.f, std::sqrt(t));
+        filterAlpha = 1.f - std::exp(-2.f * float(M_PI) * fc / args.sampleRate);
+        filterStateL += filterAlpha * (scLoopL - filterStateL);
+        filterStateR += filterAlpha * (scLoopR - filterStateR);
+
+        // Substitute: remove original loop from combined, add soft-clipped+filtered loop
+        outL = outL - loopOutL + filterStateL;
+        outR = outR - loopOutR + filterStateR;
+    }
+
     // === MEDIA (OGG LOOPS) — mixed in after XY mixer ===
-    int mediaIdx = clamp((int)std::round(params[MEDIA_PARAM].getValue()
-        + clamp(inputs[MEDIACVIN_INPUT].getVoltage(), -5.f, 5.f) * 7.f / 10.f), 0, 7);
+    int mediaIdx = mediaTypeIndex;
 
     if (mediaIdx != currentOggIdx) {
         currentOggIdx = mediaIdx;
@@ -1011,8 +1045,9 @@ void process(const ProcessArgs& args) override {
 
     float amount = clamp(params[AMOUNT_PARAM].getValue()
         + clamp(inputs[AMOUNTCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
-    float noiseMixL = mediaL * amount;
-    float noiseMixR = mediaR * amount;
+    float amountLog = amount * amount;  // logarithmic taper
+    float noiseMixL = mediaL * amountLog * 0.5f;
+    float noiseMixR = mediaR * amountLog * 0.5f;
 
     // Post-fader send: after amount knob
     if (!noiseAuxPreFader)
@@ -1028,9 +1063,9 @@ void process(const ProcessArgs& args) override {
         if (!recordState[i] || bufferSize == 0) continue;
 
         if (recordMainOutput[i]) {
-            // Record main output, but replace channel i's pitched read (readPos) with its
-            // 1:1 write-position-aligned read (recMixL[i]) so the playback and erase heads
-            // stay in sync — prevents pitch compounding when the speed knob is off-center.
+            // Record final output with pitch-compounding correction:
+            // filter the per-channel correction with the same coefficient as the main filter
+            // so the recorded signal is truly post-filter/noise but without pitch accumulation.
             float corrL = (recMixL[i] - chanMixL[i]) * vol[i];
             float corrR = (recMixR[i] - chanMixR[i]) * vol[i];
             if (xyPadPansAudio) {
@@ -1039,8 +1074,10 @@ void process(const ProcessArgs& args) override {
                 corrL *= panL;
                 corrR *= panR;
             }
-            bufL[i][writePos[i]] = clamp(outL + corrL, -5.f, 5.f);
-            bufR[i][writePos[i]] = clamp(outR + corrR, -5.f, 5.f);
+            corrFilterStateL[i] += filterAlpha * (corrL - corrFilterStateL[i]);
+            corrFilterStateR[i] += filterAlpha * (corrR - corrFilterStateR[i]);
+            bufL[i][writePos[i]] = clamp(outL + corrFilterStateL[i], -5.f, 5.f);
+            bufR[i][writePos[i]] = clamp(outR + corrFilterStateR[i], -5.f, 5.f);
         } else {
             // Default: record recMixL/R — input blended with raw buffer at 1:1 (no pitch compounding)
             bufL[i][writePos[i]] = recMixL[i];
@@ -1764,7 +1801,7 @@ struct TehomWidget : ModuleWidget {
 
 		// Small knobs 
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(60.972, 36.448)), module, Tehom::WARBLE_PARAM));
-		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 36.448)), module, Tehom::MEDIA_PARAM));
+		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 36.448)), module, Tehom::FILTER_PARAM));
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(81.457, 36.448)), module, Tehom::AMOUNT_PARAM));
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(60.972, 114.136)), module, Tehom::SLEW_PARAM));
 		addParam(createParamCentered<TehomSmallKnob>(mm2px(Vec(71.215, 114.136)), module, Tehom::SIZE_PARAM));
@@ -1787,7 +1824,7 @@ struct TehomWidget : ModuleWidget {
 
 		// Inputs 
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.972, 26.591)), module, Tehom::WARBLECVIN_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 26.591)), module, Tehom::MEDIACVIN_INPUT));
+		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(71.215, 26.591)), module, Tehom::FILTERCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(81.457, 26.591)), module, Tehom::AMOUNTCVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.627, 36.448)), module, Tehom::RETURN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(60.968, 90.436)), module, Tehom::XCVIN_INPUT));
@@ -1936,7 +1973,21 @@ struct TehomWidget : ModuleWidget {
                 ));
             }
         }));
-        menu->addChild(createSubmenuItem("Noise Aux Send", "", [=](Menu* subMenu) {
+        // Noise section
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Noise"));
+        {
+            const char* mediaNames[] = {"Mic Preamp", "Reel To Reel", "Cassette", "VHS", "Vinyl Clean", "Vinyl Dirty", "8mm Film", "16mm Film"};
+            menu->addChild(createSubmenuItem("Media Type", "", [=](Menu* subMenu) {
+                for (int m = 0; m < 8; m++) {
+                    subMenu->addChild(createCheckMenuItem(mediaNames[m], "",
+                        [=]() { return tehom->mediaTypeIndex == m; },
+                        [=]() { tehom->mediaTypeIndex = m; }
+                    ));
+                }
+            }));
+        }
+        menu->addChild(createSubmenuItem("Aux Send", "", [=](Menu* subMenu) {
             subMenu->addChild(createCheckMenuItem("Pre-Fader", "",
                 [=]() { return tehom->noiseAuxPreFader; },
                 [=]() { tehom->noiseAuxPreFader = true; }
