@@ -100,5 +100,5 @@ By Ross Fish Feb 2025
 - Added soft clipping before filter at +/-5v 
 - Allow main output to record it's own pitching, but don't compound pitching 
 
-## Tehom Beta: v2.6.0-rc5
+## Tehom Beta: v2.6.0-rc6
 - Renamed filter knob to color and flipped knob orientation. Added frequency readout in hz to label 
