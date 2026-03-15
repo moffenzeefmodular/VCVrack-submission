@@ -153,13 +153,13 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 ### Context Menu Options (right click)
 
-* **Save Buffers With Patch (Global > Save Buffers With Patch):** When enabled, the recorded audio in all four buffers is saved into the patch file and restored when the patch is reloaded. Default is **off**. With large buffer sizes (20 seconds or more), enabling this setting can cause the VCV Rack interface to stall briefly every ~15 seconds as buffer data is encoded during autosave. If you notice periodic screen glitches or animation freezes while using large buffers, keep this off. Enable it only if you need the loop content to survive a patch save and reload.
-
-* **Buffer Size (Global > Buffer Size):** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
-
 * **Background Scroll (GUI > Background Scroll)**
   * **Speed — Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
   * **Direction — Right / Left:** Sets the scroll direction.
+
+* **Save Buffers With Patch (Global > Save Buffers With Patch):** When enabled, the recorded audio in all four buffers is saved into the patch file and restored when the patch is reloaded. Default is **off**. With large buffer sizes (20 seconds or more), enabling this setting can cause the VCV Rack interface to stall briefly every ~15 seconds as buffer data is encoded during autosave. If you notice periodic screen glitches or animation freezes while using large buffers, keep this off. Enable it only if you need the loop content to survive a patch save and reload.
+
+* **Buffer Size (Global > Buffer Size):** Sets the maximum recording duration for all four channels. Options are 1, 2, 5, 10, 20, 30 seconds, and 1 minute. Changing this setting resizes all buffers and clears any recorded content. Default is 2 seconds.
 
 ---
 
@@ -172,6 +172,10 @@ This section controls Tehom's degradation and noise features — warble for dest
 ## Warble
 
 * **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. Warble is a playback-only effect and is never recorded back into the buffers. A CV input is provided for bipolar modulation.
+
+## Tone
+
+* **TONE:** A one-pole lowpass filter applied to the loop playback signal only — the live input passes through unaffected. With the knob fully down, the loop signal is unfiltered (open at approximately 20 kHz). Turning the knob up progressively cuts high frequencies using a logarithmic curve, with the knob fully up producing a heavy roll-off at 100 Hz. The tooltip displays the current cutoff frequency in Hz or kHz. A CV input is provided for bipolar modulation.
 
 ## Noise
 
@@ -187,7 +191,9 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 ### Context Menu Options (right click)
 
-* **Noise Aux Send (Global > Noise Aux Send)**
+* **Media Type (Noise > Media Type):** Selects the active machine noise loop. The same eight options as the MEDIA knob: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film.
+
+* **Aux Send (Noise > Aux Send)**
   * **Pre-Fader** *(default)*: The Send output carries the raw noise loop signal before the Amount knob. Changing the Amount knob does not affect the send level.
   * **Post-Fader:** The Send output carries the noise loop after the Amount knob. The send level tracks the Amount setting.
 
