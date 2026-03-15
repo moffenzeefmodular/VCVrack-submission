@@ -167,7 +167,7 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomDegradeScreenshot.png" width="500"></p>
 
-This section controls Tehom's degradation and noise features — warble for destabilizing loop playback pitch, a machine noise player, and a send-return path for processing the noise externally.
+This section controls Tehom's degradation and noise features — warble for destabilizing loop playback pitch, a tone control for shaping the frequency content of the loop signal, a machine noise player, and a send-return path for processing the noise externally.
 
 ## Warble
 
@@ -179,8 +179,6 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 ## Noise
 
-* **MEDIA:** Selects one of eight machine noise loops to blend into the final output. The options in order are: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film. Each is a looping audio file with its own character and spectral content. A CV input is provided for bipolar modulation.
-
 * **AMOUNT:** Controls the volume of the selected machine noise loop in the final output mix. At fully left, no noise is present. At fully right, the noise loop plays at full level. A CV input is provided for bipolar modulation.
 
 ## Noise Send-Return
@@ -191,7 +189,7 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 ### Context Menu Options (right click)
 
-* **Media Type (Noise > Media Type):** Selects the active machine noise loop. The same eight options as the MEDIA knob: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film.
+* **Media Type (Noise > Media Type):** Selects the active machine noise loop. Options are: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film.
 
 * **Aux Send (Noise > Aux Send)**
   * **Pre-Fader** *(default)*: The Send output carries the raw noise loop signal before the Amount knob. Changing the Amount knob does not affect the send level.
