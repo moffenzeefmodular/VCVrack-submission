@@ -201,7 +201,7 @@ struct Tehom : Module {
 	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
     configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
-    configParam<ToneParamQuantity>(FILTER_PARAM, 0.f, 1.f, 1.f, "Tone");
+    configParam<ToneParamQuantity>(FILTER_PARAM, 0.f, 1.f, 0.f, "Tone");
 
 	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
