@@ -49,7 +49,7 @@ static std::vector<uint8_t> b64Decode(const char* s, size_t slen) {
     return out;
 }
 
-struct ColorParamQuantity : ParamQuantity {
+struct ToneParamQuantity : ParamQuantity {
     std::string getDisplayValueString() override {
         float t  = clamp(getValue(), 0.f, 1.f);
         float fc = 100.f * std::pow(200.f, std::sqrt(1.f - t));
@@ -201,7 +201,7 @@ struct Tehom : Module {
 	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
     configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
-    configParam<ColorParamQuantity>(FILTER_PARAM, 0.f, 1.f, 1.f, "Color");
+    configParam<ToneParamQuantity>(FILTER_PARAM, 0.f, 1.f, 1.f, "Tone");
 
 	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
@@ -258,7 +258,7 @@ struct Tehom : Module {
 
     // Global CV inputs
     configInput(WARBLECVIN_INPUT, "Warble CV");
-    configInput(FILTERCVIN_INPUT, "Color CV");
+    configInput(FILTERCVIN_INPUT, "Tone CV");
     configInput(AMOUNTCVIN_INPUT, "Noise Amount CV");
     configInput(RETURN_INPUT, "Noise Return");
     configInput(XCVIN_INPUT, "X CV");

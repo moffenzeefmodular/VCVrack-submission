@@ -101,4 +101,4 @@ By Ross Fish Feb 2025
 - Allow main output to record it's own pitching, but don't compound pitching 
 
 ## Tehom Beta: v2.6.0-rc6
-- Renamed filter knob to color and flipped knob orientation. Added frequency readout in hz to label 
+- Renamed filter knob to "Tone" and flipped knob orientation. Added frequency readout in hz to label 
