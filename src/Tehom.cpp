@@ -49,6 +49,16 @@ static std::vector<uint8_t> b64Decode(const char* s, size_t slen) {
     return out;
 }
 
+struct ColorParamQuantity : ParamQuantity {
+    std::string getDisplayValueString() override {
+        float t  = clamp(getValue(), 0.f, 1.f);
+        float fc = 100.f * std::pow(200.f, std::sqrt(1.f - t));
+        if (fc >= 1000.f)
+            return string::f("%.2f kHz", fc / 1000.f);
+        return string::f("%.0f Hz", fc);
+    }
+};
+
 struct Tehom : Module {
     enum ParamId {
         WARBLE_PARAM,
@@ -191,7 +201,7 @@ struct Tehom : Module {
 	configParam(XPOS_PARAM, 0.f, 1.f, 0.5f, "X Position");
     configParam(YPOS_PARAM, 0.f, 1.f, 0.5f, "Y Position");
 
-    configParam(FILTER_PARAM, 0.f, 1.f, 1.f, "Filter");
+    configParam<ColorParamQuantity>(FILTER_PARAM, 0.f, 1.f, 1.f, "Color");
 
 	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
@@ -248,7 +258,7 @@ struct Tehom : Module {
 
     // Global CV inputs
     configInput(WARBLECVIN_INPUT, "Warble CV");
-    configInput(FILTERCVIN_INPUT, "Filter CV");
+    configInput(FILTERCVIN_INPUT, "Color CV");
     configInput(AMOUNTCVIN_INPUT, "Noise Amount CV");
     configInput(RETURN_INPUT, "Noise Return");
     configInput(XCVIN_INPUT, "X CV");
@@ -999,9 +1009,8 @@ void process(const ProcessArgs& args) override {
         // Filter the soft-clipped loop signal
         float t  = clamp(params[FILTER_PARAM].getValue()
             + clamp(inputs[FILTERCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
-        // Anti-log taper: sqrt(t) so high-frequency range gets more knob travel
-        // 100 Hz at t=0, 20 kHz at t=1
-        float fc    = 100.f * std::pow(200.f, std::sqrt(t));
+        // Inverted: knob down = open (20 kHz), knob up = closed (100 Hz)
+        float fc    = 100.f * std::pow(200.f, std::sqrt(1.f - t));
         filterAlpha = 1.f - std::exp(-2.f * float(M_PI) * fc / args.sampleRate);
         filterStateL += filterAlpha * (scLoopL - filterStateL);
         filterStateR += filterAlpha * (scLoopR - filterStateR);
