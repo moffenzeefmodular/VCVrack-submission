@@ -998,26 +998,31 @@ void process(const ProcessArgs& args) override {
     outL = clamp(outL, -5.f, 5.f);
     outR = clamp(outR, -5.f, 5.f);
 
-    // === SOFT CLIP then LOWPASS FILTER — loop portions only, input passes through unaffected ===
+    // === LOWPASS FILTER then SOFT CLIP — loop portions only, input passes through unaffected ===
     float filterAlpha = 1.f; // stored for use in Record Main Output correction below
     {
-        // Soft clip the loop signal only
-        const float sc = 20.f;
-        float scLoopL = std::tanh(loopOutL / sc) * sc;
-        float scLoopR = std::tanh(loopOutR / sc) * sc;
-
-        // Filter the soft-clipped loop signal
         float t  = clamp(params[FILTER_PARAM].getValue()
             + clamp(inputs[FILTERCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
         // Inverted: knob down = open (20 kHz), knob up = closed (100 Hz)
         float fc    = 100.f * std::pow(200.f, std::sqrt(1.f - t));
         filterAlpha = 1.f - std::exp(-2.f * float(M_PI) * fc / args.sampleRate);
-        filterStateL += filterAlpha * (scLoopL - filterStateL);
-        filterStateR += filterAlpha * (scLoopR - filterStateR);
+        filterStateL += filterAlpha * (loopOutL - filterStateL);
+        filterStateR += filterAlpha * (loopOutR - filterStateR);
 
-        // Substitute: remove original loop from combined, add soft-clipped+filtered loop
-        outL = outL - loopOutL + filterStateL;
-        outR = outR - loopOutR + filterStateR;
+        // Post-filter soft clip: knob past 40% slides sc from 5 (clean) down to 0.5 (heavy saturation)
+        float scAmount = clamp((t - 0.4f) / 0.6f, 0.f, 1.f);
+        float sc = 5.f - 4.5f * scAmount;
+        float processedL = std::tanh(filterStateL / sc) * sc;
+        float processedR = std::tanh(filterStateR / sc) * sc;
+
+        // Linear gain compensation: as filter closes, boost loop level slightly (up to +3dB at full)
+        float filterGain = 1.f + t * 0.4f;
+        processedL *= filterGain;
+        processedR *= filterGain;
+
+        // Substitute: remove original loop from combined, add filtered+soft-clipped loop
+        outL = outL - loopOutL + processedL;
+        outR = outR - loopOutR + processedR;
     }
 
     // === MEDIA (OGG LOOPS) — mixed in after XY mixer ===
