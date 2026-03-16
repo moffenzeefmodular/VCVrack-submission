@@ -177,6 +177,8 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 * **TONE:** A one-pole lowpass filter applied to the loop playback signal only — the live input passes through unaffected. With the knob fully down, the loop signal is unfiltered (open at approximately 20 kHz). Turning the knob up progressively cuts high frequencies using a logarithmic curve, with the knob fully up producing a heavy roll-off at 100 Hz. The tooltip displays the current cutoff frequency in Hz or kHz. A CV input is provided for bipolar modulation.
 
+  Past approximately 40% on the knob, soft clipping is introduced on top of the filtered loop signal. The saturation becomes increasingly aggressive as the knob turns further, compressing and harmonically distorting the loop with each pass. When used together with **Continuous Record** and **Record Source: Main Output** enabled on a channel, this creates a tape echo feedback loop: the distorted output is recorded back into the buffer, and each subsequent pass through the loop accumulates more saturation and filtering. The result is a gradual, organic degradation — the kind of sound you get from a tape echo unit with the feedback cranked up, where the signal gets darker, dirtier, and more compressed with every repeat until it dissolves into harmonic noise.
+
 ## Noise
 
 * **AMOUNT:** Controls the volume of the selected machine noise loop in the final output mix. At fully left, no noise is present. At fully right, the noise loop plays at full level. A CV input is provided for bipolar modulation.
