@@ -106,3 +106,6 @@ By Ross Fish Feb 2025
 
 ## Tehom Beta: v2.6.0-rc7
 - Soft clip + gain boost added to filter section to emulate tape echo when in continous record mode 
+
+## Tehom Beta: v2.6.0-rc8
+- Background panel pre-rasterized to mitigate clicking audio on Windows
