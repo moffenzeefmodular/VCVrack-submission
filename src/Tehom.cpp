@@ -1703,43 +1703,75 @@ struct ChanLight2 : GrayModuleLightWidget { ChanLight2() { addBaseColor(SCHEME_O
 struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_RED); } };
 struct TehomScrollingBG : Widget {
     Tehom* module = nullptr;
-    std::shared_ptr<window::Svg> svg;
     float scrollX = 0.f;
     float scaledW = 0.f;
+    bool initialized = false;
 
     static constexpr float speeds[] = {0.f, 0.15f, 0.5f, 1.4f}; // Off/Slow/Medium/Fast
 
+    widget::FramebufferWidget* tile[2] = {nullptr, nullptr};
+
+    // Inner widget: draws the SVG once at the correct scale into the FramebufferWidget cache.
+    struct SvgTile : Widget {
+        std::shared_ptr<window::Svg> svg;
+        float scale = 1.f;
+        void draw(const DrawArgs& args) override {
+            if (!svg || !svg->handle) return;
+            nvgSave(args.vg);
+            nvgScale(args.vg, scale, scale);
+            window::svgDraw(args.vg, svg->handle);
+            nvgRestore(args.vg);
+        }
+    };
+
+    void initTiles() {
+        auto svg = window::Svg::load(asset::plugin(pluginInstance, "res/panels/TehomBGSilver.svg"));
+        if (!svg || !svg->handle || box.size.y <= 0.f) return;
+
+        float svgH = svg->handle->height;
+        float svgW = svg->handle->width;
+        if (svgH <= 0.f || svgW <= 0.f) return;
+        float scale = box.size.y / svgH;
+        scaledW = svgW * scale;
+
+        for (int i = 0; i < 2; i++) {
+            auto* fb = new widget::FramebufferWidget;
+            fb->box.size = Vec(scaledW, box.size.y);
+            auto* t = new SvgTile;
+            t->svg = svg;
+            t->scale = scale;
+            t->box.size = Vec(scaledW, box.size.y);
+            fb->addChild(t);
+            addChild(fb);
+            tile[i] = fb;
+        }
+        // Set initial positions
+        tile[0]->box.pos.x = scrollX - scaledW;
+        tile[1]->box.pos.x = scrollX;
+        initialized = true;
+    }
+
     void step() override {
         Widget::step();
-        if (scaledW <= 0.f) return;
+        if (!initialized && box.size.y > 0.f)
+            initTiles();
+        if (!initialized || scaledW <= 0.f) return;
+
         int spd = module ? clamp(module->bgScrollSpeed, 0, 3) : 2;
         bool goRight = module ? module->bgScrollRight : true;
         float delta = goRight ? speeds[spd] : -speeds[spd];
         scrollX += delta;
         if (scrollX >= scaledW) scrollX -= scaledW;
         if (scrollX < 0.f)      scrollX += scaledW;
+
+        tile[0]->box.pos.x = scrollX - scaledW;
+        tile[1]->box.pos.x = scrollX;
     }
 
     void draw(const DrawArgs& args) override {
-        if (!svg)
-            svg = window::Svg::load(asset::plugin(pluginInstance, "res/panels/TehomBGSilver.svg"));
-        if (!svg || !svg->handle) return;
-
-        float svgW = svg->handle->width;
-        float svgH = svg->handle->height;
-        if (svgW <= 0.f || svgH <= 0.f) return;
-
-        float scale = box.size.y / svgH;
-        scaledW = svgW * scale;
-
         nvgSave(args.vg);
         nvgScissor(args.vg, 0, 0, box.size.x, box.size.y);
-        // Scroll right: anchor first copy at scrollX - scaledW, second at scrollX
-        nvgTranslate(args.vg, scrollX - scaledW, 0);
-        nvgScale(args.vg, scale, scale);
-        window::svgDraw(args.vg, svg->handle);
-        nvgTranslate(args.vg, svgW, 0);
-        window::svgDraw(args.vg, svg->handle);
+        Widget::draw(args);
         nvgRestore(args.vg);
     }
 };
