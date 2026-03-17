@@ -109,3 +109,8 @@ By Ross Fish Feb 2025
 
 ## Tehom Beta: v2.6.0-rc8
 - Background panel pre-rasterized to mitigate clicking audio on Windows
+
+## Tehom Beta: v2.6.0-rc9
+- Massive AI overhaul to fix dropouts and make modules threadsafe. REQUIRES HEAVY TESTING!!!
+
+
