@@ -215,6 +215,14 @@ struct Tehom : Module {
 
 	for (int i = 0; i < 4; i++) bezelDragging[i].store(false);
 	for (int i = 0; i < 4; i++) { scrubInput[i].store(0.f); scrubFresh[i].store(false); }
+	for (int i = 0; i < 4; i++) {
+		recordState[i].store(false);   playState[i].store(false);
+		playReversed[i].store(false);  eraseFlash[i].store(0.f);
+		pendingReverseFlip[i].store(false); pendingErase[i].store(false);
+		autoPlay[i].store(true);       autoPlayFull[i].store(true);
+		continuousRecord[i].store(false); recordMainOutput[i].store(false);
+		playCVMode[i].store(0);
+	}
 
 	configParam(WARBLE_PARAM, 0.f, 1.f, 0.f, "Warble", "%", 0.f, 100.f);
 	configParam(AMOUNT_PARAM, 0.f, 1.f, 0.f, "Noise Amount", "%", 0.f, 100.f);
@@ -310,12 +318,12 @@ void eraseBuffer(int i) {
     readPos[i] = 0.f;
     recordedLength[i] = 0;
     hasContent[i] = false;
-    recordState[i] = false;
-    playState[i] = false;
+    recordState[i].store(false);
+    playState[i].store(false);
     playGain[i]  = 0.f;
-    pendingReverseFlip[i]    = false;
+    pendingReverseFlip[i].store(false);
     pendingScrubTransition[i] = false;
-    eraseFlash[i] = 0.4f;
+    eraseFlash[i].store(0.4f);
 }
 
 void resizeBuffers(float sampleRate) {
@@ -328,8 +336,8 @@ void resizeBuffers(float sampleRate) {
         readPos[i] = 0.f;
         recordedLength[i] = 0;
         hasContent[i] = false;
-        recordState[i] = false;
-        playState[i] = false;
+        recordState[i].store(false);
+        playState[i].store(false);
     }
 }
 
@@ -344,8 +352,8 @@ void onSampleRateChange(const SampleRateChangeEvent& e) override {
             std::copy(pendingBuf[i].R.begin(), pendingBuf[i].R.begin() + len, bufR[i].begin());
             recordedLength[i] = len;
             hasContent[i]     = pendingBuf[i].hasContent;
-            playState[i]      = pendingBuf[i].playState;
-            playReversed[i]   = pendingBuf[i].playReversed;
+            playState[i].store(pendingBuf[i].playState);
+            playReversed[i].store(pendingBuf[i].playReversed);
             readPos[i]        = clamp(pendingBuf[i].readPos, 0.f, (float)(len - 1));
         }
         pendingBuf[i] = PendingBuf{};  // clear
@@ -364,27 +372,27 @@ void onReset(const ResetEvent& e) override {
     if (currentSampleRate > 0.f) resizeBuffers(currentSampleRate);
     for (int i = 0; i < 4; i++) {
         eraseBuffer(i);
-        autoPlay[i]         = true;
-        autoPlayFull[i]     = true;
-        playCVMode[i]       = 0;
-        playReversed[i]     = false;
-        continuousRecord[i]   = false;
-        recordMainOutput[i]   = false;
+        autoPlay[i].store(true);
+        autoPlayFull[i].store(true);
+        playCVMode[i].store(0);
+        playReversed[i].store(false);
+        continuousRecord[i].store(false);
+        recordMainOutput[i].store(false);
     }
-    xyFinalX = 0.5f;
-    xyFinalY = 0.5f;
+    xyFinalX.store(0.5f);
+    xyFinalY.store(0.5f);
     xyResetPending.store(true);
     showCrosshairs    = false;
     persist           = true;
-    xyPadPansAudio    = false;
+    xyPadPansAudio.store(false);
     bgScrollSpeed     = 2;
     bgScrollRight     = true;
-    wanderMode        = 0;
-    wanderTimer       = 0.f;
-    wanderSpeed       = 0.15f;
-    wanderAngle       = 0.f;
-    noiseAuxPreFader  = true;
-    mediaTypeIndex    = 0;
+    wanderMode.store(0);
+    wanderTimer.store(0.f);
+    wanderSpeed.store(0.15f);
+    wanderAngle.store(0.f);
+    noiseAuxPreFader.store(true);
+    mediaTypeIndex.store(0);
     filterStateL      = 0.f;
     filterStateR      = 0.f;
     oggPlayPos        = 0.f;
@@ -401,20 +409,20 @@ json_t* dataToJson() override {
     json_object_set_new(root, "persistBuffers",   json_boolean(persistBuffers));
     json_object_set_new(root, "bgScrollSpeed",    json_integer(bgScrollSpeed));
     json_object_set_new(root, "bgScrollRight",    json_boolean(bgScrollRight));
-    json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader));
-    json_object_set_new(root, "mediaTypeIndex",   json_integer(mediaTypeIndex));
-    json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio));
+    json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader.load()));
+    json_object_set_new(root, "mediaTypeIndex",   json_integer(mediaTypeIndex.load()));
+    json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio.load()));
     json_object_set_new(root, "cursorStyle",      json_integer(cursorStyle));
-    json_object_set_new(root, "wanderMode",       json_integer(wanderMode));
+    json_object_set_new(root, "wanderMode",       json_integer(wanderMode.load()));
 
     // Per-channel toggles
     json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
     for (int i = 0; i < 4; i++) {
-        json_array_append_new(ap,   json_boolean(autoPlay[i]));
-        json_array_append_new(apf,  json_boolean(autoPlayFull[i]));
-        json_array_append_new(pcvm, json_integer(playCVMode[i]));
-        json_array_append_new(cr,   json_boolean(continuousRecord[i]));
-        json_array_append_new(rmo,  json_boolean(recordMainOutput[i]));
+        json_array_append_new(ap,   json_boolean(autoPlay[i].load()));
+        json_array_append_new(apf,  json_boolean(autoPlayFull[i].load()));
+        json_array_append_new(pcvm, json_integer(playCVMode[i].load()));
+        json_array_append_new(cr,   json_boolean(continuousRecord[i].load()));
+        json_array_append_new(rmo,  json_boolean(recordMainOutput[i].load()));
     }
     json_object_set_new(root, "autoPlay",           ap);
     json_object_set_new(root, "autoPlayFull",       apf);
@@ -428,8 +436,8 @@ json_t* dataToJson() override {
         json_t* ch = json_object();
         json_object_set_new(ch, "hasContent",     json_boolean(hasContent[i]));
         json_object_set_new(ch, "recordedLength", json_integer(recordedLength[i]));
-        json_object_set_new(ch, "playState",      json_boolean(playState[i]));
-        json_object_set_new(ch, "playReversed",   json_boolean(playReversed[i]));
+        json_object_set_new(ch, "playState",      json_boolean(playState[i].load()));
+        json_object_set_new(ch, "playReversed",   json_boolean(playReversed[i].load()));
         json_object_set_new(ch, "readPos",        json_real(readPos[i]));
         if (persistBuffers && hasContent[i] && recordedLength[i] > 0) {
             int len = recordedLength[i];
@@ -458,27 +466,27 @@ void dataFromJson(json_t* root) override {
     json_t* bsr = json_object_get(root, "bgScrollRight");
     if (bsr) bgScrollRight = json_boolean_value(bsr);
     json_t* xyp = json_object_get(root, "xyPadPansAudio");
-    if (xyp) xyPadPansAudio = json_boolean_value(xyp);
+    if (xyp) xyPadPansAudio.store(json_boolean_value(xyp));
     json_t* cs = json_object_get(root, "cursorStyle");
     if (cs) cursorStyle = (int)json_integer_value(cs);
     json_t* wm = json_object_get(root, "wanderMode");
-    if (wm) wanderMode = (int)json_integer_value(wm);
+    if (wm) wanderMode.store((int)json_integer_value(wm));
     json_t* napf = json_object_get(root, "noiseAuxPreFader");
-    if (napf) noiseAuxPreFader = json_boolean_value(napf);
+    if (napf) noiseAuxPreFader.store(json_boolean_value(napf));
     json_t* mti = json_object_get(root, "mediaTypeIndex");
-    if (mti) mediaTypeIndex = clamp((int)json_integer_value(mti), 0, 7);
+    if (mti) mediaTypeIndex.store(clamp((int)json_integer_value(mti), 0, 7));
 
     // Per-channel toggles
     json_t* ap = json_object_get(root, "autoPlay");
-    if (ap)   for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap,   i); if (v) autoPlay[i]    = json_boolean_value(v); }
+    if (ap)   for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap,   i); if (v) autoPlay[i].store(json_boolean_value(v)); }
     json_t* apf = json_object_get(root, "autoPlayFull");
-    if (apf)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf,  i); if (v) autoPlayFull[i] = json_boolean_value(v); }
+    if (apf)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf,  i); if (v) autoPlayFull[i].store(json_boolean_value(v)); }
     json_t* pcvm = json_object_get(root, "playCVMode");
-    if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i]   = (int)json_integer_value(v); }
+    if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i].store((int)json_integer_value(v)); }
     json_t* crj = json_object_get(root, "continuousRecord");
-    if (crj)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(crj,  i); if (v) continuousRecord[i]  = json_boolean_value(v); }
+    if (crj)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(crj,  i); if (v) continuousRecord[i].store(json_boolean_value(v)); }
     json_t* rmoj = json_object_get(root, "recordMainOutput");
-    if (rmoj) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(rmoj, i); if (v) recordMainOutput[i]  = json_boolean_value(v); }
+    if (rmoj) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(rmoj, i); if (v) recordMainOutput[i].store(json_boolean_value(v)); }
 
     // Audio buffers
     json_t* bufs = json_object_get(root, "buffers");
@@ -524,9 +532,9 @@ void dataFromJson(json_t* root) override {
 
 
 
-// Current state of record/play toggles
-bool recordState[4] = {false, false, false, false};
-bool playState[4] = {false, false, false, false};
+// Current state of record/play toggles — written by audio thread, read by UI widgets
+std::atomic<bool> recordState[4];
+std::atomic<bool> playState[4];
 
 // Previous button value for rising-edge detection
 bool lastRecordButton[4] = {false, false, false, false};
@@ -545,41 +553,42 @@ float scrubTarget[4]         = {};       // audio-only: target velocity, held be
 float scrubVelocity[4]       = {};       // audio-only: slewed toward scrubTarget each sample
 bool  prevBezelDragging[4]   = {};       // audio-only: previous drag state for transition detection
 bool  wasPlayingOnScrubStart[4] = {};    // audio-only: playState at drag start, restored on release
-bool playReversed[4] = {false, false, false, false};
+std::atomic<bool> playReversed[4];
 
-float eraseFlash[4] = {};
-float playGain[4]  = {};  // per-channel de-click ramp: 0=muted, 1=full, ~2ms ramp
-bool pendingReverseFlip[4]    = {};  // flip direction when playGain reaches 0
-bool pendingScrubTransition[4] = {}; // start scrub when playGain reaches 0
-bool autoPlay[4]           = {true, true, true, true};
-bool autoPlayFull[4]       = {true, true, true, true};
-bool continuousRecord[4]   = {false, false, false, false};
-bool recordMainOutput[4]   = {false, false, false, false};
+std::atomic<float> eraseFlash[4];
+float playGain[4]  = {};  // per-channel de-click ramp — audio-thread only
+std::atomic<bool> pendingReverseFlip[4];  // written by UI button, consumed by process()
+bool pendingScrubTransition[4] = {};      // audio-thread only
+std::atomic<bool> autoPlay[4];
+std::atomic<bool> autoPlayFull[4];
+std::atomic<bool> continuousRecord[4];
+std::atomic<bool> recordMainOutput[4];
+std::atomic<bool> pendingErase[4];  // UI sets true; process() performs the erase
 
 // XY Pad display settings (UI state, reset on Init)
 bool showCrosshairs  = false;
 bool persist         = true;   // cursor trails
 bool persistBuffers  = false;  // save audio buffer data with patch (can stall UI on large buffers)
-bool xyPadPansAudio  = false;
+std::atomic<bool> xyPadPansAudio{false};
 int  cursorStyle     = 0; // 0=Fish, 1=Circle
 
 // Background scroll speed: 0=Off, 1=Slow, 2=Medium, 3=Fast
 int  bgScrollSpeed = 2;
 bool bgScrollRight = true;
-int playCVMode[4] = {0, 0, 0, 0}; // 0=Play/Stop, 1=Retrigger, 2=Forward/Reverse
+std::atomic<int> playCVMode[4]; // 0=Play/Stop, 1=Retrigger, 2=Forward/Reverse
 
 std::atomic<bool> xyDragging{false};
-float xyFinalX = 0.5f;
-float xyFinalY = 0.5f;
+std::atomic<float> xyFinalX{0.5f};
+std::atomic<float> xyFinalY{0.5f};
 std::atomic<bool> xyResetPending{false};
 
-// Wander animation
-int   wanderMode     = 0;      // 0=Off, 1=Slow, 2=Medium, 3=Fast
-float wanderTargetX  = 0.5f;
-float wanderTargetY  = 0.5f;
-float wanderTimer    = 0.f;    // seconds until next target
-float wanderSpeed    = 0.15f;  // current swim speed (units/sec), slowly varies
-float wanderAngle    = 0.f;    // current heading in radians
+// Wander animation — written by both process() and UI menu; must be atomic
+std::atomic<int>   wanderMode{0};      // 0=Off, 1=Slow, 2=Medium, 3=Fast
+std::atomic<float> wanderTargetX{0.5f};
+std::atomic<float> wanderTargetY{0.5f};
+std::atomic<float> wanderTimer{0.f};    // seconds until next target
+std::atomic<float> wanderSpeed{0.15f};  // current swim speed (units/sec), slowly varies
+std::atomic<float> wanderAngle{0.f};    // current heading in radians
 
 // Warble LFO phases (per channel, advance while playing)
 float wowPhase[4]     = {};
@@ -617,8 +626,8 @@ struct OggLoop {
 
 float    oggPlayPos    = 0.f;
 int      currentOggIdx = -1;
-bool     noiseAuxPreFader = true;
-int      mediaTypeIndex   = 0;
+std::atomic<bool> noiseAuxPreFader{true};
+std::atomic<int>  mediaTypeIndex{0};
 
 // One-pole lowpass filter state (applied to main audio before noise mix)
 float    filterStateL  = 0.f;
@@ -667,6 +676,20 @@ void processBypass(const ProcessArgs& args) override {
 }
 
 void process(const ProcessArgs& args) override {
+    constexpr auto rlx = std::memory_order_relaxed;
+
+    // Load shared XY state once at the top to avoid repeated atomic loads and
+    // cache-line traffic between the audio thread and the UI thread.
+    float xyX = xyFinalX.load(rlx);
+    float xyY = xyFinalY.load(rlx);
+
+    // Deferred buffer erases requested from the UI thread (right-click on record button).
+    // Performed here on the audio thread to avoid races with the audio buffers.
+    for (int i = 0; i < 4; i++) {
+        if (pendingErase[i].exchange(false, rlx))
+            eraseBuffer(i);
+    }
+
     // Ensure buffers are allocated (onSampleRateChange may not fire before first process)
     if (bufferSize == 0)
         resizeBuffers(args.sampleRate);
@@ -682,28 +705,32 @@ void process(const ProcessArgs& args) override {
         lastRecordCV[i] = cv;
 
         if (btnRising || cvRising) {
-            bool wasRecording = recordState[i];
-            recordState[i] = !recordState[i];
-            if (recordState[i] && !hasContent[i]) {
+            bool wasRecording = recordState[i].load(rlx);
+            recordState[i].store(!wasRecording, rlx);
+            if (!wasRecording && !hasContent[i]) {
                 writePos[i] = 0;
                 recordedLength[i] = 0;
             }
             // Auto-play when recording manually stopped
-            if (wasRecording && !recordState[i] && autoPlay[i] && hasContent[i] && !playState[i]) {
-                playState[i] = true;
-                readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+            if (wasRecording && autoPlay[i].load(rlx) && hasContent[i] && !playState[i].load(rlx)) {
+                playState[i].store(true, rlx);
+                readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
             }
         }
 
-        lights[RECORD1_LIGHT + i].setBrightnessSmooth(recordState[i] ? 1.f : 0.f, args.sampleTime);
+        lights[RECORD1_LIGHT + i].setBrightnessSmooth(recordState[i].load(rlx) ? 1.f : 0.f, args.sampleTime);
 
         // Erase flash — white light fades out over 0.4s
-        if (eraseFlash[i] > 0.f) {
-            eraseFlash[i] -= args.sampleTime;
-            lights[RECORD1_FLASH_LIGHT + i].setBrightness(clamp(eraseFlash[i] / 0.4f, 0.f, 1.f));
-        } else {
-            eraseFlash[i] = 0.f;
-            lights[RECORD1_FLASH_LIGHT + i].setBrightness(0.f);
+        {
+            float ef = eraseFlash[i].load(rlx);
+            if (ef > 0.f) {
+                ef -= args.sampleTime;
+                eraseFlash[i].store(ef, rlx);
+                lights[RECORD1_FLASH_LIGHT + i].setBrightness(clamp(ef / 0.4f, 0.f, 1.f));
+            } else {
+                eraseFlash[i].store(0.f, rlx);
+                lights[RECORD1_FLASH_LIGHT + i].setBrightness(0.f);
+            }
         }
     }
 
@@ -718,28 +745,33 @@ void process(const ProcessArgs& args) override {
         lastPlayCV[i] = cv;
 
         if (cvRising) {
-            if (playCVMode[i] == 1) {
+            int cvMode = playCVMode[i].load(rlx);
+            if (cvMode == 1) {
                 // Retrigger: reset playhead to start (or end if reversed), ensure playing
-                playState[i] = true;
-                readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
-            } else if (playCVMode[i] == 2) {
+                playState[i].store(true, rlx);
+                readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+            } else if (cvMode == 2) {
                 // Forward/Reverse toggle
-                pendingReverseFlip[i] = !pendingReverseFlip[i];  // ramp to 0, flip, ramp back
+                pendingReverseFlip[i].store(!pendingReverseFlip[i].load(rlx), rlx);
             } else {
                 // Play/Stop toggle (default)
-                playState[i] = !playState[i];
-                if (playState[i])
-                    readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+                bool ps = !playState[i].load(rlx);
+                playState[i].store(ps, rlx);
+                if (ps)
+                    readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
             }
         }
         if (btnRising) {
-            playState[i] = !playState[i];
-            if (playState[i])
-                readPos[i] = playReversed[i] ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+            bool ps = !playState[i].load(rlx);
+            playState[i].store(ps, rlx);
+            if (ps)
+                readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
         }
 
-        lights[PLAY1_LIGHT + i].setBrightnessSmooth((playState[i] && !playReversed[i]) ? 1.f : 0.f, args.sampleTime);
-        lights[PLAY1_BLUE_LIGHT + i].setBrightnessSmooth((playState[i] && playReversed[i]) ? 1.f : 0.f, args.sampleTime);
+        bool pState = playState[i].load(rlx);
+        bool pRev   = playReversed[i].load(rlx);
+        lights[PLAY1_LIGHT + i].setBrightnessSmooth((pState && !pRev) ? 1.f : 0.f, args.sampleTime);
+        lights[PLAY1_BLUE_LIGHT + i].setBrightnessSmooth((pState && pRev) ? 1.f : 0.f, args.sampleTime);
     }
 
     // --- BEZEL SPINNING / VINYL SCRUB ---
@@ -748,8 +780,8 @@ void process(const ProcessArgs& args) override {
 
         // Detect drag start: remember whether we were playing, and queue a gain ramp-down-then-up
         if (!prevBezelDragging[i] && isDragging) {
-            wasPlayingOnScrubStart[i] = playState[i];
-            if (playState[i])
+            wasPlayingOnScrubStart[i] = playState[i].load(rlx);
+            if (wasPlayingOnScrubStart[i])
                 pendingScrubTransition[i] = true;  // ramp gain to 0, then ramp back in scrub mode
         }
 
@@ -809,15 +841,15 @@ void process(const ProcessArgs& args) override {
                 if (readPos[i] < (float)loopStart) readPos[i] = (float)loopStart;
                 if (readPos[i] >= (float)loopEnd)  readPos[i] = (float)(loopEnd - 1);
                 if (wasPlayingOnScrubStart[i])
-                    playState[i] = true;
+                    playState[i].store(true, rlx);
             }
             scrubTarget[i]   = 0.f;
             scrubVelocity[i] = 0.f;
             // Normal spin while playing
-            if (playState[i]) {
+            if (playState[i].load(rlx)) {
                 float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f);
                 float spinSpeed = 0.02f + pitchVal * 0.8f;
-                float spinDir = playReversed[i] ? -1.f : 1.f;
+                float spinDir = playReversed[i].load(rlx) ? -1.f : 1.f;
                 float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
                 if (newValue > 1.f) newValue -= 1.f;
                 if (newValue < 0.f) newValue += 1.f;
@@ -836,10 +868,10 @@ void process(const ProcessArgs& args) override {
     // ch1=top-left, ch2=top-right, ch3=bottom-left, ch4=bottom-right
     // xyFinalX=0 → left, xyFinalX=1 → right; xyFinalY=1 → top, xyFinalY=0 → bottom
     float vol[4] = {
-        (1.f - xyFinalX) * xyFinalY,         // ch1: top-left
-        xyFinalX * xyFinalY,                   // ch2: top-right
-        (1.f - xyFinalX) * (1.f - xyFinalY),  // ch3: bottom-left
-        xyFinalX * (1.f - xyFinalY),           // ch4: bottom-right
+        (1.f - xyX) * xyY,         // ch1: top-left
+        xyX * xyY,                   // ch2: top-right
+        (1.f - xyX) * (1.f - xyY),  // ch3: bottom-left
+        xyX * (1.f - xyY),           // ch4: bottom-right
     };
 
     // Warble (wow + flutter)
@@ -867,7 +899,7 @@ void process(const ProcessArgs& args) override {
         float sampL = 0.f, sampR = 0.f;
         bool isDraggingNow = bezelDragging[i].load();
 
-        if (hasContent[i] && bufferSize > 0 && (playState[i] || isDraggingNow || playGain[i] > 0.f)) {
+        if (hasContent[i] && bufferSize > 0 && (playState[i].load(rlx) || isDraggingNow || playGain[i] > 0.f)) {
             int len = recordedLength[i];
             if (len >= 2) {
                 if (isDraggingNow) {
@@ -919,7 +951,7 @@ void process(const ProcessArgs& args) override {
                                     + std::sin(2.f * float(M_PI) * flutterPhase[i]) * flutterDepth;
                     speed *= (1.f + warbleMod);
 
-                    float dir = playReversed[i] ? -1.f : 1.f;
+                    float dir = playReversed[i].load(rlx) ? -1.f : 1.f;
                     readPos[i] += dir * speed;
 
                     bool looping = params[LOOP1_PARAM + i].getValue() > 0.5f;
@@ -928,8 +960,8 @@ void process(const ProcessArgs& args) override {
                         if (readPos[i] < (float)loopStart)  readPos[i] += (float)loopSize;
                     } else {
                         if (readPos[i] >= (float)loopEnd || readPos[i] < (float)loopStart) {
-                            playState[i] = false;
-                            readPos[i] = playReversed[i] ? (float)(loopEnd - 1) : (float)loopStart;
+                            playState[i].store(false, rlx);
+                            readPos[i] = playReversed[i].load(rlx) ? (float)(loopEnd - 1) : (float)loopStart;
                         }
                     }
                 }
@@ -940,15 +972,15 @@ void process(const ProcessArgs& args) override {
         // Pending flags force gain to 0 first; the action fires at zero-crossing, then gain ramps back up.
         {
             float rampRate = args.sampleTime / 0.002f;
-            bool hasPending = pendingReverseFlip[i] || pendingScrubTransition[i];
-            float target = hasPending ? 0.f : ((playState[i] || isDraggingNow) ? 1.f : 0.f);
+            bool hasPending = pendingReverseFlip[i].load(rlx) || pendingScrubTransition[i];
+            float target = hasPending ? 0.f : ((playState[i].load(rlx) || isDraggingNow) ? 1.f : 0.f);
             playGain[i] = clamp(playGain[i] + (target >= playGain[i] ? rampRate : -rampRate), 0.f, 1.f);
 
             // At zero-crossing: execute deferred actions then let gain ramp back up
             if (playGain[i] <= 0.f) {
-                if (pendingReverseFlip[i]) {
-                    playReversed[i] = !playReversed[i];
-                    pendingReverseFlip[i] = false;
+                if (pendingReverseFlip[i].load(rlx)) {
+                    playReversed[i].store(!playReversed[i].load(rlx), rlx);
+                    pendingReverseFlip[i].store(false, rlx);
                 }
                 if (pendingScrubTransition[i]) {
                     pendingScrubTransition[i] = false;
@@ -976,10 +1008,10 @@ void process(const ProcessArgs& args) override {
             recMixR[i] = inR * (1.f - t) + rawBufR * t;
         }
 
-        if (xyPadPansAudio) {
+        if (xyPadPansAudio.load(rlx)) {
             // X=0 → 100% left, X=1 → 100% right, X=0.5 → center (constant-power pan law)
-            float panL = std::cos(xyFinalX * float(M_PI) * 0.5f);
-            float panR = std::sin(xyFinalX * float(M_PI) * 0.5f);
+            float panL = std::cos(xyX * float(M_PI) * 0.5f);
+            float panR = std::sin(xyX * float(M_PI) * 0.5f);
             outL += chanMixL[i] * vol[i] * panL;
             outR += chanMixR[i] * vol[i] * panR;
             loopOutL += sampL * t * vol[i] * panL;
@@ -1026,7 +1058,7 @@ void process(const ProcessArgs& args) override {
     }
 
     // === MEDIA (OGG LOOPS) — mixed in after XY mixer ===
-    int mediaIdx = mediaTypeIndex;
+    int mediaIdx = mediaTypeIndex.load(rlx);
 
     if (mediaIdx != currentOggIdx) {
         currentOggIdx = mediaIdx;
@@ -1047,7 +1079,8 @@ void process(const ProcessArgs& args) override {
     }
 
     // Pre-fader send: raw media before amount knob
-    if (noiseAuxPreFader)
+    bool preFader = noiseAuxPreFader.load(rlx);
+    if (preFader)
         outputs[SEND_OUTPUT].setVoltage((mediaL + mediaR) * 0.5f);
 
     // Return replaces media (both L and R) before amount knob
@@ -1064,7 +1097,7 @@ void process(const ProcessArgs& args) override {
     float noiseMixR = mediaR * amountLog * 0.5f;
 
     // Post-fader send: after amount knob
-    if (!noiseAuxPreFader)
+    if (!preFader)
         outputs[SEND_OUTPUT].setVoltage((noiseMixL + noiseMixR) * 0.5f);
 
     outL = clamp(outL + noiseMixL, -5.f, 5.f);
@@ -1074,17 +1107,17 @@ void process(const ProcessArgs& args) override {
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
 
     for (int i = 0; i < 4; i++) {
-        if (!recordState[i] || bufferSize == 0) continue;
+        if (!recordState[i].load(rlx) || bufferSize == 0) continue;
 
-        if (recordMainOutput[i]) {
+        if (recordMainOutput[i].load(rlx)) {
             // Record final output with pitch-compounding correction:
             // filter the per-channel correction with the same coefficient as the main filter
             // so the recorded signal is truly post-filter/noise but without pitch accumulation.
             float corrL = (recMixL[i] - chanMixL[i]) * vol[i];
             float corrR = (recMixR[i] - chanMixR[i]) * vol[i];
-            if (xyPadPansAudio) {
-                float panL = std::cos(xyFinalX * float(M_PI) * 0.5f);
-                float panR = std::sin(xyFinalX * float(M_PI) * 0.5f);
+            if (xyPadPansAudio.load(rlx)) {
+                float panL = std::cos(xyX * float(M_PI) * 0.5f);
+                float panR = std::sin(xyX * float(M_PI) * 0.5f);
                 corrL *= panL;
                 corrR *= panR;
             }
@@ -1104,12 +1137,12 @@ void process(const ProcessArgs& args) override {
 
         if (writePos[i] >= bufferSize) {
             writePos[i] = 0;
-            if (continuousRecord[i]) {
+            if (continuousRecord[i].load(rlx)) {
                 // Keep recording — wrap and overwrite from the start
             } else {
-                recordState[i] = false;
-                if (autoPlayFull[i] && !playState[i]) {
-                    playState[i] = true;
+                recordState[i].store(false, rlx);
+                if (autoPlayFull[i].load(rlx) && !playState[i].load(rlx)) {
+                    playState[i].store(true, rlx);
                     readPos[i] = 0.f;
                 }
             }
@@ -1117,51 +1150,59 @@ void process(const ProcessArgs& args) override {
     }
 
     // Wander animation — fish-in-tank swim behaviour
-    if (wanderMode > 0 && !xyDragging.load()) {
+    int wMode = wanderMode.load(rlx);
+    if (wMode > 0 && !xyDragging.load()) {
         float cx = params[XPOS_PARAM].getValue();
         float cy = params[YPOS_PARAM].getValue();
 
         // Per-mode tuning: driftAmp (chaos), speedMin/Max (units/sec), targetInterval (sec)
         float modeDrift, speedMin, speedMax, targetInterval;
-        if (wanderMode == 1) {        // Slow — lazy, dreamy drift
+        if (wMode == 1) {        // Slow — lazy, dreamy drift
             modeDrift      = 0.5f;   speedMin = 0.04f;  speedMax = 0.10f;  targetInterval = 4.f;
-        } else if (wanderMode == 2) { // Medium — steady swim
+        } else if (wMode == 2) { // Medium — steady swim
             modeDrift      = 1.5f;   speedMin = 0.14f;  speedMax = 0.26f;  targetInterval = 2.5f;
         } else {                      // Fast — darting, erratic
             modeDrift      = 3.5f;   speedMin = 0.28f;  speedMax = 0.50f;  targetInterval = 1.2f;
         }
 
+        // Snapshot wander floats into locals for this audio cycle
+        float wTargX = wanderTargetX.load(rlx);
+        float wTargY = wanderTargetY.load(rlx);
+        float wTimer = wanderTimer.load(rlx);
+        float wSpeed = wanderSpeed.load(rlx);
+        float wAngle = wanderAngle.load(rlx);
+
         // Pick a loose target area every 2–5 s, kept away from edges
-        wanderTimer -= args.sampleTime;
-        if (wanderTimer <= 0.f) {
-            wanderTargetX = 0.15f + random::uniform() * 0.70f;
-            wanderTargetY = 0.15f + random::uniform() * 0.70f;
-            wanderTimer   = targetInterval * (0.6f + random::uniform() * 0.8f);
+        wTimer -= args.sampleTime;
+        if (wTimer <= 0.f) {
+            wTargX = 0.15f + random::uniform() * 0.70f;
+            wTargY = 0.15f + random::uniform() * 0.70f;
+            wTimer = targetInterval * (0.6f + random::uniform() * 0.8f);
         }
 
         // Brownian angular drift — 1/sqrt(SR) scaling gives sample-rate-independent
         // diffusion; multiplying by sampleTime would make it effectively zero.
         float driftAmp = modeDrift / std::sqrt(args.sampleRate);
-        wanderAngle += (random::uniform() * 2.f - 1.f) * driftAmp;
+        wAngle += (random::uniform() * 2.f - 1.f) * driftAmp;
 
         // Weak, lazy pull toward target — low gain so it never dominates the drift
-        float dx = wanderTargetX - cx;
-        float dy = wanderTargetY - cy;
+        float dx = wTargX - cx;
+        float dy = wTargY - cy;
         float dist = std::sqrt(dx * dx + dy * dy);
         if (dist > 0.06f) {
             float targetAngle = std::atan2(dy, dx);
-            float diff = targetAngle - wanderAngle;
+            float diff = targetAngle - wAngle;
             while (diff >  float(M_PI)) diff -= 2.f * float(M_PI);
             while (diff < -float(M_PI)) diff += 2.f * float(M_PI);
-            wanderAngle += diff * 0.7f * args.sampleTime;
+            wAngle += diff * 0.7f * args.sampleTime;
         }
 
         // Speed random-walks within mode range
-        wanderSpeed += (random::uniform() * 2.f - 1.f) * 0.15f * args.sampleTime;
-        wanderSpeed  = clamp(wanderSpeed, speedMin, speedMax);
+        wSpeed += (random::uniform() * 2.f - 1.f) * 0.15f * args.sampleTime;
+        wSpeed  = clamp(wSpeed, speedMin, speedMax);
 
-        float vx = std::cos(wanderAngle) * wanderSpeed;
-        float vy = std::sin(wanderAngle) * wanderSpeed;
+        float vx = std::cos(wAngle) * wSpeed;
+        float vy = std::sin(wAngle) * wSpeed;
 
         // Use CV-offset effective position for wall sensing so wander steers away
         // from the boundary the fish actually occupies, not just the raw param value
@@ -1186,10 +1227,17 @@ void process(const ProcessArgs& args) override {
         // Sync heading to actual velocity direction
         float vLen = std::sqrt(vx * vx + vy * vy);
         if (vLen > 0.001f)
-            wanderAngle = std::atan2(vy, vx);
+            wAngle = std::atan2(vy, vx);
 
         params[XPOS_PARAM].setValue(clamp(nx, 0.f, 1.f));
         params[YPOS_PARAM].setValue(clamp(ny, 0.f, 1.f));
+
+        // Write wander state back
+        wanderTargetX.store(wTargX, rlx);
+        wanderTargetY.store(wTargY, rlx);
+        wanderTimer.store(wTimer, rlx);
+        wanderSpeed.store(wSpeed, rlx);
+        wanderAngle.store(wAngle, rlx);
     }
 
     // XY Pad — param + CV offset (CV bypassed while dragging), then slewed
@@ -1206,11 +1254,13 @@ void process(const ProcessArgs& args) override {
 
     float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? clamp(inputs[SLEWCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f), 0.02f, 1.f);
     float alpha = clamp(args.sampleTime / slewParam, 0.f, 1.f);
-    xyFinalX += (targetX - xyFinalX) * alpha;
-    xyFinalY += (targetY - xyFinalY) * alpha;
+    xyX += (targetX - xyX) * alpha;
+    xyY += (targetY - xyY) * alpha;
+    xyFinalX.store(xyX, rlx);
+    xyFinalY.store(xyY, rlx);
 
-    outputs[XCVOUT_OUTPUT].setVoltage((xyFinalX - 0.5f) * 10.f);
-    outputs[YCVOUT_OUTPUT].setVoltage((xyFinalY - 0.5f) * 10.f);
+    outputs[XCVOUT_OUTPUT].setVoltage((xyX - 0.5f) * 10.f);
+    outputs[YCVOUT_OUTPUT].setVoltage((xyY - 0.5f) * 10.f);
 }
 };
 
@@ -1320,7 +1370,7 @@ struct RecordWidget : LEDBezel {
 
 	void onButton(const ButtonEvent& e) override {
 		if (e.button == GLFW_MOUSE_BUTTON_RIGHT && e.action == GLFW_PRESS) {
-			if (tehom) tehom->eraseBuffer(channel);
+			if (tehom) tehom->pendingErase[channel].store(true);
 			e.consume(this);
 			return;
 		}
@@ -1342,9 +1392,9 @@ struct RecordWidget : LEDBezel {
 		LEDBezel::step();
 		if (!tehom) return;
 
-		bool flashing = tehom->eraseFlash[channel] > 0.f;
+		bool flashing = tehom->eraseFlash[channel].load() > 0.f;
 		std::string desiredText = flashing ? "Erased" :
-		                          (isHovered ? (tehom->recordState[channel] ? "Recording..." : "Record") : "");
+		                          (isHovered ? (tehom->recordState[channel].load() ? "Recording..." : "Record") : "");
 
 		if (desiredText.empty()) {
 			if (tooltip) {
@@ -1368,9 +1418,9 @@ struct PlayTooltip : ui::Tooltip {
 	int channel;
 	void step() override {
 		if (tehom) {
-			if (!tehom->playState[channel])
+			if (!tehom->playState[channel].load())
 				text = "Stop";
-			else if (tehom->playReversed[channel])
+			else if (tehom->playReversed[channel].load())
 				text = "Reverse";
 			else
 				text = "Forward";
@@ -1387,7 +1437,7 @@ struct ReversePlayWidget : LEDBezel {
 	void onButton(const ButtonEvent& e) override {
 		if (e.button == GLFW_MOUSE_BUTTON_RIGHT && e.action == GLFW_PRESS) {
 			if (tehom)
-				tehom->pendingReverseFlip[channel] = !tehom->pendingReverseFlip[channel];
+				tehom->pendingReverseFlip[channel].store(!tehom->pendingReverseFlip[channel].load());
 			e.consume(this);
 			return;
 		}
@@ -1472,8 +1522,8 @@ struct QuadLooperXYDisplay : Widget {
             module->xyDragging.store(true);
 
             // Snap param to current CV-modulated position so cursor doesn't jump
-            dragPos.x = module->xyFinalX * box.size.x;
-            dragPos.y = (1.f - module->xyFinalY) * box.size.y;
+            dragPos.x = module->xyFinalX.load(std::memory_order_relaxed) * box.size.x;
+            dragPos.y = (1.f - module->xyFinalY.load(std::memory_order_relaxed)) * box.size.y;
 
             // Move to clicked position
             dragPos = e.pos;
@@ -1545,8 +1595,8 @@ struct QuadLooperXYDisplay : Widget {
             fishH    = fishSvg->handle->height * (fishW / fishSvgW);
         }
 
-        float px = module->xyFinalX * box.size.x;
-        float py = (1.f - module->xyFinalY) * box.size.y;
+        float px = module->xyFinalX.load(std::memory_order_relaxed) * box.size.x;
+        float py = (1.f - module->xyFinalY.load(std::memory_order_relaxed)) * box.size.y;
 
         // Clamp cursor within bounds
         if (useFish) {
@@ -1637,15 +1687,15 @@ struct QuadLooperXYDisplay : Widget {
             if (lastTrailPos.x < 0.f) lastTrailPos = cur;
             Vec delta = cur.minus(lastTrailPos);
             float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-            int steps = std::max(1, (int)(dist / 2.f));
-            for (int s = 0; s <= steps; s++) {
+            int steps = std::max(1, (int)(dist / 5.f));
+            for (int s = 0; s < steps; s++) {
                 float t = (float)s / (float)steps;
                 Vec p = lastTrailPos.plus(delta.mult(t));
                 trail.push_back({p, 1.f, fishAngle, fishFacingRight});
             }
             lastTrailPos = cur;
-            if (trail.size() > 200)
-                trail.erase(trail.begin(), trail.begin() + (int)(trail.size() - 200));
+            if (trail.size() > 80)
+                trail.erase(trail.begin(), trail.begin() + (int)(trail.size() - 80));
 
             for (auto& tp : trail) {
                 if (useFish) {
@@ -1954,22 +2004,22 @@ struct TehomWidget : ModuleWidget {
             subMenu->addChild(new MenuSeparator);
             subMenu->addChild(createMenuLabel("Wander Speed"));
             subMenu->addChild(createCheckMenuItem("Off", "",
-                [=]() { return tehom->wanderMode == 0; },
-                [=]() { tehom->wanderMode = 0; }
+                [=]() { return tehom->wanderMode.load() == 0; },
+                [=]() { tehom->wanderMode.store(0); }
             ));
             const char* wanderNames[] = {"Slow", "Medium", "Fast"};
             for (int m = 1; m <= 3; m++) {
                 subMenu->addChild(createCheckMenuItem(wanderNames[m - 1], "",
-                    [=]() { return tehom->wanderMode == m; },
+                    [=]() { return tehom->wanderMode.load() == m; },
                     [=]() {
-                        int prev = tehom->wanderMode;
-                        tehom->wanderMode = m;
+                        int prev = tehom->wanderMode.load();
+                        tehom->wanderMode.store(m);
                         if (prev == 0) {
-                            tehom->wanderTargetX = tehom->xyFinalX;
-                            tehom->wanderTargetY = tehom->xyFinalY;
-                            tehom->wanderTimer   = 0.f;
-                            tehom->wanderAngle   = random::uniform() * 2.f * float(M_PI);
-                            tehom->wanderSpeed   = 0.15f;
+                            tehom->wanderTargetX.store(tehom->xyFinalX.load());
+                            tehom->wanderTargetY.store(tehom->xyFinalY.load());
+                            tehom->wanderTimer.store(0.f);
+                            tehom->wanderAngle.store(random::uniform() * 2.f * float(M_PI));
+                            tehom->wanderSpeed.store(0.15f);
                         }
                     }
                 ));
@@ -2004,8 +2054,8 @@ struct TehomWidget : ModuleWidget {
             [=]() { tehom->persistBuffers = !tehom->persistBuffers; }
         ));
         menu->addChild(createCheckMenuItem("XY Pad Pans Audio", "",
-            [=]() { return tehom->xyPadPansAudio; },
-            [=]() { tehom->xyPadPansAudio = !tehom->xyPadPansAudio; }
+            [=]() { return tehom->xyPadPansAudio.load(); },
+            [=]() { tehom->xyPadPansAudio.store(!tehom->xyPadPansAudio.load()); }
         ));
         menu->addChild(createSubmenuItem("Buffer Size", "", [=](Menu* subMenu) {
             const float durations[] = {1.f, 2.f, 5.f, 10.f, 20.f, 30.f, 60.f};
@@ -2027,20 +2077,20 @@ struct TehomWidget : ModuleWidget {
             menu->addChild(createSubmenuItem("Media Type", "", [=](Menu* subMenu) {
                 for (int m = 0; m < 8; m++) {
                     subMenu->addChild(createCheckMenuItem(mediaNames[m], "",
-                        [=]() { return tehom->mediaTypeIndex == m; },
-                        [=]() { tehom->mediaTypeIndex = m; }
+                        [=]() { return tehom->mediaTypeIndex.load() == m; },
+                        [=]() { tehom->mediaTypeIndex.store(m); }
                     ));
                 }
             }));
         }
         menu->addChild(createSubmenuItem("Aux Send", "", [=](Menu* subMenu) {
             subMenu->addChild(createCheckMenuItem("Pre-Fader", "",
-                [=]() { return tehom->noiseAuxPreFader; },
-                [=]() { tehom->noiseAuxPreFader = true; }
+                [=]() { return tehom->noiseAuxPreFader.load(); },
+                [=]() { tehom->noiseAuxPreFader.store(true); }
             ));
             subMenu->addChild(createCheckMenuItem("Post-Fader", "",
-                [=]() { return !tehom->noiseAuxPreFader; },
-                [=]() { tehom->noiseAuxPreFader = false; }
+                [=]() { return !tehom->noiseAuxPreFader.load(); },
+                [=]() { tehom->noiseAuxPreFader.store(false); }
             ));
         }));
 
@@ -2053,33 +2103,33 @@ struct TehomWidget : ModuleWidget {
                 subMenu->addChild(createMenuLabel("Recording"));
                 subMenu->addChild(createCheckMenuItem(
                     "Continuous Record", "",
-                    [=]() { return tehom->continuousRecord[i]; },
-                    [=]() { tehom->continuousRecord[i] = !tehom->continuousRecord[i]; }
+                    [=]() { return tehom->continuousRecord[i].load(); },
+                    [=]() { tehom->continuousRecord[i].store(!tehom->continuousRecord[i].load()); }
                 ));
                 subMenu->addChild(createCheckMenuItem(
                     "Record Source: Main Output", "",
-                    [=]() { return tehom->recordMainOutput[i]; },
-                    [=]() { tehom->recordMainOutput[i] = !tehom->recordMainOutput[i]; }
+                    [=]() { return tehom->recordMainOutput[i].load(); },
+                    [=]() { tehom->recordMainOutput[i].store(!tehom->recordMainOutput[i].load()); }
                 ));
                 subMenu->addChild(new MenuSeparator);
                 subMenu->addChild(createMenuLabel("Auto-Play"));
                 subMenu->addChild(createCheckMenuItem(
                     "Auto-Play when recording complete", "",
-                    [=]() { return tehom->autoPlay[i]; },
-                    [=]() { tehom->autoPlay[i] = !tehom->autoPlay[i]; }
+                    [=]() { return tehom->autoPlay[i].load(); },
+                    [=]() { tehom->autoPlay[i].store(!tehom->autoPlay[i].load()); }
                 ));
                 subMenu->addChild(createCheckMenuItem(
                     "Auto-Play when buffer full", "",
-                    [=]() { return tehom->autoPlayFull[i]; },
-                    [=]() { tehom->autoPlayFull[i] = !tehom->autoPlayFull[i]; }
+                    [=]() { return tehom->autoPlayFull[i].load(); },
+                    [=]() { tehom->autoPlayFull[i].store(!tehom->autoPlayFull[i].load()); }
                 ));
                 subMenu->addChild(new MenuSeparator);
                 subMenu->addChild(createMenuLabel("Play CV Mode"));
                 for (int m = 0; m < 3; m++) {
                     subMenu->addChild(createCheckMenuItem(
                         modeNames[m], "",
-                        [=]() { return tehom->playCVMode[i] == m; },
-                        [=]() { tehom->playCVMode[i] = m; }
+                        [=]() { return tehom->playCVMode[i].load() == m; },
+                        [=]() { tehom->playCVMode[i].store(m); }
                     ));
                 }
             }));
