@@ -589,6 +589,7 @@ std::atomic<float> wanderTargetY{0.5f};
 std::atomic<float> wanderTimer{0.f};    // seconds until next target
 std::atomic<float> wanderSpeed{0.15f};  // current swim speed (units/sec), slowly varies
 std::atomic<float> wanderAngle{0.f};    // current heading in radians
+int wanderPhase{0};                     // counts samples; wander runs every WANDER_SUBDIV samples
 
 // Warble LFO phases (per channel, advance while playing)
 float wowPhase[4]     = {};
@@ -683,6 +684,15 @@ void process(const ProcessArgs& args) override {
     float xyX = xyFinalX.load(rlx);
     float xyY = xyFinalY.load(rlx);
 
+    // Session-constant exponential coefficients for the vinyl-scrub slew filter.
+    // std::exp is expensive; computing it once per process() call instead of
+    // once per channel per sample saves 7 exp() calls per sample at 4 channels.
+    const float scrubDecay = std::exp(-args.sampleTime / 1.f);
+    const float scrubSlew  = 1.f - scrubDecay;
+
+    // De-click ramp rate: constant per block, hoisted out of the per-channel loop.
+    const float rampRate = args.sampleTime / 0.002f;
+
     // Deferred buffer erases requested from the UI thread (right-click on record button).
     // Performed here on the audio thread to avoid races with the audio buffers.
     for (int i = 0; i < 4; i++) {
@@ -727,10 +737,8 @@ void process(const ProcessArgs& args) override {
                 ef -= args.sampleTime;
                 eraseFlash[i].store(ef, rlx);
                 lights[RECORD1_FLASH_LIGHT + i].setBrightness(clamp(ef / 0.4f, 0.f, 1.f));
-            } else {
-                eraseFlash[i].store(0.f, rlx);
-                lights[RECORD1_FLASH_LIGHT + i].setBrightness(0.f);
             }
+            // When ef is already 0 no store or setBrightness needed — skip every sample
         }
     }
 
@@ -792,11 +800,10 @@ void process(const ProcessArgs& args) override {
             if (scrubFresh[i].exchange(false))
                 scrubTarget[i] = scrubInput[i].load() * 0.25f;  // right/up = forward in buffer
             else
-                scrubTarget[i] *= std::exp(-args.sampleTime / 1.000f);  // 1 s decay when idle
+                scrubTarget[i] *= scrubDecay;  // 1 s decay when idle
 
             // Per-sample slew toward target (1 s) — smooth vinyl acceleration / deceleration
-            scrubVelocity[i] += (scrubTarget[i] - scrubVelocity[i])
-                                 * (1.f - std::exp(-args.sampleTime / 1.000f));
+            scrubVelocity[i] += (scrubTarget[i] - scrubVelocity[i]) * scrubSlew;
 
             // Drive bezel visual from slewed velocity so animation matches what you hear
             {
@@ -971,7 +978,6 @@ void process(const ProcessArgs& args) override {
         // De-click ramp: ~2ms fade on any state transition.
         // Pending flags force gain to 0 first; the action fires at zero-crossing, then gain ramps back up.
         {
-            float rampRate = args.sampleTime / 0.002f;
             bool hasPending = pendingReverseFlip[i].load(rlx) || pendingScrubTransition[i];
             float target = hasPending ? 0.f : ((playState[i].load(rlx) || isDraggingNow) ? 1.f : 0.f);
             playGain[i] = clamp(playGain[i] + (target >= playGain[i] ? rampRate : -rampRate), 0.f, 1.f);
@@ -1149,9 +1155,17 @@ void process(const ProcessArgs& args) override {
         }
     }
 
-    // Wander animation — fish-in-tank swim behaviour
+    // Wander animation — fish-in-tank swim behaviour.
+    // Subsampled: runs every WANDER_SUBDIV samples instead of every sample.
+    // Uses dt = sampleTime * WANDER_SUBDIV for time-scaled updates; Brownian
+    // drift amplitude is scaled by sqrt(WANDER_SUBDIV) for correct diffusion.
+    // This saves ~3 RNG calls + sqrt + atan2 + cos + sin per 32 samples.
+    constexpr int WANDER_SUBDIV = 32;
     int wMode = wanderMode.load(rlx);
-    if (wMode > 0 && !xyDragging.load()) {
+    if (wMode > 0 && !xyDragging.load() && ++wanderPhase >= WANDER_SUBDIV) {
+        wanderPhase = 0;
+        const float dt = args.sampleTime * WANDER_SUBDIV;
+
         float cx = params[XPOS_PARAM].getValue();
         float cy = params[YPOS_PARAM].getValue();
 
@@ -1173,16 +1187,16 @@ void process(const ProcessArgs& args) override {
         float wAngle = wanderAngle.load(rlx);
 
         // Pick a loose target area every 2–5 s, kept away from edges
-        wTimer -= args.sampleTime;
+        wTimer -= dt;
         if (wTimer <= 0.f) {
             wTargX = 0.15f + random::uniform() * 0.70f;
             wTargY = 0.15f + random::uniform() * 0.70f;
             wTimer = targetInterval * (0.6f + random::uniform() * 0.8f);
         }
 
-        // Brownian angular drift — 1/sqrt(SR) scaling gives sample-rate-independent
-        // diffusion; multiplying by sampleTime would make it effectively zero.
-        float driftAmp = modeDrift / std::sqrt(args.sampleRate);
+        // Brownian angular drift — scaled by sqrt(WANDER_SUBDIV) so diffusion
+        // per unit time matches the original per-sample version exactly.
+        float driftAmp = modeDrift / std::sqrt(args.sampleRate) * std::sqrt((float)WANDER_SUBDIV);
         wAngle += (random::uniform() * 2.f - 1.f) * driftAmp;
 
         // Weak, lazy pull toward target — low gain so it never dominates the drift
@@ -1194,11 +1208,11 @@ void process(const ProcessArgs& args) override {
             float diff = targetAngle - wAngle;
             while (diff >  float(M_PI)) diff -= 2.f * float(M_PI);
             while (diff < -float(M_PI)) diff += 2.f * float(M_PI);
-            wAngle += diff * 0.7f * args.sampleTime;
+            wAngle += diff * 0.7f * dt;
         }
 
         // Speed random-walks within mode range
-        wSpeed += (random::uniform() * 2.f - 1.f) * 0.15f * args.sampleTime;
+        wSpeed += (random::uniform() * 2.f - 1.f) * 0.15f * dt;
         wSpeed  = clamp(wSpeed, speedMin, speedMax);
 
         float vx = std::cos(wAngle) * wSpeed;
@@ -1219,8 +1233,8 @@ void process(const ProcessArgs& args) override {
         if (ey > 1.f - margin)   vy -= (1.f - (1.f - ey) / margin) * 0.5f;
 
         // Hard reflect at the actual boundary — prevents the fish fighting the clamp
-        float nx = cx + vx * args.sampleTime;
-        float ny = cy + vy * args.sampleTime;
+        float nx = cx + vx * dt;
+        float ny = cy + vy * dt;
         if (nx <= 0.f || nx >= 1.f) vx = -vx;
         if (ny <= 0.f || ny >= 1.f) vy = -vy;
 
