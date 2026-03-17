@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomScreenshot.png" width="750"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomScreenshot.png" width="700"></p>
 
 ---
 
