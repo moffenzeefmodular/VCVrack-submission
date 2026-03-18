@@ -253,12 +253,11 @@ struct DitDit : Module {
         bool effectiveSwitch = switchHigh || startStopCV;
 
         if (effectiveSwitch && !prevSwitchHigh) {
-            if (!isBufferEmpty()) {
-                currentMode = 1;
-                resetPos();
-                initClock    = true;
-                noClockTimer = 0.0;
-            }
+            // Enter playback mode regardless of buffer state
+            currentMode = 1;
+            resetPos();
+            initClock    = true;
+            noClockTimer = 0.0;
         } else if (!effectiveSwitch && prevSwitchHigh) {
             currentMode      = 0;
             dotOutputHigh    = false;
@@ -410,9 +409,9 @@ struct DitDit : Module {
 
         // ── Set outputs ───────────────────────────────────────
         bool active = (currentMode == 1) && !isBufferEmpty();
-        outputs[DIT_OUTPUT].setVoltage(  (active && dotOutputHigh)   ? 10.f : 0.f);
-        outputs[DAH_OUTPUT].setVoltage(  (active && dashOutputHigh)  ? 10.f : 0.f);
-        outputs[MORSE_OUTPUT].setVoltage((active && morseOutputHigh) ? 10.f : 0.f);
+        outputs[DIT_OUTPUT].setVoltage(  (active && dotOutputHigh)   ? 5.f : 0.f);
+        outputs[DAH_OUTPUT].setVoltage(  (active && dashOutputHigh)  ? 5.f : 0.f);
+        outputs[MORSE_OUTPUT].setVoltage((active && morseOutputHigh) ? 5.f : 0.f);
 
         // ── Lights ────────────────────────────────────────────
         lights[DITLED_LIGHT].setBrightnessSmooth(  dotOutputHigh   ? 1.f : 0.f, args.sampleTime);
@@ -632,6 +631,25 @@ struct DitDitDisplay : LedDisplay {
             // ── Playback mode ─────────────────────────────────
             nvgFillColor(args.vg, oled);
 
+            // Status messages when something is missing
+            {
+                bool bangConnected = module->inputs[DitDit::BANG_INPUT].isConnected();
+                bool bufEmpty      = module->isBufferEmpty();
+                const char* msg    = nullptr;
+                if (bufEmpty)                  msg = "NO TEXT INPUT";
+                else if (!bangConnected)       msg = "NO CLOCK INPUT";
+
+                if (msg) {
+                    nvgFontSize(args.vg, 6.f);
+                    nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                    nvgFillColor(args.vg, oled);
+                    nvgText(args.vg, cx, cy, msg, nullptr);
+                    nvgResetScissor(args.vg);
+                    LedDisplay::drawLayer(args, layer);
+                    return;
+                }
+            }
+
             // Current character — centered, upper area
             nvgFontSize(args.vg, 12.f);
             nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
@@ -648,7 +666,7 @@ struct DitDitDisplay : LedDisplay {
             }
             spaced[sp] = 0;
             nvgFontSize(args.vg, 11.f);
-            nvgText(args.vg, cx, 22.f, spaced, nullptr);
+            nvgText(args.vg, cx, 19.f, spaced, nullptr);
 
             nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
             if (module->endReached) {
@@ -715,7 +733,19 @@ struct DitDitWidget : ModuleWidget {
         DitDit* module = dynamic_cast<DitDit*>(this->module);
         if (!module) return;
 
+        // ── Settings toggles ─────────────────────────────────
         menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Settings"));
+
+        menu->addChild(createBoolPtrMenuItem("Loop", "", &module->bufferLoop));
+        menu->addChild(createBoolPtrMenuItem("Letter spacing", "", &module->letterSpacing));
+        menu->addChild(createBoolPtrMenuItem("Word spacing", "", &module->wordSpacing));
+        menu->addChild(createBoolPtrMenuItem("Dah:Dit Ratio 2:1", "", &module->dahDitWeight));
+        menu->addChild(createBoolPtrMenuItem("Morse Output: Trigger", "", &module->pulsewidth));
+
+        // ── Text ─────────────────────────────────────────────
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Text"));
 
         // ── Random quote ─────────────────────────────────────
         menu->addChild(createMenuItem("Load random quote", "", [=]() {
@@ -726,6 +756,11 @@ struct DitDitWidget : ModuleWidget {
         menu->addChild(createMenuItem("Clear text", "", [=]() {
             memset(module->textBuffer, 0, sizeof(module->textBuffer));
             module->resetPos();
+        }));
+
+        // ── Delete all memory slots ───────────────────────────
+        menu->addChild(createMenuItem("Delete all memory slots", "", [=]() {
+            memset(module->savedSlots, 0, sizeof(module->savedSlots));
         }));
 
         // ── Save slots ───────────────────────────────────────
@@ -763,29 +798,6 @@ struct DitDitWidget : ModuleWidget {
                 if (!empty) module->loadSlot(i);
             }));
         }
-
-        // ── Settings toggles ─────────────────────────────────
-        menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Settings"));
-
-        menu->addChild(createBoolPtrMenuItem("Loop", "", &module->bufferLoop));
-        menu->addChild(createBoolPtrMenuItem("Letter spacing", "", &module->letterSpacing));
-        menu->addChild(createBoolPtrMenuItem("Word spacing", "", &module->wordSpacing));
-        menu->addChild(createBoolPtrMenuItem("Dah:Dit Ratio 2:1", "", &module->dahDitWeight));
-        menu->addChild(createBoolPtrMenuItem("Morse Output: Trigger", "", &module->pulsewidth));
-
-        // ── Factory reset ─────────────────────────────────────
-        menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuItem("Delete all memory slots", "", [=]() {
-            memset(module->textBuffer, 0, sizeof(module->textBuffer));
-            memset(module->savedSlots, 0, sizeof(module->savedSlots));
-            module->bufferLoop    = true;
-            module->letterSpacing = true;
-            module->wordSpacing   = true;
-            module->dahDitWeight  = false;
-            module->pulsewidth    = false;
-            module->resetPos();
-        }));
     }
 };
 
