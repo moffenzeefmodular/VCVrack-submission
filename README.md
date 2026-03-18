@@ -55,6 +55,11 @@ By Ross Fish Feb 2025
 - Added user manuals for Stargazer, Quad Deviant, Tantz!, and Kleztizer
 - Added themed screws and themed jacks to Quad Deviant
 
+## v2.6.0 PLACEHOLDER 
+
+- Added Tehom 
+- Added DitDit 
+
 ## Tehom Beta: v2.6.0-rc1
 - Tehom beta release 
 
@@ -113,4 +118,7 @@ By Ross Fish Feb 2025
 ## Tehom Beta: v2.6.0-rc9
 - Massive AI overhaul to fix dropouts and make modules threadsafe. REQUIRES HEAVY TESTING!!!
 
+## Tehom Beta: v2.6.0-rc10
+- Added DitDit
+- Added Dark Panel NOT INTEGRATED YET
 
