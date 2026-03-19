@@ -8,7 +8,7 @@
 
 # Dit Dit VCV Rack User Manual
 
-*"I've had a soft spot for Morse code since I was a kid. There's something deeply compelling about reducing all of human language to just two symbols — a short pulse and a long one — and the idea that you could send anything across a wire with only that. Dit Dit is the module I always wanted: a way to clock text into gates so your synthesizer can say something, even if nobody knows what it's saying. You don't need to know a single thing about Morse code to use it. Type something, patch a clock in, and let it rip. It's a silly module with a serious pedigree, and I think that's about right."*
+*"I've had a soft spot for Morse code since I was a kid. There's something deeply compelling about reducing all of human language to just two symbols — a short pulse and a long one — and the idea that you could send anything across a wire with only that. You don't need to know a single thing about Morse code to use it. Type something, patch a clock in, and let it rip. It's a silly module with a serious pedigree, and I think that's about right."*
 
 **— Ross Fish, 2026**
 
