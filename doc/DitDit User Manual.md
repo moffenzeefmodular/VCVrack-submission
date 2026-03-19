@@ -1,3 +1,4 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DitDitYoutubeThumb.jpg)](https://youtu.be/rMIwqCQthho)
 
 ---
 
