@@ -6,7 +6,9 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Read(//usr/local/include/**)",
-      "Bash(/dev/null -name app.hpp)"
+      "Bash(/dev/null -name app.hpp)",
+      "WebFetch(domain:static1.squarespace.com)",
+      "Bash(curl -s -o /Users/ross/Documents/VCVrack-submission/doc/images/DitDitYoutubeThumb.jpg \"https://img.youtube.com/vi/rMIwqCQthho/maxresdefault.jpg\")"
     ]
   }
 }
