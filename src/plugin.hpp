@@ -155,8 +155,29 @@ struct StargazerLFOKnob : SvgKnob {
 
 struct LEDBezelSilver : SvgKnob {
 	widget::SvgWidget* bg;
+	bool lastDark = false;
 	LEDBezelSilver() {
-		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/LEDBezelSilver.svg")));
+		lastDark = settings::preferDarkPanels;
+		setSvg(Svg::load(asset::plugin(pluginInstance, lastDark
+			? "res/components/LEDBezel-Dark.svg"
+			: "res/components/LEDBezelSilver.svg")));
+	}
+	void step() override {
+		bool dark = settings::preferDarkPanels;
+		if (dark != lastDark) {
+			setSvg(Svg::load(asset::plugin(pluginInstance, dark
+				? "res/components/LEDBezel-Dark.svg"
+				: "res/components/LEDBezelSilver.svg")));
+			lastDark = dark;
+		}
+		SvgKnob::step();
+	}
+};
+
+struct LEDBezelDark : SvgKnob {
+	widget::SvgWidget* bg;
+	LEDBezelDark() {
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/LEDBezel-Dark.svg")));
 	}
 };
 

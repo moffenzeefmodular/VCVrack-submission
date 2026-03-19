@@ -1490,6 +1490,7 @@ struct QuadLooperXYDisplay : Widget {
     Vec lastTrailPos = {-1.f, -1.f};  // sentinel: uninitialized
 
     std::shared_ptr<window::Svg> fishSvg;
+    bool lastFishDark = false;
 
     // Fish orientation state
     float prevPx      = -1.f, prevPy = -1.f;
@@ -1587,19 +1588,27 @@ struct QuadLooperXYDisplay : Widget {
         nvgRestore(args.vg);
     }
 
+    void step() override {
+        Widget::step();
+        bool dark = settings::preferDarkPanels;
+        if (!fishSvg || dark != lastFishDark) {
+            fishSvg = window::Svg::load(asset::plugin(pluginInstance, dark
+                ? "res/components/Fish-Dark.svg"
+                : "res/components/Fish.svg"));
+            lastFishDark = dark;
+        }
+    }
+
     void draw(const DrawArgs &args) override {
         float radius = 6.f;
+        bool dark = settings::preferDarkPanels;
 
         nvgBeginPath(args.vg);
         nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, radius);
-        nvgFillColor(args.vg, nvgRGB(18, 18, 18));
+        nvgFillColor(args.vg, dark ? nvgRGB(255, 255, 255) : nvgRGB(18, 18, 18));
         nvgFill(args.vg);
 
         if (!module) return;
-
-        // Lazy-load fish SVG
-        if (!fishSvg)
-            fishSvg = window::Svg::load(asset::plugin(pluginInstance, "res/components/Fish.svg"));
 
         bool useFish = (module->cursorStyle == 0) && fishSvg && fishSvg->handle;
         float fishW = 0.f, fishH = 0.f, fishSvgW = 0.f;
@@ -1722,7 +1731,7 @@ struct QuadLooperXYDisplay : Widget {
                     if (r > 0.f) {
                         nvgBeginPath(args.vg);
                         nvgCircle(args.vg, tp.pos.x, tp.pos.y, r);
-                        nvgFillColor(args.vg, nvgRGBAf(1.f, 1.f, 1.f, tp.alpha * 0.7f));
+                        nvgFillColor(args.vg, dark ? nvgRGBAf(0.f, 0.f, 0.f, tp.alpha * 0.7f) : nvgRGBAf(1.f, 1.f, 1.f, tp.alpha * 0.7f));
                         nvgFill(args.vg);
                     }
                 }
@@ -1744,7 +1753,7 @@ struct QuadLooperXYDisplay : Widget {
             nvgLineTo(args.vg, px, box.size.y);
             nvgMoveTo(args.vg, 0, py);
             nvgLineTo(args.vg, box.size.x, py);
-            nvgStrokeColor(args.vg, nvgRGB(60, 60, 60));
+            nvgStrokeColor(args.vg, dark ? nvgRGB(200, 200, 200) : nvgRGB(60, 60, 60));
             nvgStroke(args.vg);
         }
 
@@ -1754,7 +1763,7 @@ struct QuadLooperXYDisplay : Widget {
         } else {
             nvgBeginPath(args.vg);
             nvgCircle(args.vg, px, py, radius);
-            nvgFillColor(args.vg, nvgRGB(230, 230, 230));
+            nvgFillColor(args.vg, dark ? nvgRGB(30, 30, 30) : nvgRGB(230, 230, 230));
             nvgFill(args.vg);
         }
     }
@@ -1770,6 +1779,7 @@ struct TehomScrollingBG : Widget {
     float scrollX = 0.f;
     float scaledW = 0.f;
     bool initialized = false;
+    bool lastDarkMode = false;
 
     static constexpr float speeds[] = {0.f, 0.15f, 0.5f, 1.4f}; // Off/Slow/Medium/Fast
 
@@ -1788,8 +1798,23 @@ struct TehomScrollingBG : Widget {
         }
     };
 
+    void clearTiles() {
+        for (int i = 0; i < 2; i++) {
+            if (tile[i]) {
+                removeChild(tile[i]);
+                delete tile[i];
+                tile[i] = nullptr;
+            }
+        }
+        initialized = false;
+    }
+
     void initTiles() {
-        auto svg = window::Svg::load(asset::plugin(pluginInstance, "res/panels/TehomBGSilver.svg"));
+        bool dark = settings::preferDarkPanels;
+        const char* svgPath = dark
+            ? "res/panels/TehomBG-dark.svg"
+            : "res/panels/TehomBGSilver.svg";
+        auto svg = window::Svg::load(asset::plugin(pluginInstance, svgPath));
         if (!svg || !svg->handle || box.size.y <= 0.f) return;
 
         float svgH = svg->handle->height;
@@ -1812,13 +1837,17 @@ struct TehomScrollingBG : Widget {
         // Set initial positions
         tile[0]->box.pos.x = scrollX - scaledW;
         tile[1]->box.pos.x = scrollX;
+        lastDarkMode = dark;
         initialized = true;
     }
 
     void step() override {
         Widget::step();
+        bool dark = settings::preferDarkPanels;
         if (!initialized && box.size.y > 0.f)
             initTiles();
+        else if (initialized && dark != lastDarkMode)
+            { clearTiles(); initTiles(); }
         if (!initialized || scaledW <= 0.f) return;
 
         int spd = module ? clamp(module->bgScrollSpeed, 0, 3) : 2;
@@ -1843,7 +1872,10 @@ constexpr float TehomScrollingBG::speeds[];
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Tehom.svg")));
+		setPanel(createPanel(
+			asset::plugin(pluginInstance, "res/panels/Tehom.svg"),
+			asset::plugin(pluginInstance, "res/panels/Tehom-dark.svg")
+		));
 
 		// Scrolling background (drawn below panel, shows through transparent areas)
 		auto* bg = new TehomScrollingBG;

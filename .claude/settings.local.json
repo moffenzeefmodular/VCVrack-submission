@@ -4,7 +4,9 @@
       "Bash(make install:*)",
       "WebFetch(domain:github.blog)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Read(//usr/local/include/**)",
+      "Bash(/dev/null -name app.hpp)"
     ]
   }
 }

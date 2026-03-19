@@ -120,5 +120,5 @@ By Ross Fish Feb 2025
 
 ## Tehom Beta: v2.6.0-rc10
 - Added DitDit
-- Added Dark Panel NOT INTEGRATED YET
+- Added Dark Panel 
 
