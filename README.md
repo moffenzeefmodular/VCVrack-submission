@@ -59,6 +59,7 @@ By Ross Fish Feb 2025
 
 - Added Tehom 
 - Added DitDit 
+- Added all sample banks to GMO from old repo 
 
 ## Tehom Beta: v2.6.0-rc1
 - Tehom beta release 
@@ -127,3 +128,6 @@ By Ross Fish Feb 2025
 - Removed all background scrolling
 - De-click attempts
 - Reduced slew minimum to 0 
+
+## Tehom Beta: v2.6.0-rc12
+- Added all sample banks to GMO from old repo 

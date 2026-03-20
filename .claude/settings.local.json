@@ -8,7 +8,10 @@
       "Read(//usr/local/include/**)",
       "Bash(/dev/null -name app.hpp)",
       "WebFetch(domain:static1.squarespace.com)",
-      "Bash(curl -s -o /Users/ross/Documents/VCVrack-submission/doc/images/DitDitYoutubeThumb.jpg \"https://img.youtube.com/vi/rMIwqCQthho/maxresdefault.jpg\")"
+      "Bash(curl -s -o /Users/ross/Documents/VCVrack-submission/doc/images/DitDitYoutubeThumb.jpg \"https://img.youtube.com/vi/rMIwqCQthho/maxresdefault.jpg\")",
+      "Bash(done)",
+      "Bash(python3:*)",
+      "Bash(make)"
     ]
   }
 }
