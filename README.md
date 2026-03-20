@@ -122,3 +122,6 @@ By Ross Fish Feb 2025
 - Added DitDit
 - Added Dark Panel 
 
+## Tehom Beta: v2.6.0-rc11
+- Created vanilla branch 
+- Removed all background scrolling
