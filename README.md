@@ -125,3 +125,5 @@ By Ross Fish Feb 2025
 ## Tehom Beta: v2.6.0-rc11
 - Created vanilla branch 
 - Removed all background scrolling
+- De-click attempts
+- Reduced slew minimum to 0 
