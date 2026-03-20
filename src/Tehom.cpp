@@ -203,7 +203,7 @@ struct Tehom : Module {
 
     configParam<ToneParamQuantity>(FILTER_PARAM, 0.f, 1.f, 0.f, "Tone");
 
-	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
+	configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "ms", 0.f, 1000.f);
 
 	configParam(LEDBEZEL1_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f);
@@ -322,7 +322,8 @@ void eraseBuffer(int i) {
     playState[i].store(false);
     playGain[i]  = 0.f;
     pendingReverseFlip[i].store(false);
-    pendingScrubTransition[i] = false;
+    pendingScrubTransition[i]  = false;
+    pendingRecordTransition[i] = false;
     eraseFlash[i].store(0.4f);
 }
 
@@ -550,7 +551,8 @@ std::atomic<bool> playReversed[4];
 std::atomic<float> eraseFlash[4];
 float playGain[4]  = {};  // per-channel de-click ramp — audio-thread only
 std::atomic<bool> pendingReverseFlip[4];  // written by UI button, consumed by process()
-bool pendingScrubTransition[4] = {};      // audio-thread only
+bool pendingScrubTransition[4]   = {};    // audio-thread only
+bool pendingRecordTransition[4]  = {};    // audio-thread only: de-click when record toggles while playing
 std::atomic<bool> autoPlay[4];
 std::atomic<bool> autoPlayFull[4];
 std::atomic<bool> continuousRecord[4];
@@ -710,6 +712,9 @@ void process(const ProcessArgs& args) override {
                 writePos[i] = 0;
                 recordedLength[i] = 0;
             }
+            // De-click: ramp gain to zero on any record state change while playing
+            if (playState[i].load(rlx))
+                pendingRecordTransition[i] = true;
             // Auto-play when recording manually stopped
             if (wasRecording && autoPlay[i].load(rlx) && hasContent[i] && !playState[i].load(rlx)) {
                 playState[i].store(true, rlx);
@@ -905,6 +910,21 @@ void process(const ProcessArgs& args) override {
                     float frac = readPos[i] - (float)rp0;
                     sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
                     sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
+                    // Apply xfade envelope at loop boundaries during scrub to eliminate clicks
+                    if (xfadeParam > 0.f) {
+                        int minLoopSize = std::min(100, len);
+                        int loopSize  = clamp((int)(sizeParam * sizeParam * sizeParam * (float)len), minLoopSize, len);
+                        int loopStart = clamp((int)(posParam * (float)(len - loopSize)), 0, len - loopSize);
+                        float posInLoop = readPos[i] - (float)loopStart;
+                        float fadeLen   = xfadeParam * (float)(loopSize / 2);
+                        float gain = 1.f;
+                        if (posInLoop < fadeLen)
+                            gain = posInLoop / fadeLen;
+                        else if (posInLoop > (float)loopSize - fadeLen)
+                            gain = ((float)loopSize - posInLoop) / fadeLen;
+                        sampL *= clamp(gain, 0.f, 1.f);
+                        sampR *= clamp(gain, 0.f, 1.f);
+                    }
                 } else {
                     // Normal playback with loop window
                     // Compute loop window (strictly within recorded content)
@@ -967,9 +987,12 @@ void process(const ProcessArgs& args) override {
         // De-click ramp: ~2ms fade on any state transition.
         // Pending flags force gain to 0 first; the action fires at zero-crossing, then gain ramps back up.
         {
-            bool hasPending = pendingReverseFlip[i].load(rlx) || pendingScrubTransition[i];
+            bool hasPending = pendingReverseFlip[i].load(rlx) || pendingScrubTransition[i]
+                           || pendingRecordTransition[i];
             float target = hasPending ? 0.f : ((playState[i].load(rlx) || isDraggingNow) ? 1.f : 0.f);
-            playGain[i] = clamp(playGain[i] + (target >= playGain[i] ? rampRate : -rampRate), 0.f, 1.f);
+            // clamp(delta, -r, r) moves toward target by at most rampRate per sample,
+            // and stops exactly at target — no overshoot or oscillation at 0 or 1.
+            playGain[i] = clamp(playGain[i] + clamp(target - playGain[i], -rampRate, rampRate), 0.f, 1.f);
 
             // At zero-crossing: execute deferred actions then let gain ramp back up
             if (playGain[i] <= 0.f) {
@@ -977,9 +1000,10 @@ void process(const ProcessArgs& args) override {
                     playReversed[i].store(!playReversed[i].load(rlx), rlx);
                     pendingReverseFlip[i].store(false, rlx);
                 }
-                if (pendingScrubTransition[i]) {
+                if (pendingScrubTransition[i])
                     pendingScrubTransition[i] = false;
-                }
+                if (pendingRecordTransition[i])
+                    pendingRecordTransition[i] = false;
             }
         }
         sampL *= playGain[i];
@@ -1255,8 +1279,8 @@ void process(const ProcessArgs& args) override {
         targetY = params[YPOS_PARAM].getValue();
     }
 
-    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? clamp(inputs[SLEWCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f), 0.02f, 1.f);
-    float alpha = clamp(args.sampleTime / slewParam, 0.f, 1.f);
+    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? clamp(inputs[SLEWCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f), 0.f, 1.f);
+    float alpha = (slewParam < args.sampleTime) ? 1.f : clamp(args.sampleTime / slewParam, 0.f, 1.f);
     xyX += (targetX - xyX) * alpha;
     xyY += (targetY - xyY) * alpha;
     xyFinalX.store(xyX, rlx);
