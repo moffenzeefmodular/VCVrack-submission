@@ -203,7 +203,7 @@ struct Tehom : Module {
 
     configParam<ToneParamQuantity>(FILTER_PARAM, 0.f, 1.f, 0.f, "Tone");
 
-	configParam(SLEW_PARAM, 0.02f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
+	configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "ms", 0.f, 1000.f);
 
 	configParam(LEDBEZEL1_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f);
@@ -322,7 +322,8 @@ void eraseBuffer(int i) {
     playState[i].store(false);
     playGain[i]  = 0.f;
     pendingReverseFlip[i].store(false);
-    pendingScrubTransition[i] = false;
+    pendingScrubTransition[i]  = false;
+    pendingRecordTransition[i] = false;
     eraseFlash[i].store(0.4f);
 }
 
@@ -385,8 +386,6 @@ void onReset(const ResetEvent& e) override {
     showCrosshairs    = false;
     persist           = true;
     xyPadPansAudio.store(false);
-    bgScrollSpeed     = 2;
-    bgScrollRight     = true;
     wanderMode.store(0);
     wanderTimer.store(0.f);
     wanderSpeed.store(0.15f);
@@ -407,8 +406,6 @@ json_t* dataToJson() override {
     json_object_set_new(root, "showCrosshairs",   json_boolean(showCrosshairs));
     json_object_set_new(root, "persist",          json_boolean(persist));
     json_object_set_new(root, "persistBuffers",   json_boolean(persistBuffers));
-    json_object_set_new(root, "bgScrollSpeed",    json_integer(bgScrollSpeed));
-    json_object_set_new(root, "bgScrollRight",    json_boolean(bgScrollRight));
     json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader.load()));
     json_object_set_new(root, "mediaTypeIndex",   json_integer(mediaTypeIndex.load()));
     json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio.load()));
@@ -461,10 +458,6 @@ void dataFromJson(json_t* root) override {
     if (ps) persist = json_boolean_value(ps);
     json_t* pb = json_object_get(root, "persistBuffers");
     if (pb) persistBuffers = json_boolean_value(pb);
-    json_t* bss = json_object_get(root, "bgScrollSpeed");
-    if (bss) bgScrollSpeed = (int)json_integer_value(bss);
-    json_t* bsr = json_object_get(root, "bgScrollRight");
-    if (bsr) bgScrollRight = json_boolean_value(bsr);
     json_t* xyp = json_object_get(root, "xyPadPansAudio");
     if (xyp) xyPadPansAudio.store(json_boolean_value(xyp));
     json_t* cs = json_object_get(root, "cursorStyle");
@@ -558,7 +551,8 @@ std::atomic<bool> playReversed[4];
 std::atomic<float> eraseFlash[4];
 float playGain[4]  = {};  // per-channel de-click ramp — audio-thread only
 std::atomic<bool> pendingReverseFlip[4];  // written by UI button, consumed by process()
-bool pendingScrubTransition[4] = {};      // audio-thread only
+bool pendingScrubTransition[4]   = {};    // audio-thread only
+bool pendingRecordTransition[4]  = {};    // audio-thread only: de-click when record toggles while playing
 std::atomic<bool> autoPlay[4];
 std::atomic<bool> autoPlayFull[4];
 std::atomic<bool> continuousRecord[4];
@@ -572,9 +566,6 @@ bool persistBuffers  = false;  // save audio buffer data with patch (can stall U
 std::atomic<bool> xyPadPansAudio{false};
 int  cursorStyle     = 0; // 0=Fish, 1=Circle
 
-// Background scroll speed: 0=Off, 1=Slow, 2=Medium, 3=Fast
-int  bgScrollSpeed = 2;
-bool bgScrollRight = true;
 std::atomic<int> playCVMode[4]; // 0=Play/Stop, 1=Retrigger, 2=Forward/Reverse
 
 std::atomic<bool> xyDragging{false};
@@ -721,6 +712,9 @@ void process(const ProcessArgs& args) override {
                 writePos[i] = 0;
                 recordedLength[i] = 0;
             }
+            // De-click: ramp gain to zero on any record state change while playing
+            if (playState[i].load(rlx))
+                pendingRecordTransition[i] = true;
             // Auto-play when recording manually stopped
             if (wasRecording && autoPlay[i].load(rlx) && hasContent[i] && !playState[i].load(rlx)) {
                 playState[i].store(true, rlx);
@@ -916,6 +910,21 @@ void process(const ProcessArgs& args) override {
                     float frac = readPos[i] - (float)rp0;
                     sampL = bufL[i][rp0] + (bufL[i][rp1] - bufL[i][rp0]) * frac;
                     sampR = bufR[i][rp0] + (bufR[i][rp1] - bufR[i][rp0]) * frac;
+                    // Apply xfade envelope at loop boundaries during scrub to eliminate clicks
+                    if (xfadeParam > 0.f) {
+                        int minLoopSize = std::min(100, len);
+                        int loopSize  = clamp((int)(sizeParam * sizeParam * sizeParam * (float)len), minLoopSize, len);
+                        int loopStart = clamp((int)(posParam * (float)(len - loopSize)), 0, len - loopSize);
+                        float posInLoop = readPos[i] - (float)loopStart;
+                        float fadeLen   = xfadeParam * (float)(loopSize / 2);
+                        float gain = 1.f;
+                        if (posInLoop < fadeLen)
+                            gain = posInLoop / fadeLen;
+                        else if (posInLoop > (float)loopSize - fadeLen)
+                            gain = ((float)loopSize - posInLoop) / fadeLen;
+                        sampL *= clamp(gain, 0.f, 1.f);
+                        sampR *= clamp(gain, 0.f, 1.f);
+                    }
                 } else {
                     // Normal playback with loop window
                     // Compute loop window (strictly within recorded content)
@@ -978,9 +987,12 @@ void process(const ProcessArgs& args) override {
         // De-click ramp: ~2ms fade on any state transition.
         // Pending flags force gain to 0 first; the action fires at zero-crossing, then gain ramps back up.
         {
-            bool hasPending = pendingReverseFlip[i].load(rlx) || pendingScrubTransition[i];
+            bool hasPending = pendingReverseFlip[i].load(rlx) || pendingScrubTransition[i]
+                           || pendingRecordTransition[i];
             float target = hasPending ? 0.f : ((playState[i].load(rlx) || isDraggingNow) ? 1.f : 0.f);
-            playGain[i] = clamp(playGain[i] + (target >= playGain[i] ? rampRate : -rampRate), 0.f, 1.f);
+            // clamp(delta, -r, r) moves toward target by at most rampRate per sample,
+            // and stops exactly at target — no overshoot or oscillation at 0 or 1.
+            playGain[i] = clamp(playGain[i] + clamp(target - playGain[i], -rampRate, rampRate), 0.f, 1.f);
 
             // At zero-crossing: execute deferred actions then let gain ramp back up
             if (playGain[i] <= 0.f) {
@@ -988,9 +1000,10 @@ void process(const ProcessArgs& args) override {
                     playReversed[i].store(!playReversed[i].load(rlx), rlx);
                     pendingReverseFlip[i].store(false, rlx);
                 }
-                if (pendingScrubTransition[i]) {
+                if (pendingScrubTransition[i])
                     pendingScrubTransition[i] = false;
-                }
+                if (pendingRecordTransition[i])
+                    pendingRecordTransition[i] = false;
             }
         }
         sampL *= playGain[i];
@@ -1266,8 +1279,8 @@ void process(const ProcessArgs& args) override {
         targetY = params[YPOS_PARAM].getValue();
     }
 
-    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? clamp(inputs[SLEWCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f), 0.02f, 1.f);
-    float alpha = clamp(args.sampleTime / slewParam, 0.f, 1.f);
+    float slewParam = clamp(params[SLEW_PARAM].getValue() + (inputs[SLEWCVIN_INPUT].isConnected() ? clamp(inputs[SLEWCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f : 0.f), 0.f, 1.f);
+    float alpha = (slewParam < args.sampleTime) ? 1.f : clamp(args.sampleTime / slewParam, 0.f, 1.f);
     xyX += (targetX - xyX) * alpha;
     xyY += (targetY - xyY) * alpha;
     xyFinalX.store(xyX, rlx);
@@ -1774,115 +1787,14 @@ struct ChanLight0 : GrayModuleLightWidget { ChanLight0() { addBaseColor(SCHEME_C
 struct ChanLight1 : GrayModuleLightWidget { ChanLight1() { addBaseColor(SCHEME_PURPLE); } };
 struct ChanLight2 : GrayModuleLightWidget { ChanLight2() { addBaseColor(SCHEME_ORANGE); } };
 struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_RED); } };
-struct TehomScrollingBG : Widget {
-    Tehom* module = nullptr;
-    float scrollX = 0.f;
-    float scaledW = 0.f;
-    bool initialized = false;
-    bool lastDarkMode = false;
-
-    static constexpr float speeds[] = {0.f, 0.15f, 0.5f, 1.4f}; // Off/Slow/Medium/Fast
-
-    widget::FramebufferWidget* tile[2] = {nullptr, nullptr};
-
-    // Inner widget: draws the SVG once at the correct scale into the FramebufferWidget cache.
-    struct SvgTile : Widget {
-        std::shared_ptr<window::Svg> svg;
-        float scale = 1.f;
-        void draw(const DrawArgs& args) override {
-            if (!svg || !svg->handle) return;
-            nvgSave(args.vg);
-            nvgScale(args.vg, scale, scale);
-            window::svgDraw(args.vg, svg->handle);
-            nvgRestore(args.vg);
-        }
-    };
-
-    void clearTiles() {
-        for (int i = 0; i < 2; i++) {
-            if (tile[i]) {
-                removeChild(tile[i]);
-                delete tile[i];
-                tile[i] = nullptr;
-            }
-        }
-        initialized = false;
-    }
-
-    void initTiles() {
-        bool dark = settings::preferDarkPanels;
-        const char* svgPath = dark
-            ? "res/panels/TehomBG-dark.svg"
-            : "res/panels/TehomBGSilver.svg";
-        auto svg = window::Svg::load(asset::plugin(pluginInstance, svgPath));
-        if (!svg || !svg->handle || box.size.y <= 0.f) return;
-
-        float svgH = svg->handle->height;
-        float svgW = svg->handle->width;
-        if (svgH <= 0.f || svgW <= 0.f) return;
-        float scale = box.size.y / svgH;
-        scaledW = svgW * scale;
-
-        for (int i = 0; i < 2; i++) {
-            auto* fb = new widget::FramebufferWidget;
-            fb->box.size = Vec(scaledW, box.size.y);
-            auto* t = new SvgTile;
-            t->svg = svg;
-            t->scale = scale;
-            t->box.size = Vec(scaledW, box.size.y);
-            fb->addChild(t);
-            addChild(fb);
-            tile[i] = fb;
-        }
-        // Set initial positions
-        tile[0]->box.pos.x = scrollX - scaledW;
-        tile[1]->box.pos.x = scrollX;
-        lastDarkMode = dark;
-        initialized = true;
-    }
-
-    void step() override {
-        Widget::step();
-        bool dark = settings::preferDarkPanels;
-        if (!initialized && box.size.y > 0.f)
-            initTiles();
-        else if (initialized && dark != lastDarkMode)
-            { clearTiles(); initTiles(); }
-        if (!initialized || scaledW <= 0.f) return;
-
-        int spd = module ? clamp(module->bgScrollSpeed, 0, 3) : 2;
-        bool goRight = module ? module->bgScrollRight : true;
-        float delta = goRight ? speeds[spd] : -speeds[spd];
-        scrollX += delta;
-        if (scrollX >= scaledW) scrollX -= scaledW;
-        if (scrollX < 0.f)      scrollX += scaledW;
-
-        tile[0]->box.pos.x = scrollX - scaledW;
-        tile[1]->box.pos.x = scrollX;
-    }
-
-    void draw(const DrawArgs& args) override {
-        nvgSave(args.vg);
-        nvgScissor(args.vg, 0, 0, box.size.x, box.size.y);
-        Widget::draw(args);
-        nvgRestore(args.vg);
-    }
-};
-constexpr float TehomScrollingBG::speeds[];
 struct TehomWidget : ModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
 		setPanel(createPanel(
-			asset::plugin(pluginInstance, "res/panels/Tehom.svg"),
-			asset::plugin(pluginInstance, "res/panels/Tehom-dark.svg")
+			asset::plugin(pluginInstance, "res/panels/Tehom-Vanilla.svg"),
+			asset::plugin(pluginInstance, "res/panels/Tehom-Vanilla-Dark.svg")
 		));
 
-		// Scrolling background (drawn below panel, shows through transparent areas)
-		auto* bg = new TehomScrollingBG;
-		bg->module   = module;
-		bg->box.size = box.size;
-		addChildBottom(bg);
-       
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
@@ -2070,26 +1982,6 @@ struct TehomWidget : ModuleWidget {
                     }
                 ));
             }
-        }));
-        menu->addChild(createSubmenuItem("Background Scroll", "", [=](Menu* subMenu) {
-            subMenu->addChild(createMenuLabel("Speed"));
-            const char* names[] = {"Off", "Slow", "Medium", "Fast"};
-            for (int s = 0; s < 4; s++) {
-                subMenu->addChild(createCheckMenuItem(names[s], "",
-                    [=]() { return tehom->bgScrollSpeed == s; },
-                    [=]() { tehom->bgScrollSpeed = s; }
-                ));
-            }
-            subMenu->addChild(new MenuSeparator);
-            subMenu->addChild(createMenuLabel("Direction"));
-            subMenu->addChild(createCheckMenuItem("Right", "",
-                [=]() { return tehom->bgScrollRight; },
-                [=]() { tehom->bgScrollRight = true; }
-            ));
-            subMenu->addChild(createCheckMenuItem("Left", "",
-                [=]() { return !tehom->bgScrollRight; },
-                [=]() { tehom->bgScrollRight = false; }
-            ));
         }));
 
         // Global section
