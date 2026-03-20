@@ -39,7 +39,6 @@ struct GMO : Module {
 	int bankNumWavetables = 8;
 	float bankSpeedMin = 0.05f;
 	float bankSpeedMax = 3.0f;
-	bool bankCenterAtMax = false;
 	int8_t bankData[GMO_MAX_WAVETABLES][WAVETABLE_SIZE] = {};
 	std::atomic<int> pendingBankIndex{-2};  // -2 = no change pending
 
@@ -86,7 +85,6 @@ struct GMO : Module {
 			bankNumWavetables = 8;
 			bankSpeedMin = 0.05f;
 			bankSpeedMax = 3.0f;
-			bankCenterAtMax = false;
 			return;
 		}
 
@@ -108,7 +106,6 @@ struct GMO : Module {
 		bankNumWavetables = n;
 		bankSpeedMin = GMO_BANKS[idx].speedMin;
 		bankSpeedMax = GMO_BANKS[idx].speedMax;
-		bankCenterAtMax = GMO_BANKS[idx].centerAtMax;
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -131,13 +128,7 @@ struct GMO : Module {
 		float knob1Param = params[SPEED_PARAM].getValue() + 0.05;
 		float knob1Value = knob1Param + (normalizedCV - 0.5f);
 		float controlValue = clamp(knob1Value, 0.0f, 1.0f);
-		if (bankCenterAtMax) {
-			// speedMax at 50%: double the range above speedMin
-			float effectiveMax = 2.0f * bankSpeedMax - bankSpeedMin;
-			speed = controlValue * (effectiveMax - bankSpeedMin) + bankSpeedMin;
-		} else {
-			speed = controlValue * (bankSpeedMax - bankSpeedMin) + bankSpeedMin;
-		}
+		speed = controlValue * (bankSpeedMax - bankSpeedMin) + bankSpeedMin;
 
 		//Specimen — dynamically scaled to bankNumWavetables
 		float cvInput2 = inputs[SPECIMEN_CV_INPUT].getVoltage();
