@@ -203,7 +203,7 @@ struct Tehom : Module {
 
     configParam<ToneParamQuantity>(FILTER_PARAM, 0.f, 1.f, 0.f, "Tone");
 
-	configParam(SLEW_PARAM, 0.f, 1.f, 0.f, "Slew", "ms", 0.f, 1000.f);
+	configParam(SLEW_PARAM, 0.f, 1.f, 0.02f, "Slew", "ms", 0.f, 1000.f);
 
 	configParam(LEDBEZEL1_PARAM, 0.f, 1.f, 0.f);
 	configParam(LEDBEZEL2_PARAM, 0.f, 1.f, 0.f);
