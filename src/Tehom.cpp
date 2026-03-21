@@ -308,6 +308,7 @@ struct Tehom : Module {
     configOutput(YCVOUT_OUTPUT, "Y CV");
 
     loadOggFiles();
+    resizeBuffers(44100.f);  // Ensure buffers are allocated before first process() to avoid audio-thread malloc
 }
 
 void eraseBuffer(int i) {
@@ -321,9 +322,10 @@ void eraseBuffer(int i) {
     recordState[i].store(false);
     playState[i].store(false);
     playGain[i]  = 0.f;
+    recGain[i]   = 0.f;
     pendingReverseFlip[i].store(false);
     pendingScrubTransition[i]  = false;
-    pendingRecordTransition[i] = false;
+    pendingPlayStart[i]        = false;
     eraseFlash[i].store(0.4f);
 }
 
@@ -550,9 +552,10 @@ std::atomic<bool> playReversed[4];
 
 std::atomic<float> eraseFlash[4];
 float playGain[4]  = {};  // per-channel de-click ramp — audio-thread only
+float recGain[4]   = {};  // per-channel record crossfade — ramps 0→1 on record start, 1→0 on stop
 std::atomic<bool> pendingReverseFlip[4];  // written by UI button, consumed by process()
 bool pendingScrubTransition[4]   = {};    // audio-thread only
-bool pendingRecordTransition[4]  = {};    // audio-thread only: de-click when record toggles while playing
+bool pendingPlayStart[4]         = {};    // audio-thread only: defers readPos reset until playGain == 0
 std::atomic<bool> autoPlay[4];
 std::atomic<bool> autoPlayFull[4];
 std::atomic<bool> continuousRecord[4];
@@ -585,6 +588,18 @@ int wanderPhase{0};                     // counts samples; wander runs every WAN
 // Warble LFO phases (per channel, advance while playing)
 float wowPhase[4]     = {};
 float flutterPhase[4] = {};
+
+// Cached per-session constants — recomputed only when sample rate changes
+float cachedSampleTime  = 0.f;
+float cachedScrubDecay  = 0.f;
+float cachedScrubSlew   = 0.f;
+float cachedRampRate    = 0.f;
+
+// Cached filter coefficients — recomputed only when the filter param changes
+float cachedFilterT     = -1.f;  // -1 forces first computation
+float cachedFilterAlpha =  0.f;
+float cachedFilterSc    =  5.f;
+float cachedFilterGain  =  1.f;
 
 // Audio buffers
 float bufferDuration = 2.f;   // seconds, user-selectable
@@ -675,14 +690,18 @@ void process(const ProcessArgs& args) override {
     float xyX = xyFinalX.load(rlx);
     float xyY = xyFinalY.load(rlx);
 
-    // Session-constant exponential coefficients for the vinyl-scrub slew filter.
-    // std::exp is expensive; computing it once per process() call instead of
-    // once per channel per sample saves 7 exp() calls per sample at 4 channels.
-    const float scrubDecay = std::exp(-args.sampleTime / 1.f);
-    const float scrubSlew  = 1.f - scrubDecay;
-
-    // De-click ramp rate: constant per block, hoisted out of the per-channel loop.
-    const float rampRate = args.sampleTime / 0.002f;
+    // Session-constant coefficients — recomputed only when sample rate changes.
+    // std::exp is expensive; caching avoids calling it every sample.
+    if (args.sampleTime != cachedSampleTime) {
+        cachedSampleTime = args.sampleTime;
+        cachedScrubDecay = std::exp(-args.sampleTime / 1.f);
+        cachedScrubSlew  = 1.f - cachedScrubDecay;
+        cachedRampRate   = args.sampleTime / 0.005f;
+        cachedFilterT    = -1.f;  // force filter coefficient recomputation at new sample rate
+    }
+    const float scrubDecay = cachedScrubDecay;
+    const float scrubSlew  = cachedScrubSlew;
+    const float rampRate   = cachedRampRate;
 
     // Deferred buffer erases requested from the UI thread (right-click on record button).
     // Performed here on the audio thread to avoid races with the audio buffers.
@@ -690,10 +709,6 @@ void process(const ProcessArgs& args) override {
         if (pendingErase[i].exchange(false, rlx))
             eraseBuffer(i);
     }
-
-    // Ensure buffers are allocated (onSampleRateChange may not fire before first process)
-    if (bufferSize == 0)
-        resizeBuffers(args.sampleRate);
 
     // --- RECORD toggles ---
     for (int i = 0; i < 4; i++) {
@@ -712,13 +727,15 @@ void process(const ProcessArgs& args) override {
                 writePos[i] = 0;
                 recordedLength[i] = 0;
             }
-            // De-click: ramp gain to zero on any record state change while playing
-            if (playState[i].load(rlx))
-                pendingRecordTransition[i] = true;
-            // Auto-play when recording manually stopped
+            // Auto-play when recording manually stopped — use pending system so readPos
+            // is never reset while playGain is still non-zero from a prior ramp-down.
             if (wasRecording && autoPlay[i].load(rlx) && hasContent[i] && !playState[i].load(rlx)) {
-                playState[i].store(true, rlx);
-                readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+                if (playGain[i] <= 0.f) {
+                    playState[i].store(true, rlx);
+                    readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+                } else {
+                    pendingPlayStart[i] = true;
+                }
             }
         }
 
@@ -746,28 +763,45 @@ void process(const ProcessArgs& args) override {
         bool cvRising = cv && !lastPlayCV[i];
         lastPlayCV[i] = cv;
 
+        // Helper: start playback — defers readPos reset if gain is still non-zero to avoid click.
+        // Only call when intending to START (not stop) playback.
+        auto startPlay = [&]() {
+            if (playGain[i] <= 0.f) {
+                // Gain is already silent — safe to start directly, ramp will go 0→1
+                playState[i].store(true, rlx);
+                readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+            } else {
+                // Gain is still non-zero from a previous ramp — defer until zero crossing
+                // so the readPos jump cannot create a discontinuity in the output.
+                pendingPlayStart[i] = true;
+            }
+        };
+        auto stopPlay = [&]() {
+            pendingPlayStart[i] = false;   // cancel any deferred start
+            playState[i].store(false, rlx);
+        };
+
         if (cvRising) {
             int cvMode = playCVMode[i].load(rlx);
             if (cvMode == 1) {
                 // Retrigger: reset playhead to start (or end if reversed), ensure playing
-                playState[i].store(true, rlx);
-                readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+                startPlay();
             } else if (cvMode == 2) {
                 // Forward/Reverse toggle
                 pendingReverseFlip[i].store(!pendingReverseFlip[i].load(rlx), rlx);
             } else {
                 // Play/Stop toggle (default)
-                bool ps = !playState[i].load(rlx);
-                playState[i].store(ps, rlx);
-                if (ps)
-                    readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+                if (!playState[i].load(rlx) && !pendingPlayStart[i])
+                    startPlay();
+                else
+                    stopPlay();
             }
         }
         if (btnRising) {
-            bool ps = !playState[i].load(rlx);
-            playState[i].store(ps, rlx);
-            if (ps)
-                readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+            if (!playState[i].load(rlx) && !pendingPlayStart[i])
+                startPlay();
+            else
+                stopPlay();
         }
 
         bool pState = playState[i].load(rlx);
@@ -988,7 +1022,7 @@ void process(const ProcessArgs& args) override {
         // Pending flags force gain to 0 first; the action fires at zero-crossing, then gain ramps back up.
         {
             bool hasPending = pendingReverseFlip[i].load(rlx) || pendingScrubTransition[i]
-                           || pendingRecordTransition[i];
+                           || pendingPlayStart[i];
             float target = hasPending ? 0.f : ((playState[i].load(rlx) || isDraggingNow) ? 1.f : 0.f);
             // clamp(delta, -r, r) moves toward target by at most rampRate per sample,
             // and stops exactly at target — no overshoot or oscillation at 0 or 1.
@@ -1002,8 +1036,12 @@ void process(const ProcessArgs& args) override {
                 }
                 if (pendingScrubTransition[i])
                     pendingScrubTransition[i] = false;
-                if (pendingRecordTransition[i])
-                    pendingRecordTransition[i] = false;
+                if (pendingPlayStart[i]) {
+                    // Safe to set readPos now — gain is guaranteed 0, so no discontinuity
+                    playState[i].store(true, rlx);
+                    readPos[i] = playReversed[i].load(rlx) ? (float)(std::max(1, recordedLength[i]) - 1) : 0.f;
+                    pendingPlayStart[i] = false;
+                }
             }
         }
         sampL *= playGain[i];
@@ -1050,26 +1088,31 @@ void process(const ProcessArgs& args) override {
     outR = clamp(outR, -5.f, 5.f);
 
     // === LOWPASS FILTER then SOFT CLIP — loop portions only, input passes through unaffected ===
-    float filterAlpha = 1.f; // stored for use in Record Main Output correction below
+    // Coefficients (pow/sqrt/exp) are cached and only recomputed when t changes.
+    float filterAlpha = cachedFilterAlpha; // also used in Record Main Output correction below
     {
-        float t  = clamp(params[FILTER_PARAM].getValue()
+        float t = clamp(params[FILTER_PARAM].getValue()
             + clamp(inputs[FILTERCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
-        // Inverted: knob down = open (20 kHz), knob up = closed (100 Hz)
-        float fc    = 100.f * std::pow(200.f, std::sqrt(1.f - t));
-        filterAlpha = 1.f - std::exp(-2.f * float(M_PI) * fc / args.sampleRate);
+        if (t != cachedFilterT) {
+            cachedFilterT = t;
+            // Inverted: knob down = open (20 kHz), knob up = closed (100 Hz)
+            float fc = 100.f * std::pow(200.f, std::sqrt(1.f - t));
+            cachedFilterAlpha = 1.f - std::exp(-2.f * float(M_PI) * fc / args.sampleRate);
+            float scAmount = clamp((t - 0.4f) / 0.6f, 0.f, 1.f);
+            cachedFilterSc   = 5.f - 4.5f * scAmount;
+            cachedFilterGain = 1.f + t * 0.4f;
+            filterAlpha = cachedFilterAlpha;
+        }
         filterStateL += filterAlpha * (loopOutL - filterStateL);
         filterStateR += filterAlpha * (loopOutR - filterStateR);
 
         // Post-filter soft clip: knob past 40% slides sc from 5 (clean) down to 0.5 (heavy saturation)
-        float scAmount = clamp((t - 0.4f) / 0.6f, 0.f, 1.f);
-        float sc = 5.f - 4.5f * scAmount;
-        float processedL = std::tanh(filterStateL / sc) * sc;
-        float processedR = std::tanh(filterStateR / sc) * sc;
+        float processedL = std::tanh(filterStateL / cachedFilterSc) * cachedFilterSc;
+        float processedR = std::tanh(filterStateR / cachedFilterSc) * cachedFilterSc;
 
         // Linear gain compensation: as filter closes, boost loop level slightly (up to +3dB at full)
-        float filterGain = 1.f + t * 0.4f;
-        processedL *= filterGain;
-        processedR *= filterGain;
+        processedL *= cachedFilterGain;
+        processedR *= cachedFilterGain;
 
         // Substitute: remove original loop from combined, add filtered+soft-clipped loop
         outL = outL - loopOutL + processedL;
@@ -1084,34 +1127,45 @@ void process(const ProcessArgs& args) override {
         oggPlayPos = 0.f;
     }
 
+    // Compute amount first so we can gate the OGG read when nothing uses it.
+    float amount = clamp(params[AMOUNT_PARAM].getValue()
+        + clamp(inputs[AMOUNTCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
+    float amountLog = amount * amount;  // logarithmic taper
+
+    bool preFader      = noiseAuxPreFader.load(rlx);
+    bool sendConnected = outputs[SEND_OUTPUT].isConnected();
+    bool returnConnected = inputs[RETURN_INPUT].isConnected();
+
+    // Only read OGG when something will actually use it: pre-fader send needs raw OGG,
+    // post-fader paths need it when amount > 0 and no return is replacing it.
+    // This avoids ~2 cache-cold array reads per sample when the module is idle.
     float mediaL = 0.f, mediaR = 0.f;
-    OggLoop& loop = oggLoops[mediaIdx];
-    if (loop.loaded && loop.numSamples > 1) {
-        float advance = (float)loop.nativeSampleRate / args.sampleRate;
-        int i0 = (int)oggPlayPos;
-        int i1 = (i0 + 1) % loop.numSamples;
-        float frac = oggPlayPos - (float)i0;
-        mediaL = (loop.L[i0] + (loop.L[i1] - loop.L[i0]) * frac) * 5.f;
-        mediaR = (loop.R[i0] + (loop.R[i1] - loop.R[i0]) * frac) * 5.f;
-        oggPlayPos += advance;
-        if (oggPlayPos >= (float)loop.numSamples) oggPlayPos -= (float)loop.numSamples;
+    bool needOgg = (preFader && sendConnected) || (!returnConnected && (amountLog > 0.f || (!preFader && sendConnected)));
+    if (needOgg) {
+        OggLoop& loop = oggLoops[mediaIdx];
+        if (loop.loaded && loop.numSamples > 1) {
+            float advance = (float)loop.nativeSampleRate / args.sampleRate;
+            int i0 = (int)oggPlayPos;
+            int i1 = (i0 + 1) % loop.numSamples;
+            float frac = oggPlayPos - (float)i0;
+            mediaL = (loop.L[i0] + (loop.L[i1] - loop.L[i0]) * frac) * 5.f;
+            mediaR = (loop.R[i0] + (loop.R[i1] - loop.R[i0]) * frac) * 5.f;
+            oggPlayPos += advance;
+            if (oggPlayPos >= (float)loop.numSamples) oggPlayPos -= (float)loop.numSamples;
+        }
     }
 
     // Pre-fader send: raw media before amount knob
-    bool preFader = noiseAuxPreFader.load(rlx);
     if (preFader)
         outputs[SEND_OUTPUT].setVoltage((mediaL + mediaR) * 0.5f);
 
     // Return replaces media (both L and R) before amount knob
-    if (inputs[RETURN_INPUT].isConnected()) {
+    if (returnConnected) {
         float ret = inputs[RETURN_INPUT].getVoltage();
         mediaL = ret;
         mediaR = ret;
     }
 
-    float amount = clamp(params[AMOUNT_PARAM].getValue()
-        + clamp(inputs[AMOUNTCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
-    float amountLog = amount * amount;  // logarithmic taper
     float noiseMixL = mediaL * amountLog * 0.5f;
     float noiseMixR = mediaR * amountLog * 0.5f;
 
@@ -1126,8 +1180,18 @@ void process(const ProcessArgs& args) override {
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
 
     for (int i = 0; i < 4; i++) {
-        if (!recordState[i].load(rlx) || bufferSize == 0) continue;
+        if (bufferSize == 0) continue;
 
+        // recGain crossfades the buffer write: ramps 0→1 when recording starts, 1→0 when it stops.
+        // Writing bufL[i][writePos] = existing * (1-recGain) + newContent * recGain means the
+        // read head sees a smooth blend instead of a hard seam — eliminating sound-on-sound clicks.
+        float recTarget = recordState[i].load(rlx) ? 1.f : 0.f;
+        recGain[i] = clamp(recGain[i] + clamp(recTarget - recGain[i], -rampRate, rampRate), 0.f, 1.f);
+
+        if (recGain[i] <= 0.f) continue;  // not recording and fully faded out
+
+        // Compute new content to write
+        float newL, newR;
         if (recordMainOutput[i].load(rlx)) {
             // Record final output with pitch-compounding correction:
             // filter the per-channel correction with the same coefficient as the main filter
@@ -1142,13 +1206,20 @@ void process(const ProcessArgs& args) override {
             }
             corrFilterStateL[i] += filterAlpha * (corrL - corrFilterStateL[i]);
             corrFilterStateR[i] += filterAlpha * (corrR - corrFilterStateR[i]);
-            bufL[i][writePos[i]] = clamp(outL + corrFilterStateL[i], -5.f, 5.f);
-            bufR[i][writePos[i]] = clamp(outR + corrFilterStateR[i], -5.f, 5.f);
+            newL = clamp(outL + corrFilterStateL[i], -5.f, 5.f);
+            newR = clamp(outR + corrFilterStateR[i], -5.f, 5.f);
         } else {
             // Default: record recMixL/R — input blended with raw buffer at 1:1 (no pitch compounding)
-            bufL[i][writePos[i]] = recMixL[i];
-            bufR[i][writePos[i]] = recMixR[i];
+            newL = recMixL[i];
+            newR = recMixR[i];
         }
+
+        // Crossfade write: blend existing buffer content with new content using recGain.
+        // When recGain < 1 (fade-in or fade-out), existing content is preserved proportionally,
+        // making the transition inaudible when the read head later passes this position.
+        float rg = recGain[i];
+        bufL[i][writePos[i]] = bufL[i][writePos[i]] * (1.f - rg) + newL * rg;
+        bufR[i][writePos[i]] = bufR[i][writePos[i]] * (1.f - rg) + newR * rg;
 
         writePos[i]++;
         if (recordedLength[i] < bufferSize) recordedLength[i]++;
@@ -1156,13 +1227,19 @@ void process(const ProcessArgs& args) override {
 
         if (writePos[i] >= bufferSize) {
             writePos[i] = 0;
-            if (continuousRecord[i].load(rlx)) {
-                // Keep recording — wrap and overwrite from the start
-            } else {
-                recordState[i].store(false, rlx);
-                if (autoPlayFull[i].load(rlx) && !playState[i].load(rlx)) {
-                    playState[i].store(true, rlx);
-                    readPos[i] = 0.f;
+            if (recordState[i].load(rlx)) {  // only act if actively recording, not just in fade-out
+                if (continuousRecord[i].load(rlx)) {
+                    // Keep recording — wrap and overwrite from the start
+                } else {
+                    recordState[i].store(false, rlx);
+                    if (autoPlayFull[i].load(rlx) && !playState[i].load(rlx)) {
+                        if (playGain[i] <= 0.f) {
+                            playState[i].store(true, rlx);
+                            readPos[i] = 0.f;
+                        } else {
+                            pendingPlayStart[i] = true;
+                        }
+                    }
                 }
             }
         }
