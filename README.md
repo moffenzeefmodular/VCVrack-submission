@@ -132,4 +132,5 @@ By Ross Fish Feb 2025
 ## Tehom Beta: v2.6.0-rc12
 - Added all sample banks to GMO from old repo 
 - Deleted vanilla branch
-- Delete all old Tehom artwork (pending) 
+- 5ms ramp updated for de-click. 
+- Optimizations implemented for dropouts when module not in use
