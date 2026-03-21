@@ -1011,7 +1011,9 @@ void process(const ProcessArgs& args) override {
                     } else {
                         if (readPos[i] >= (float)loopEnd || readPos[i] < (float)loopStart) {
                             playState[i].store(false, rlx);
-                            readPos[i] = playReversed[i].load(rlx) ? (float)(loopEnd - 1) : (float)loopStart;
+                            // Do NOT reset readPos here — playGain is still > 0 and will ramp down over 5ms.
+                            // Lines 972-973 clamp readPos to the boundary each iteration, so the fade-out
+                            // reads from the loop edge rather than jumping to a discontinuous position.
                         }
                     }
                 }
@@ -1046,6 +1048,23 @@ void process(const ProcessArgs& args) override {
         }
         sampL *= playGain[i];
         sampR *= playGain[i];
+
+        // Write-head proximity fade: in continuous record, the write head advances forward while
+        // reversed playback retreats backward — they cross periodically. At the crossing, the
+        // read head encounters freshly overwritten buffer content (written with recGain=1, no blend),
+        // which can differ sharply from the old content → audible click.
+        // Fix: fade to 0 within a 5ms radius of the write head so the crossing is silent.
+        if (recordState[i].load(rlx) && hasContent[i] && recordedLength[i] > 0) {
+            float dist = std::abs(readPos[i] - (float)writePos[i]);
+            // Wrap: choose the shorter arc on the circular buffer
+            dist = std::min(dist, (float)recordedLength[i] - dist);
+            const float fadeLen = args.sampleRate * 0.005f; // 5 ms in samples
+            if (dist < fadeLen) {
+                float blend = dist / fadeLen;
+                sampL *= blend;
+                sampR *= blend;
+            }
+        }
 
         float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 5.f, -1.f, 1.f);
         float t = (srcParam + 1.f) * 0.5f; // 0 = input, 1 = loop
