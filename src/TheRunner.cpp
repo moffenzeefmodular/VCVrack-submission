@@ -213,19 +213,19 @@ struct TheRunnerWidget : ModuleWidget {
 		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(28.141, 108.921)), module, TheRunner::PITCH_PARAM));
+		addParam(createParamCentered<BefacoBigKnobBlack>(mm2px(Vec(28.141, 108.921)), module, TheRunner::PITCH_PARAM));
 
 		addParam(createParamCentered<TwoPos>(mm2px(Vec(40.936, 49.41)), module, TheRunner::RANGE_PARAM));
 		addParam(createParamCentered<TwoPos>(mm2px(Vec(66.526, 49.41)), module, TheRunner::CHORUS_PARAM));
 		addParam(createParamCentered<TwoPos>(mm2px(Vec(53.754, 108.921)), module, TheRunner::NOTESHZ_PARAM));
 
-		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(15.173, 19.704)), module, TheRunner::GAIN_PARAM));
-		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(40.79, 19.704)), module, TheRunner::VOLUME_PARAM));
-		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(15.346, 49.41)), module, TheRunner::ANIMATE_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(15.173, 19.704)), module, TheRunner::GAIN_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(40.79, 19.704)), module, TheRunner::VOLUME_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(15.346, 49.41)), module, TheRunner::ANIMATE_PARAM));
 	
-		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(15.346, 79.116)), module, TheRunner::HARMONICS_PARAM));
-		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(40.936, 79.116)), module, TheRunner::CUTOFF_PARAM));
-		addParam(createParamCentered<Davies1900hBlackKnob>(mm2px(Vec(66.526, 79.116)), module, TheRunner::RESONANCE_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(15.346, 79.116)), module, TheRunner::HARMONICS_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(40.936, 79.116)), module, TheRunner::CUTOFF_PARAM));
+		addParam(createParamCentered<Davies1900hLargeBlackKnob>(mm2px(Vec(66.526, 79.116)), module, TheRunner::RESONANCE_PARAM));
 
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 23.525)), module, TheRunner::VOLUMECVIN_INPUT));
 		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(91.068, 36.908)), module, TheRunner::GAINCVIN_INPUT));
