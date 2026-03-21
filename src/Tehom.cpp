@@ -594,6 +594,7 @@ float cachedSampleTime  = 0.f;
 float cachedScrubDecay  = 0.f;
 float cachedScrubSlew   = 0.f;
 float cachedRampRate    = 0.f;
+float cachedFadeLen     = 220.f;  // 5 ms at 44100 Hz — for write-head proximity fade
 
 // Cached filter coefficients — recomputed only when the filter param changes
 float cachedFilterT     = -1.f;  // -1 forces first computation
@@ -696,7 +697,8 @@ void process(const ProcessArgs& args) override {
         cachedSampleTime = args.sampleTime;
         cachedScrubDecay = std::exp(-args.sampleTime / 1.f);
         cachedScrubSlew  = 1.f - cachedScrubDecay;
-        cachedRampRate   = args.sampleTime / 0.005f;
+        cachedRampRate    = args.sampleTime / 0.005f;
+        cachedFadeLen     = args.sampleRate * 0.005f;  // 5 ms in samples — for write-head proximity fade
         cachedFilterT    = -1.f;  // force filter coefficient recomputation at new sample rate
     }
     const float scrubDecay = cachedScrubDecay;
@@ -994,12 +996,18 @@ void process(const ProcessArgs& args) override {
 
                     float speed = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f) * 2.f;
 
-                    // Wow and flutter: advance per-channel LFO phases and modulate speed
-                    wowPhase[i]     = std::fmod(wowPhase[i]     + wowRate     * args.sampleTime, 1.f);
-                    flutterPhase[i] = std::fmod(flutterPhase[i] + flutterRate * args.sampleTime, 1.f);
-                    float warbleMod = std::sin(2.f * float(M_PI) * wowPhase[i])     * wowDepth
-                                    + std::sin(2.f * float(M_PI) * flutterPhase[i]) * flutterDepth;
-                    speed *= (1.f + warbleMod);
+                    // Wow and flutter: only compute sin when warble is non-zero.
+                    // Use conditional subtract instead of fmod — far cheaper since increments
+                    // are tiny (<<1) and phase only wraps once every thousands of samples.
+                    if (wowDepth > 0.f || flutterDepth > 0.f) {
+                        wowPhase[i] += wowRate * args.sampleTime;
+                        if (wowPhase[i] >= 1.f) wowPhase[i] -= 1.f;
+                        flutterPhase[i] += flutterRate * args.sampleTime;
+                        if (flutterPhase[i] >= 1.f) flutterPhase[i] -= 1.f;
+                        float warbleMod = std::sin(2.f * float(M_PI) * wowPhase[i])     * wowDepth
+                                        + std::sin(2.f * float(M_PI) * flutterPhase[i]) * flutterDepth;
+                        speed *= (1.f + warbleMod);
+                    }
 
                     float dir = playReversed[i].load(rlx) ? -1.f : 1.f;
                     readPos[i] += dir * speed;
@@ -1058,7 +1066,7 @@ void process(const ProcessArgs& args) override {
             float dist = std::abs(readPos[i] - (float)writePos[i]);
             // Wrap: choose the shorter arc on the circular buffer
             dist = std::min(dist, (float)recordedLength[i] - dist);
-            const float fadeLen = args.sampleRate * 0.005f; // 5 ms in samples
+            const float fadeLen = cachedFadeLen;
             if (dist < fadeLen) {
                 float blend = dist / fadeLen;
                 sampL *= blend;
