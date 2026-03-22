@@ -24,7 +24,7 @@
 
 # CV Ranges
 
-### All CV inputs respond to -5 V…+5 V. Every knob is treated as an offset: with the knob at center, a -5 V signal will push it all the way left, and a +5 V signal will push it all the way right. All logic inputs (Record CV, Play CV) trigger on a rising-edge signal and ignore pulse width.
+### Most CV inputs respond to −5 V…+5 V and treat the knob as an offset: with the knob at center, a −5 V signal pushes it all the way left and a +5 V signal pushes it all the way right. **Speed CV inputs are an exception** — they use 1V/oct scaling and sum with the knob in pitch space rather than as a linear offset. All logic inputs (Record CV, Play CV) trigger on a rising-edge signal and ignore pulse width.
 
 ---
 
@@ -46,7 +46,7 @@ There are four identical channels arranged in the corners of the module. Each ch
 
 * **SOURCE:** A blend knob between the audio input and the loop buffer. Turned fully left, the channel hears and records only the live audio input. Turned fully right, the channel hears and records only its own loop — this is sound-on-sound mode, where each record pass layers on top of the previous one. The middle position mixes both. A CV input is provided for bipolar modulation.
 
-* **SPEED:** Controls the playback speed of the loop buffer. At center (12 o'clock), playback runs at 1× speed. Turned fully left, playback slows to a near-stop. Turned fully right, playback runs at 2× speed. A CV input is provided for bipolar modulation. The LED Bezel spinning indicator tracks this value visually.
+* **SPEED:** Controls the playback speed of the loop buffer. At center (12 o'clock), playback runs at 1× speed. Turned fully left, playback slows to a near-stop. Turned fully right, playback runs at 2× speed. The CV input follows **1V/oct scaling**: 0 V leaves the knob position unchanged, +1 V transposes one octave up (doubles speed), and −1 V transposes one octave down (halves speed). The CV sums with the knob in pitch space and is clamped to the same speed range as the knob. The LED Bezel spinning indicator tracks this value visually.
 
 * **RECORD (red button):** Toggles recording on and off. A **left-click** starts and stops recording. When recording is started on a buffer that has no content, it begins recording from the top. When recording is stopped manually, the channel will auto-play back what was recorded if **Auto-Play when recording complete** is enabled in the context menu. A CV input is provided — recording is toggled on each rising edge.
 
@@ -152,10 +152,6 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 * **XFADE:** Applies a linear fade in and fade out at both edges of the loop window to prevent clicks and pops at the loop point. At zero, no fading is applied and the loop repeats with a hard edge. As the knob is turned right, the fade zones grow until at maximum they each span half the loop — creating a triangle-shaped amplitude envelope across the entire loop. Applies to all four channels simultaneously. A CV input is provided for bipolar modulation.
 
 ### Context Menu Options (right click)
-
-* **Background Scroll (GUI > Background Scroll)**
-  * **Speed — Off / Slow / Medium / Fast:** Controls the speed of the scrolling background texture behind the module panel.
-  * **Direction — Right / Left:** Sets the scroll direction.
 
 * **Save Buffers With Patch (Global > Save Buffers With Patch):** When enabled, the recorded audio in all four buffers is saved into the patch file and restored when the patch is reloaded. Default is **off**. With large buffer sizes (20 seconds or more), enabling this setting can cause the VCV Rack interface to stall briefly every ~15 seconds as buffer data is encoded during autosave. If you notice periodic screen glitches or animation freezes while using large buffers, keep this off. Enable it only if you need the loop content to survive a patch save and reload.
 
