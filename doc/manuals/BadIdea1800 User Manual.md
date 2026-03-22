@@ -1,4 +1,4 @@
-[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea1800YoutubeThumb.jpg)](https://youtu.be/rJQTEyduKEI)
+<a href="https://youtu.be/rJQTEyduKEI" target="_blank"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea1800YoutubeThumb.jpg" alt="Video Tutorial"></a>
 
 ---
 

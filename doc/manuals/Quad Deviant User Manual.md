@@ -1,4 +1,4 @@
-[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantYoutubeThumb.jpg)](https://youtu.be/G7r7HutJrxc)
+<a href="https://youtu.be/G7r7HutJrxc" target="_blank"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantYoutubeThumb.jpg" alt="Video Tutorial"></a>
 
 # Quad Deviant VCV Rack User Manual 
 
