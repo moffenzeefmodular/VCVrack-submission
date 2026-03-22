@@ -15,7 +15,8 @@
       "WebFetch(domain:github.com)",
       "Bash(gh api:*)",
       "WebSearch",
-      "Bash(xxd /Users/moffenzeef_studio/Documents/VCVrack-submission/res/wavetables/banks/GMO_Casio_RZ_1.bin)"
+      "Bash(xxd /Users/moffenzeef_studio/Documents/VCVrack-submission/res/wavetables/banks/GMO_Casio_RZ_1.bin)",
+      "Bash(xargs -I{} basename {} .cpp)"
     ]
   }
 }
