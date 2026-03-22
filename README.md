@@ -60,6 +60,10 @@ By Ross Fish Feb 2025
 - Added Tehom 
 - Added DitDit 
 - Added all sample banks to GMO from old repo 
+- Switched out knobs for The Runner 
+- Added all sample banks to 1800 from old repo (pending)
+- Added bus mult normalization: place bus mults beside one another to continue normalization chain (pending) 
+
 
 ## Tehom Beta: v2.6.0-rc1
 - Tehom beta release 
@@ -135,3 +139,6 @@ By Ross Fish Feb 2025
 - 5ms ramp updated for de-click. 
 - De-clicked reverse playback 
 - Optimizations implemented for dropouts when module not in use
+
+## Tehom Beta: v2.6.0-rc13
+- Added all sample banks to 1800 from old repo 

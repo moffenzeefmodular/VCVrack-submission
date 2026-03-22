@@ -11,7 +11,11 @@
       "Bash(curl -s -o /Users/ross/Documents/VCVrack-submission/doc/images/DitDitYoutubeThumb.jpg \"https://img.youtube.com/vi/rMIwqCQthho/maxresdefault.jpg\")",
       "Bash(done)",
       "Bash(python3:*)",
-      "Bash(make)"
+      "Bash(make)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh api:*)",
+      "WebSearch",
+      "Bash(xxd /Users/moffenzeef_studio/Documents/VCVrack-submission/res/wavetables/banks/GMO_Casio_RZ_1.bin)"
     ]
   }
 }

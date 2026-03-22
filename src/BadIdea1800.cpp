@@ -1,206 +1,297 @@
 #include "plugin.hpp"
-#include <cmath> // for sine wave
+#include "1800Manifest.hpp"
+#include <cstdio>
+#include <vector>
+#include <atomic>
+#include <cmath>
 
-#define TWO_PI (2.0 * M_PI)
+#define TWO_PI (2.0f * M_PI)
 
 struct BadIdea1800 : Module {
-	enum ParamId {
-		PARAMS_LEN
-	};
-	enum InputId {
-		NUM_1_INPUT,
-		NUM_2_INPUT,
-		NUM_3_INPUT,
-		NUM_4_INPUT,
-		NUM_5_INPUT,
-		NUM_6_INPUT,
-		NUM_7_INPUT,
-		NUM_8_INPUT,
-		NUM_9_INPUT,
-		ZERO_INPUT,
-		ASTERISK_INPUT,
-		POUND_INPUT,
-		INPUTS_LEN
-	};
-	enum OutputId {
-		BADIDEA_OUTPUT,
-		OUTPUTS_LEN
-	};
-	enum LightId {
-		LED_1_LIGHT,
-		LED_2_LIGHT,
-		LED_3_LIGHT,
-		LED_4_LIGHT,
-		LED_5_LIGHT,
-		LED_6_LIGHT,
-		LED_7_LIGHT,
-		LED_8_LIGHT,
-		LED_9_LIGHT,
-		LED_10_LIGHT,
-		LED_ASTERISK_LIGHT,
-		LED_ZERO_LIGHT,
-		LED_POUND_LIGHT,
-		LIGHTS_LEN
-	};
+    enum ParamId { PARAMS_LEN };
+    enum InputId {
+        NUM_1_INPUT, NUM_2_INPUT, NUM_3_INPUT,
+        NUM_4_INPUT, NUM_5_INPUT, NUM_6_INPUT,
+        NUM_7_INPUT, NUM_8_INPUT, NUM_9_INPUT,
+        ZERO_INPUT, ASTERISK_INPUT, POUND_INPUT,
+        INPUTS_LEN
+    };
+    enum OutputId { BADIDEA_OUTPUT, OUTPUTS_LEN };
+    enum LightId {
+        LED_1_LIGHT, LED_2_LIGHT, LED_3_LIGHT,
+        LED_4_LIGHT, LED_5_LIGHT, LED_6_LIGHT,
+        LED_7_LIGHT, LED_8_LIGHT, LED_9_LIGHT,
+        LED_10_LIGHT, LED_ASTERISK_LIGHT, LED_POUND_LIGHT,
+        LIGHTS_LEN
+    };
 
-	BadIdea1800() {
-		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configInput(NUM_1_INPUT, "1 Gate");
-		configInput(NUM_2_INPUT, "2 Gate");
-		configInput(NUM_3_INPUT, "3 Gate");
-		configInput(NUM_4_INPUT, "4 Gate");
-		configInput(NUM_5_INPUT, "5 Gate");
-		configInput(NUM_6_INPUT, "6 Gate");
-		configInput(NUM_7_INPUT, "7 Gate");
-		configInput(NUM_8_INPUT, "8 Gate");
-		configInput(NUM_9_INPUT, "9 Gate");
-		configInput(ASTERISK_INPUT, "* Gate");
-		configInput(ZERO_INPUT, "0 Gate");
-		configInput(POUND_INPUT, "# Gate");
-		configOutput(BADIDEA_OUTPUT, "Bad Idea 1800-Call-Yer-Mum Audio");
-	}
+    // Voice index -> LED index (panel layout order)
+    static constexpr int VOICE_TO_LED[12] = {
+        LED_1_LIGHT, LED_2_LIGHT, LED_3_LIGHT,
+        LED_4_LIGHT, LED_5_LIGHT, LED_6_LIGHT,
+        LED_7_LIGHT, LED_8_LIGHT, LED_9_LIGHT,
+        LED_ASTERISK_LIGHT, LED_10_LIGHT, LED_POUND_LIGHT
+    };
 
-	// Sample rate variable (to handle time-based calculations)
-	float sampleRate;
+    // Voice index -> sample slot in kit
+    // Enum order: 0-8=buttons 1-9, 9=ZERO, 10=ASTERISK, 11=POUND
+    // Hardware .ino: playMem1-9=buttons 1-9, playMem10=*, playMem11=0, playMem12=#
+    static constexpr int VOICE_TO_SLOT[12] = {0,1,2,3,4,5,6,7,8,10,9,11};
 
-	// DTMF Frequency pairs for each key
-	const float frequencies[12][2] = {
-		{697.0f, 1209.0f},  // 1
-		{697.0f, 1336.0f},  // 2
-		{697.0f, 1477.0f},  // 3
-		{770.0f, 1209.0f},  // 4
-		{770.0f, 1336.0f},  // 5
-		{770.0f, 1477.0f},  // 6
-		{852.0f, 1209.0f},  // 7
-		{852.0f, 1336.0f},  // 8
-		{852.0f, 1477.0f},  // 9
-		{941.0f, 1336.0f},  // 0
-		{941.0f, 1209.0f},  // *
-		{941.0f, 1477.0f},  // #
-	};
+    static constexpr int NUM_VOICES = 12;
 
-	// Time tracking variables for sine wave calculation
-	float phase1[12] = {0.0f}; // Phase for 12 first oscillators
-	float phase2[12] = {0.0f}; // Phase for 12 second oscillators
+    // DTMF frequencies for original firmware (rows × columns)
+    // Order matches input enum: 1,2,3,4,5,6,7,8,9,0,*,#
+    static constexpr float DTMF_FREQ[12][2] = {
+        {697.f, 1209.f}, // 1
+        {697.f, 1336.f}, // 2
+        {697.f, 1477.f}, // 3
+        {770.f, 1209.f}, // 4
+        {770.f, 1336.f}, // 5
+        {770.f, 1477.f}, // 6
+        {852.f, 1209.f}, // 7
+        {852.f, 1336.f}, // 8
+        {852.f, 1477.f}, // 9
+        {941.f, 1336.f}, // 0
+        {941.f, 1209.f}, // *
+        {941.f, 1477.f}, // #
+    };
 
-void process(const ProcessArgs& args) override {
-    // Time step (delta time)
-    float dt = 1.0f / args.sampleRate;
-  
-    // Sum of all the oscillator outputs
-    float totalSum = 0.0f;
-  
-    // Loop through all 12 inputs (10 number keys, * and # keys)
-    for (int i = 0; i < 12; ++i) { // 12 total inputs: 10 numbers, * and #
-  
-        // Determine the correct input index for each key:
-        int inputIndex = -1;
-        int ledIndex = -1;
+    // -1 = original DTMF firmware, 0-23 = alt drum machine kits
+    int kitIndex = -1;
+    // -2 = no pending change
+    std::atomic<int> pendingKit{-2};
 
-        // Mapping the input index and corresponding LED index
-        if (i < 10) {
-            // Number keys (1-10)
-            inputIndex = NUM_1_INPUT + i;
-            ledIndex = LED_1_LIGHT + i; // Corresponding LED for number keys
-        } else if (i == 10) {
-            // Asterisk key
-            inputIndex = ASTERISK_INPUT;
-            ledIndex = LED_ASTERISK_LIGHT; // LED for asterisk key
-        } else if (i == 11) {
-            // Pound key
-            inputIndex = POUND_INPUT;
-            ledIndex = LED_POUND_LIGHT; // LED for pound key
+    // Loaded sample buffers (decoded float PCM, one vector per slot)
+    std::vector<float> kitSamples[NUM_VOICES];
+    float kitSampleRates[NUM_VOICES] = {};
+
+    // DTMF phase accumulators (only used when kitIndex == -1)
+    float dtmfPhase1[NUM_VOICES] = {};
+    float dtmfPhase2[NUM_VOICES] = {};
+
+    struct Voice {
+        const std::vector<float>* buf = nullptr;
+        uint32_t pos = 0;
+        float phase = 0.f;
+        float lastSample = 0.f;
+        bool playing = false;
+
+        void trigger(const std::vector<float>* b) {
+            buf = b;
+            pos = 0;
+            phase = 0.f;
+            lastSample = 0.f;
+            playing = (b && !b->empty());
         }
-  
-        // Get the corresponding frequencies for the current input
-        float freq1 = frequencies[i][0];  // First frequency in the pair
-        float freq2 = frequencies[i][1];  // Second frequency in the pair
-  
-        // Increment the phases of the oscillators
-        phase1[i] += freq1 * TWO_PI * dt;
-        phase2[i] += freq2 * TWO_PI * dt;
-  
-        // Wrap the phases to prevent overflow
-        if (phase1[i] >= TWO_PI) phase1[i] -= TWO_PI;
-        if (phase2[i] >= TWO_PI) phase2[i] -= TWO_PI;
-  
-        // Generate sine waves for the oscillators
-        float sine1 = sinf(phase1[i]); // First oscillator (DTMF)
-        float sine2 = sinf(phase2[i]); // Second oscillator (DTMF)
-  
-        // Sum the two sine waves together for this oscillator pair
-        float oscillatorOutput = sine1 + sine2;
-  
-        // Read the input voltage for the current NUM channel
-        float inputVoltage = inputs[inputIndex].getVoltage();
-  
-        // If the input is above 0.5V, scale the output accordingly
-        if (inputVoltage > 0.5f) {
-            oscillatorOutput *= inputVoltage * 2.5f;  // Scale by input voltage (max amplitude of 5V)
-            lights[ledIndex].setBrightnessSmooth(1.0f, args.sampleTime);  // Turn on the corresponding LED
-        } else {
-            oscillatorOutput = 0.0f;  // Zero output when input is low
-            lights[ledIndex].setBrightnessSmooth(0.0f, args.sampleTime);  // Turn off the corresponding LED
+
+        // ratio = sourceRate / hostRate; sample-and-hold resampling
+        float next(float ratio) {
+            if (!playing) return 0.f;
+            phase += ratio;
+            while (phase >= 1.f) {
+                if (pos >= (uint32_t)buf->size()) { playing = false; return lastSample; }
+                lastSample = (*buf)[pos++];
+                phase -= 1.f;
+            }
+            return lastSample;
         }
-  
-        // Scale the oscillator output by 1/48 before adding it to the total sum
-        oscillatorOutput *= (1.0f / 48.0f);
-  
-        // Add the scaled oscillator output to the total sum
-        totalSum += oscillatorOutput;
+    } voices[NUM_VOICES];
+
+    bool lastGate[NUM_VOICES] = {};
+
+    BadIdea1800() {
+        config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+        configInput(NUM_1_INPUT,    "1 Gate");
+        configInput(NUM_2_INPUT,    "2 Gate");
+        configInput(NUM_3_INPUT,    "3 Gate");
+        configInput(NUM_4_INPUT,    "4 Gate");
+        configInput(NUM_5_INPUT,    "5 Gate");
+        configInput(NUM_6_INPUT,    "6 Gate");
+        configInput(NUM_7_INPUT,    "7 Gate");
+        configInput(NUM_8_INPUT,    "8 Gate");
+        configInput(NUM_9_INPUT,    "9 Gate");
+        configInput(ZERO_INPUT,     "0 Gate");
+        configInput(ASTERISK_INPUT, "* Gate");
+        configInput(POUND_INPUT,    "# Gate");
+        configOutput(BADIDEA_OUTPUT, "Bad Idea 1800-Call-Yer-Mum Audio");
     }
-  
-    // Clamp the total sum to a range of -5V to +5V
-    float outputVoltage = clamp(totalSum, -5.0f, 5.0f);
-  
-    // Set the output voltage
-    outputs[BADIDEA_OUTPUT].setVoltage(outputVoltage);
-}
 
-	};
+    void loadKit(int idx) {
+        if (idx == -1) {
+            for (auto& s : kitSamples) s.clear();
+            for (auto& v : voices) v.playing = false;
+            kitIndex = -1;
+            return;
+        }
 
-struct BadIdea1800Widget : ModuleWidget {
-	BadIdea1800Widget(BadIdea1800* module) {
-		setModule(module);
-	setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/panels/BadIdea1800.svg"),
-		asset::plugin(pluginInstance, "res/panels/BadIdea1800-dark.svg")
-		));
+        if (idx < 0 || idx >= BADIDEA1800_NUM_KITS) return;
 
-		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        std::string path = asset::plugin(pluginInstance,
+            "res/samples/1800/" + std::string(BADIDEA1800_KITS[idx].filename) + ".bin");
 
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.502, 22.904)), module, BadIdea1800::NUM_1_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.595, 22.904)), module, BadIdea1800::NUM_2_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.555, 22.94)), module, BadIdea1800::NUM_3_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.541, 44.903)), module, BadIdea1800::NUM_4_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.559, 44.845)), module, BadIdea1800::NUM_5_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.576, 44.957)), module, BadIdea1800::NUM_6_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.541, 66.899)), module, BadIdea1800::NUM_7_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.575, 66.881)), module, BadIdea1800::NUM_8_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.553, 66.92)), module, BadIdea1800::NUM_9_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.576, 88.861)), module, BadIdea1800::ZERO_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.52, 88.824)), module, BadIdea1800::ASTERISK_INPUT));
-		addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.555, 88.86)), module, BadIdea1800::POUND_INPUT));
+        FILE* f = fopen(path.c_str(), "rb");
+        if (!f) return;
 
-		addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(52.517, 110.859)), module, BadIdea1800::BADIDEA_OUTPUT));
+        // Header: magic(4) + counts[12](48) + rates[12](48) + names[12*16](192)
+        char magic[4];
+        fread(magic, 1, 4, f);
+        if (magic[0] != '1' || magic[1] != '8' || magic[2] != '0' || magic[3] != '0') {
+            fclose(f); return;
+        }
 
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.569, 11.873)), module, BadIdea1800::LED_1_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.52, 11.96)), module, BadIdea1800::LED_2_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.553, 11.885)), module, BadIdea1800::LED_3_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.54, 33.92)), module, BadIdea1800::LED_4_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.539, 33.884)), module, BadIdea1800::LED_5_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.536, 33.902)), module, BadIdea1800::LED_6_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.56, 55.921)), module, BadIdea1800::LED_7_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.558, 55.903)), module, BadIdea1800::LED_8_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.534, 55.936)), module, BadIdea1800::LED_9_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.541, 77.917)), module, BadIdea1800::LED_ASTERISK_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.575, 77.897)), module, BadIdea1800::LED_10_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.556, 77.898)), module, BadIdea1800::LED_POUND_LIGHT));
-	}
+        uint32_t counts[NUM_VOICES];
+        fread(counts, sizeof(uint32_t), NUM_VOICES, f);
+        fread(kitSampleRates, sizeof(float), NUM_VOICES, f);
+        fseek(f, 16 * NUM_VOICES, SEEK_CUR);  // skip name table
+
+        for (int i = 0; i < NUM_VOICES; i++) {
+            kitSamples[i].resize(counts[i]);
+            if (counts[i] > 0)
+                fread(kitSamples[i].data(), sizeof(float), counts[i], f);
+        }
+        fclose(f);
+
+        kitIndex = idx;
+        for (auto& v : voices) v.playing = false;
+    }
+
+    void selectKit(int idx) {
+        pendingKit.store(idx);
+    }
+
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
+        json_object_set_new(rootJ, "kit", json_integer(kitIndex));
+        return rootJ;
+    }
+
+    void dataFromJson(json_t* rootJ) override {
+        json_t* k = json_object_get(rootJ, "kit");
+        if (k) loadKit((int)json_integer_value(k));
+    }
+
+    void onAdd(const AddEvent& e) override {
+        if (kitIndex >= 0) loadKit(kitIndex);
+    }
+
+    void process(const ProcessArgs& args) override {
+        int pending = pendingKit.exchange(-2);
+        if (pending != -2) loadKit(pending);
+
+        float totalSum = 0.f;
+
+        if (kitIndex == -1) {
+            // Original firmware: DTMF tone generation
+            const float dt = 1.f / args.sampleRate;
+            for (int i = 0; i < NUM_VOICES; i++) {
+                dtmfPhase1[i] += DTMF_FREQ[i][0] * TWO_PI * dt;
+                dtmfPhase2[i] += DTMF_FREQ[i][1] * TWO_PI * dt;
+                if (dtmfPhase1[i] >= TWO_PI) dtmfPhase1[i] -= TWO_PI;
+                if (dtmfPhase2[i] >= TWO_PI) dtmfPhase2[i] -= TWO_PI;
+
+                float inputV = inputs[NUM_1_INPUT + i].getVoltage();
+                bool gateHigh = (inputV > 0.5f);
+
+                float out = 0.f;
+                if (gateHigh) {
+                    out = (sinf(dtmfPhase1[i]) + sinf(dtmfPhase2[i])) * inputV * 2.5f;
+                    out *= (1.f / 48.f);
+                }
+                totalSum += out;
+
+                lights[VOICE_TO_LED[i]].setBrightnessSmooth(gateHigh ? 1.f : 0.f, args.sampleTime);
+            }
+            outputs[BADIDEA_OUTPUT].setVoltage(clamp(totalSum, -5.f, 5.f));
+        } else {
+            // Alt firmware: sample playback
+            for (int i = 0; i < NUM_VOICES; i++) {
+                bool gateHigh = inputs[NUM_1_INPUT + i].getVoltage() > 0.5f;
+                int slot = VOICE_TO_SLOT[i];
+
+                if (gateHigh && !lastGate[i])
+                    voices[i].trigger(&kitSamples[slot]);
+                lastGate[i] = gateHigh;
+
+                float ratio = kitSampleRates[slot] / args.sampleRate;
+                totalSum += voices[i].next(ratio);
+
+                float brightness = voices[i].playing ? (gateHigh ? 1.f : 0.3f) : 0.f;
+                lights[VOICE_TO_LED[i]].setBrightnessSmooth(brightness, args.sampleTime);
+            }
+            outputs[BADIDEA_OUTPUT].setVoltage(clamp(totalSum * 25.f / NUM_VOICES, -5.f, 5.f));
+        }
+    }
 };
 
+constexpr int BadIdea1800::VOICE_TO_LED[12];
+constexpr int BadIdea1800::VOICE_TO_SLOT[12];
+constexpr float BadIdea1800::DTMF_FREQ[12][2];
+
+struct BadIdea1800Widget : ModuleWidget {
+    BadIdea1800Widget(BadIdea1800* module) {
+        setModule(module);
+        setPanel(createPanel(
+            asset::plugin(pluginInstance, "res/panels/BadIdea1800.svg"),
+            asset::plugin(pluginInstance, "res/panels/BadIdea1800-dark.svg")
+        ));
+
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+        addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.502,  22.904)), module, BadIdea1800::NUM_1_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.595, 22.904)), module, BadIdea1800::NUM_2_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.555, 22.94)),  module, BadIdea1800::NUM_3_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.541,  44.903)), module, BadIdea1800::NUM_4_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.559, 44.845)), module, BadIdea1800::NUM_5_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.576, 44.957)), module, BadIdea1800::NUM_6_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.541,  66.899)), module, BadIdea1800::NUM_7_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.575, 66.881)), module, BadIdea1800::NUM_8_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.553, 66.92)),  module, BadIdea1800::NUM_9_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(30.576, 88.861)), module, BadIdea1800::ZERO_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(8.52,   88.824)), module, BadIdea1800::ASTERISK_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(52.555, 88.86)),  module, BadIdea1800::POUND_INPUT));
+
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(52.517, 110.859)), module, BadIdea1800::BADIDEA_OUTPUT));
+
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.569,  11.873)), module, BadIdea1800::LED_1_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.52,  11.96)),  module, BadIdea1800::LED_2_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.553, 11.885)), module, BadIdea1800::LED_3_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.54,   33.92)),  module, BadIdea1800::LED_4_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.539, 33.884)), module, BadIdea1800::LED_5_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.536, 33.902)), module, BadIdea1800::LED_6_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.56,   55.921)), module, BadIdea1800::LED_7_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.558, 55.903)), module, BadIdea1800::LED_8_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.534, 55.936)), module, BadIdea1800::LED_9_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(8.541,  77.917)), module, BadIdea1800::LED_ASTERISK_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(30.575, 77.897)), module, BadIdea1800::LED_10_LIGHT));
+        addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(52.556, 77.898)), module, BadIdea1800::LED_POUND_LIGHT));
+    }
+
+    void appendContextMenu(Menu* menu) override {
+        BadIdea1800* module = dynamic_cast<BadIdea1800*>(this->module);
+        if (!module) return;
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Firmware"));
+
+        menu->addChild(createCheckMenuItem("Original Firmware", "",
+            [=]() { return module->kitIndex == -1; },
+            [=]() { module->selectKit(-1); }
+        ));
+
+        menu->addChild(createSubmenuItem("Alt Firmware", "", [=](Menu* submenu) {
+            for (int i = 0; i < BADIDEA1800_NUM_KITS; i++) {
+                int capturedI = i;
+                submenu->addChild(createCheckMenuItem(BADIDEA1800_KITS[i].displayName, "",
+                    [=]() { return module->kitIndex == capturedI; },
+                    [=]() { module->selectKit(capturedI); }
+                ));
+            }
+        }));
+    }
+};
 
 Model* modelBadIdea1800 = createModel<BadIdea1800, BadIdea1800Widget>("BadIdea1800");
