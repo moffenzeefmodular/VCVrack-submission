@@ -102,13 +102,3 @@ Sets the output level of the Synth output.
 * **Modulator LED:** Modulator oscillator state (illuminates when modulator is in its high phase).
 
 ---
-
-# Tips
-
-- High CARRIER RANGE + low Carrier knob: subtle grit and texture on any input signal.
-- Low CARRIER RANGE + Modulator Engage: rhythmic choppy gating synced to modulator frequency.
-- SYNTH OUT into a filter for a standalone buzzy square wave voice independent of the FX path.
-- BYPASS CV from a gate source: switch between clean and destroyed versions of your signal rhythmically.
-- GAIN RANGE 200x + high Gain: severe, rectangular hard clipping that turns any source into noise.
-
----

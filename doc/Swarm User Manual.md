@@ -4,10 +4,6 @@
 
 # Swarm VCV Rack User Manual
 
-*"Randomness without structure is noise. Structure without randomness is a metronome. Swarm lives in the middle."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview

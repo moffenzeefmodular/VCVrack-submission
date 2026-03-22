@@ -4,10 +4,6 @@
 
 # Kriket VCV Rack User Manual
 
-*"The cricket doesn't know music theory. It knows one frequency and it commits to it completely."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview
@@ -53,14 +49,5 @@ Sets the center frequency of each voice's bandpass filter and the frequency of i
 3. Low-pass filter with a cutoff set to the highest active voice frequency (reduces aliasing)
 4. Output is gated on/off by the BANG! input
 5. All four voices summed and scaled
-
----
-
-# Tips
-
-- Tune all four voices to the same frequency for a denser, phase-cancellation-heavy tone.
-- Use different pitches on each voice and trigger them with rhythmic patterns for polyrhythmic high-frequency percussion.
-- Patch a slow LFO into the CV input to sweep all voices together.
-- At very high frequencies (near 5kHz) the voices produce sharp clicking sounds useful as hi-hat or transient replacements.
 
 ---

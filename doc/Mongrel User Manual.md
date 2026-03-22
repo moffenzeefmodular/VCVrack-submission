@@ -75,12 +75,3 @@ Blends between the dry sum of YIP and YAP (fully counterclockwise) and the ring-
 6. Output clamped to ±5V
 
 ---
-
-# Tips
-
-- YIP and YAP at the same frequency with maximum GROWL: full cancellation at the sum frequency, producing a hollow, boxy thud.
-- YIP low + YAP high with medium GROWL: classic ring mod clang with body.
-- Square waveshape (SNARL right) produces a harsher, more percussive attack than triangle.
-- SNARL CV from a sequencer gate: selectively punch the waveshape harder on accented beats.
-
----

@@ -4,10 +4,6 @@
 
 # Dial-Up VCV Rack User Manual
 
-*"The most important sound of an entire generation of internet users, reduced to a single knob."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview
@@ -57,14 +53,5 @@ Controls the character of the bytebeat algorithm — effectively the "note" or p
 # How Bytebeat Works
 
 Bytebeat is a class of audio algorithm from the early 2010s that generates sound by running simple integer math on a continuously incrementing time variable. The result is a 1-bit waveform rich in harmonics and aliasing artifacts. Dial-Up uses a single bytebeat formula with the Modem knob selecting which "note" in the algorithm's output spectrum is active. The time variable advances at a rate proportional to the Modem setting, which determines both the pitch and the timbral character of the output simultaneously.
-
----
-
-# Tips
-
-- Short Range + high Tail: punchy digital transients with a click-y tail.
-- Slow Range + high Modem CV: sweeping sci-fi tones and grinding noise bursts.
-- Patch a sequencer CV into MODEM CV to step through different tonal characters on each hit.
-- Multiple instances of Dial-Up at different Modem settings, triggered in sequence, create a lo-fi drum machine character.
 
 ---

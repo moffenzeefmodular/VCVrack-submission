@@ -4,10 +4,6 @@
 
 # Count VCV Rack User Manual
 
-*"A clock is an argument about what matters. Every division is a vote."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview

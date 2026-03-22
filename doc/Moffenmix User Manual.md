@@ -4,10 +4,6 @@
 
 # Moffenmix VCV Rack User Manual
 
-*"Every mixer is an opinion about loudness."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview

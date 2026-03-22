@@ -58,12 +58,3 @@ Adds slew limiting to the output. At fully counterclockwise there is no slew —
 * **CH 2:** Random stepped CV for Channel 2. ±5V. Green LED = positive voltage; red LED = negative voltage.
 
 ---
-
-# Tips
-
-- Set TOP and BOTTOM to the same value to use Deviant as a manual CV source that randomizes from a fixed point.
-- Narrow the TOP/BOTTOM window and add SMOOTH for gently wandering melodic CV.
-- Normalize both BANG! inputs and vary the TOP/BOTTOM settings per channel for correlated but differently-ranged random outputs.
-- Patch TOP CV and BOTTOM CV from other voltage sources to dynamically shift the random window over time.
-
----

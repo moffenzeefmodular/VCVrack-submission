@@ -105,13 +105,3 @@ Output level. Full counterclockwise is silence; full clockwise is maximum output
 7. VOLUME output level
 
 ---
-
-# Tips
-
-- ANIMATE fully clockwise + RANGE High: aggressively drifting, unstable drone that never repeats.
-- HARMONICS at halfway: a fuller, chorused quality without overwhelming the fundamental.
-- High GAIN + high RESONANCE: self-distorting filter sweeps for industrial character.
-- Slowly automate PITCH CV for barely-there microtonal drift in the fundamental.
-- Patch CUTOFF CV to a slow envelope for a bloom effect on each section.
-
----

@@ -73,12 +73,3 @@ Right-click to access the Sample Bank menu.
 - **Drum Machines / Percussion / Artist Series / Other:** Alternate wavetable banks. Each bank maps its wavetables to the SPECIMEN knob range.
 
 ---
-
-# Tips
-
-- Short HEAD/TAIL window + high SPEED: granular-style metallic textures.
-- Loop mode with slow SPEED: evolving lo-fi drones from a single clang.
-- SPECIMEN CV from a sequencer: step through different clang characters rhythmically.
-- HEAD CV modulated by a slow LFO: continuously scan the start point for evolving timbre.
-
----

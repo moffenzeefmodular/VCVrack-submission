@@ -21,7 +21,8 @@
       "Bash(grep -n \"<img\" /Users/moffenzeef_studio/Documents/VCVrack-submission/doc/*.md)",
       "Bash(grep -n 'width=' /Users/moffenzeef_studio/Documents/VCVrack-submission/doc/*.md)",
       "Read(//Users/moffenzeef_studio/Documents/VCVrack-submission/doc/**)",
-      "Bash(grep 'width=' /Users/moffenzeef_studio/Documents/VCVrack-submission/doc/*.md)"
+      "Bash(grep 'width=' /Users/moffenzeef_studio/Documents/VCVrack-submission/doc/*.md)",
+      "Bash(grep:*)"
     ]
   }
 }

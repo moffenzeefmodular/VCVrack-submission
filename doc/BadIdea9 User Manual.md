@@ -52,12 +52,3 @@ Sets the base frequency of the sync oscillator. Range is approximately 10Hz to 3
 5. Amplitude scaled by PWR voltage
 
 ---
-
-# Tips
-
-- Patch a slow attack envelope into PWR for a voltage-starved swell that opens up into a clatter of harmonics.
-- Set RUH and ROH to similar values for a subtle phasing tone; push them apart for aggressive metallic clangour.
-- At low PWR voltages the oscillators collapse in frequency, producing sub-range thumps and rumbles.
-- Multiple instances with offset PWR voltages create layered harmonic clouds.
-
----

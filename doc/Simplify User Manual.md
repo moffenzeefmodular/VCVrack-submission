@@ -47,12 +47,3 @@ Chooses one of 137 preset gate patterns. The knob snaps to integer values. Each 
 * **OUT:** Gate output. On active steps, outputs a 5V gate for 5ms following the BANG! input. On muted steps, output stays at 0V. The LED illuminates on active steps.
 
 ---
-
-# Tips
-
-- Patch Simplify between a master clock and a drum voice to quickly audition rhythmic variations — just turn SELECT.
-- Use RESET from a bar-length trigger to keep the pattern phase-locked to your song structure.
-- Automate SELECT CV with a slow LFO or step sequencer for evolving rhythmic variation over time.
-- Run multiple Simplify modules from the same clock with different patterns for independent muting layers across voices.
-
----

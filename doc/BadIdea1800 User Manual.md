@@ -48,12 +48,3 @@ There are no knobs or switches on this module. All control is through the gate i
 DTMF (Dual-Tone Multi-Frequency) encodes each keypad symbol as the simultaneous sum of two sine waves — one from a row frequency and one from a column frequency. The standard telephone grid uses four row frequencies (697Hz, 770Hz, 852Hz, 941Hz) and three column frequencies (1209Hz, 1336Hz, 1477Hz). Bad Idea #1800 implements all twelve standard combinations.
 
 ---
-
-# Tips
-
-- In Original Firmware mode, patch a sequencer's gate outputs to the keypad inputs to step through DTMF tones as pitched percussion.
-- In Alt Firmware mode, use as a standard 12-voice sample trigger with any compatible drum kit.
-- Stack multiple held gates simultaneously for combinatorial tones that don't exist on any real telephone.
-- Run the output into a filter or pitch-shifter for alien telephone percussion.
-
----

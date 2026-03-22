@@ -4,10 +4,6 @@
 
 # Mito VCV Rack User Manual
 
-*"Six voices, one clock. Every division is its own little world."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview
@@ -61,14 +57,5 @@ Sets the pulse width of all output gates as a fraction of the clock period. Rang
 ### Outputs
 
 * **CH1–6:** Gate outputs at the division set by each channel's knob and CV. 0V / 5V. Each has an LED that illuminates while the gate is high.
-
----
-
-# Tips
-
-- Set multiple channels to the same division for synchronized gates that can be individually muted.
-- Use prime-number divisions (e.g., 3, 5, 7, 11) across channels to create polyrhythmic patterns that take a long time to repeat.
-- Patch the Width CV to a slow LFO to gradually breathe the gate length in and out across all channels.
-- Use RESET from a bar-length trigger to keep long polyrhythmic patterns phase-locked to your song structure.
 
 ---

@@ -80,13 +80,3 @@ Selects the synthesis algorithm:
 * **OUT:** Audio output of the selected algorithm, shaped by the decay envelope. Clamped to ±5V. The LED reflects the envelope level.
 
 ---
-
-# Tips
-
-- Muskrat mode + Fast range + high DIG: harsh, crunchy transients with heavy wavefold distortion.
-- FM mode: sweep CHEW and DIG for bell-like and metallic drum tones.
-- PD mode + high DIG octave multiplier: sharp, upper-register digital percussion.
-- Granular mode + RATSWITCH: stuttering reverse grain percussion with added noise texture.
-- CHEW CV from a sequencer: pitch the drum hits chromatically across all algorithms.
-
----

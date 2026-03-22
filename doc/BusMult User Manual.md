@@ -4,10 +4,6 @@
 
 # Bus Mult VCV Rack User Manual
 
-*"The busiest signal in any patch is usually the one going everywhere at once."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview

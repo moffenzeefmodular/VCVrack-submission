@@ -4,10 +4,6 @@
 
 # Bobcat VCV Rack User Manual
 
-*"Not a snare drum. Not a tom. Something that lives in between and doesn't apologize for it."*
-
-**— Ross Fish, 2026**
-
 ---
 
 # Overview
@@ -70,14 +66,5 @@ Controls two things simultaneously: the clock speed of the sample-and-hold noise
 3. Biquad bandpass filter centered at the frequency set by the Hiss knob (500Hz–10kHz)
 4. Exponential decay envelope triggered by BANG! input
 5. Both voices summed and averaged
-
----
-
-# Tips
-
-- For a snare: Voice 1 low Hiss + medium Tail, Voice 2 high Hiss + short Tail. Trigger both from the same gate.
-- For hi-hats: Use only Voice 1 with high Hiss and short Tail. A second instance of Bobcat works well for open/closed hat pairs.
-- For body and texture: Flip SNARL to Long and increase Tail for evolving noise swells.
-- Hiss CV from a sequencer creates pitched noise percussion — each step snaps the noise color to a different frequency band.
 
 ---
