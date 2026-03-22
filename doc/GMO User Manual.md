@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/GmoYoutubeThumb.jpg)](https://youtu.be/oMb-bblWSxk)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/GmoScreenshot.png" height="638"></p>
 
 ---

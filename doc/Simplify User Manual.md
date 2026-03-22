@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/SimplifyYoutubeThumb.jpg)](https://youtu.be/aPSa3BcxXzE)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/SimplifyScreenshot.png" height="638"></p>
 
 ---

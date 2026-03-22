@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MuskratYoutubeThumb.jpg)](https://youtu.be/h4xqRPyOV_s)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MuskratScreenshot.png" height="638"></p>
 
 ---

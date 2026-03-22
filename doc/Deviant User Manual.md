@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DeviantYoutubeThumb.jpg)](https://youtu.be/k8lxnvKjQzg)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DeviantScreenshot.png" height="638"></p>
 
 ---

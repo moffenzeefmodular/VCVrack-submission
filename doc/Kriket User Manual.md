@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KriketYoutubeThumb.jpg)](https://youtu.be/8xhfea5oRY0)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KriketScreenshot.png" height="638"></p>
 
 ---

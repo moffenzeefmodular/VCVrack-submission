@@ -22,7 +22,9 @@
       "Bash(grep -n 'width=' /Users/moffenzeef_studio/Documents/VCVrack-submission/doc/*.md)",
       "Read(//Users/moffenzeef_studio/Documents/VCVrack-submission/doc/**)",
       "Bash(grep 'width=' /Users/moffenzeef_studio/Documents/VCVrack-submission/doc/*.md)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:www.youtube.com)",
+      "Bash(curl -s \"https://www.youtube.com/playlist?list=PLuPpe2LkP-CX8mACYmYhNnox4FXkvRbfh\" -H \"User-Agent: Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\")"
     ]
   }
 }

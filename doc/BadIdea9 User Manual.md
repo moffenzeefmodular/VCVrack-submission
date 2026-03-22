@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea9YoutubeThumb.jpg)](https://youtu.be/dQTuyg2mfxA)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea9Screernshot.png" height="638"></p>
 
 ---

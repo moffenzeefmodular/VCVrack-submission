@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TheRunnerYoutubeThumb.jpg)](https://youtu.be/di926J6_TkM)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TheRunnerScreenshot.png" height="638"></p>
 
 ---

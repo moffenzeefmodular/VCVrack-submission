@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BobcatYoutubeThumb.jpg)](https://youtu.be/4kOTIZOt-Pg)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BobcatScreenshot.png" height="638"></p>
 
 ---

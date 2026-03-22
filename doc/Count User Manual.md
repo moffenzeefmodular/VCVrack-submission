@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/CountYoutubeThumb.jpg)](https://youtu.be/Y1-JjBX6wPs)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/CountScreenshot.png" height="638"></p>
 
 ---

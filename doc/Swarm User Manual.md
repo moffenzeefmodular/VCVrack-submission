@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/SwarmYoutubeThumb.jpg)](https://youtu.be/rk3VT1PL2l4)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/SwarmScreenshot.png" height="638"></p>
 
 ---

@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MongrelYoutubeThumb.jpg)](https://youtu.be/zZV6yRjzHpU)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MongrelScreenshot.png" height="638"></p>
 
 ---

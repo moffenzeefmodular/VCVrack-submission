@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MitoYoutubeThumb.jpg)](https://youtu.be/MDjgaaEmgiU)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MitoScreenshot.png" height="638"></p>
 
 ---

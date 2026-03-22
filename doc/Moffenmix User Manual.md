@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MoffenmixYoutubeThumb.jpg)](https://youtu.be/Kjd3yJzhEyg)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MoffenmixScreenshot.png" height="638"></p>
 
 ---

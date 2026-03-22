@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DialUpYoutubeThumb.jpg)](https://youtu.be/1-fWQXRXc0M)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DialUpScreenshot.png" height="638"></p>
 
 ---

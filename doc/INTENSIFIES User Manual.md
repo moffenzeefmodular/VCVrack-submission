@@ -1,3 +1,7 @@
+[![Video Tutorial](https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/IntensifiesYoutubeThumb.jpg)](https://youtu.be/sE05PPIdKno)
+
+---
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/IntensifiesScreenshot.png" height="638"></p>
 
 ---
