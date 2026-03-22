@@ -18,7 +18,7 @@
       "name": "Bad Idea #9",
       "description": "Power starved glitch oscillator",
       "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-bad-idea-9",
-      "manualUrl": "https://www.moffenzeefmodular.com/s/MOF-BAD-IDEA-QS.pdf",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/BadIdea9%20User%20Manual.md",
       "tags": [
         "oscillator",
         "noise",
@@ -31,7 +31,7 @@
       "name": "Bad Idea #1800-Call-Yer-Mum",
       "description": "DTMF tone generator",
       "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-bad-idea-1800-call-yer-mum",
-      "manualUrl": "https://www.moffenzeefmodular.com/s/MOF-BADIDEA-1800-QS.pdf",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/BadIdea1800%20User%20Manual.md",
       "tags": [
         "oscillator",
         "noise",
@@ -81,7 +81,7 @@
       "name": "Deviant",
       "description": "Dual max/min stepped random with slew",
       "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-deviant",
-      "manualUrl": "https://www.moffenzeefmodular.com/s/deviant_quickstart-mh28.pdf",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Deviant%20User%20Manual.md",
       "tags": [
         "random",
         "utility",
@@ -105,7 +105,7 @@
       "name": "GMO",
       "description": "Lofi ROMPLER with only one bank of metal clangs",
       "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-gmO",
-      "manualUrl": "https://github.com/moffenzeefmodular/GMO/blob/master/IllustratorFiles/Renders/usermanual_GMO_.png?raw=true",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/GMO%20User%20Manual.md",
       "tags": [
         "drum",
         "noise",
@@ -155,7 +155,7 @@
       "name": "Mongrel",
       "description": "Ring mod drum",
       "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-mongrel",
-      "manualUrl": "https://raw.githubusercontent.com/moffenzeefmodular/GMO/master/IllustratorFiles/Renders/usermanual_mongrel.png",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Mongrel%20User%20Manual.md",
       "tags": [
         "drum",
         "noise",
@@ -167,7 +167,7 @@
       "name": "Muskrat",
       "description": "Lofi wavetable drum with additional algorithms",
       "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-muskrat",
-      "manualUrl": "https://www.moffenzeefmodular.com/s/MUSKRAT_QS-s5bp.pdf",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Muskrat%20User%20Manual.md",
       "tags": [
         "drum",
         "noise",
@@ -179,7 +179,7 @@
       "name": "Simplify",
       "description": "Dynamic mute module",
       "modularGridUrl": "https://modulargrid.net/e/moffenzeef-modular-simplify",
-      "manualUrl": "https://www.moffenzeefmodular.com/s/MOF-SIMPLIFY-QUICKSTART-v10-892024.pdf",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/Simplify%20User%20Manual.md",
       "tags": [
         "sequencer",
         "clock modulator",
@@ -227,7 +227,7 @@
       "slug": "INTENSIFIES",
       "name": "INTENSIFIES",
       "description": "Eurorack fantasy version of a previously released effect pedal: Amplitude modulated sample rate reduction and distortion",
-      "manualUrl": "https://static1.squarespace.com/static/56d67baac6fc08e0509b99f4/t/5c0886abaa4a9970c811b2eb/1544062637182/MOF-INTENSIFIES-QSGUIDE-v1.0-12.5.18.pdf",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/INTENSIFIES%20User%20Manual.md",
       "tags": [
         "hardware clone",
         "Noise",
@@ -239,7 +239,7 @@
       "slug": "TheRunner",
       "name": "The Runner",
       "description": "A Eurorack fantasy version of a previously released drone synth: The Runner was made in collaboration with Boy Harsher as part of promo for their film with the same name",
-      "manualUrl": "https://www.moffenzeefmodular.com/s/MOF-BOYHARSHER-THERUNNER-QUICKSTART-v20-942023.pdf",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/TheRunner%20User%20Manual.md",
       "tags": [
         "hardware clone",
         "oscillator",
