@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomScreenshot.png" width="700"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomScreenshot.png" height="638"></p>
 
 ---
 
@@ -30,7 +30,7 @@
 
 # Audio I/O
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomAudioIOScreenshot.png" width="400"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomAudioIOScreenshot.png" height="638"></p>
 
 * **AUDIO L IN / AUDIO R IN:** Stereo audio inputs. If only the left input is patched, the signal is summed to mono and used for both channels internally.
 
@@ -40,7 +40,7 @@
 
 # Individual Channels
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomChannelScreenshot.png" width="300"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomChannelScreenshot.png" height="638"></p>
 
 There are four identical channels arranged in the corners of the module. Each channel records and plays back audio into its own independent buffer, with full control over speed, source blend, and playback direction. The channels are labeled 1 (top-left), 2 (top-right), 3 (bottom-left), and 4 (bottom-right).
 
@@ -88,7 +88,7 @@ Each of the four channels has its own submenu. Settings save with the patch and 
 
 # XY Pad
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomXYPadScreenshot.png" width="250"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomXYPadScreenshot.png" height="638"></p>
 
 The XY pad blends the four loop channels together — each channel is assigned to a corner of the pad, and the position of the cursor determines the relative contribution of each channel to the stereo output.
 
@@ -129,7 +129,7 @@ When enabled, the X axis of the XY pad acts as a master stereo pan for all four 
 
 # Global
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomGlobalScreenshot.png" width="500"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomGlobalScreenshot.png" height="638"></p>
 
 This section sits at the bottom center of the module. The XY CV and Slew controls govern the XY mixer's inputs, outputs, and response time. The Size, Position, and Xfade controls shape the loop playback window and apply simultaneously to all four channels.
 
@@ -165,7 +165,7 @@ This section sits at the bottom center of the module. The XY CV and Slew control
 
 # Degrade
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomDegradeScreenshot.png" width="500"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomDegradeScreenshot.png" height="638"></p>
 
 This section controls Tehom's degradation and noise features — warble for destabilizing loop playback pitch, a tone control for shaping the frequency content of the loop signal, a machine noise player, and a send-return path for processing the noise externally.
 

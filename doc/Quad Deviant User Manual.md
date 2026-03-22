@@ -12,7 +12,7 @@ As Deviant was originally a hardware device and part of System Moffenzeef, it ne
 
 # Overview
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantScreenshot.png" width="750"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/QuadDeviantScreenshot.png" height="638"></p>
 
 **Quad Deviant** is a four-channel stepped random voltage generator with Max/Min control per channel. Each channel’s random voltage can be dialed into a window defined by the **Top** and **Bottom** parameters, while the **Range** switch determines the overall spread of this window. CV inputs are provided for both aspects of the window: **Top** and **Bottom**.
 

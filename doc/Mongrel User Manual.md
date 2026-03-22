@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MongrelScreenshot.png" width="300"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MongrelScreenshot.png" height="638"></p>
 
 ---
 
 # Mongrel VCV Rack User Manual
-
-*"Two voices, one fight, one output."*
-
-**— Ross Fish, 2026**
 
 ---
 

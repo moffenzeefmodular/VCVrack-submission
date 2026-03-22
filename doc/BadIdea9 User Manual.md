@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea9Screernshot.png" width="150"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea9Screernshot.png" height="638"></p>
 
 ---
 
 # Bad Idea #9 VCV Rack User Manual
-
-*"Two knobs. One voltage. One very bad idea."*
-
-**— Ross Fish, 2026**
 
 ---
 

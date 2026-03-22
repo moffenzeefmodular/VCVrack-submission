@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MuskratScreenshot.png" width="150"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/MuskratScreenshot.png" height="638"></p>
 
 ---
 
 # Muskrat VCV Rack User Manual
-
-*"Four algorithms. One rodent. Endless percussion."*
-
-**— Ross Fish, 2026**
 
 ---
 

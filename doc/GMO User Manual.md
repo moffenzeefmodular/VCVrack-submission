@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/GmoScreenshot.png" width="300"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/GmoScreenshot.png" height="638"></p>
 
 ---
 
 # GMO VCV Rack User Manual
-
-*"One bank of metal clangs. That's all you get. That's all you need."*
-
-**— Ross Fish, 2026**
 
 ---
 

@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea1800Screenshot.png" width="300"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/BadIdea1800Screenshot.png" height="638"></p>
 
 ---
 
 # Bad Idea #1800-Call-Yer-Mum VCV Rack User Manual
-
-*"Twelve keys. The sound of an entire generation waiting on hold."*
-
-**— Ross Fish, 2026**
 
 ---
 

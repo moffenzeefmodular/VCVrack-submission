@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/IntensifiesScreenshot.png" width="300"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/IntensifiesScreenshot.png" height="638"></p>
 
 ---
 
 # INTENSIFIES VCV Rack User Manual
-
-*"Sample rate reduction as an instrument. Distortion as a philosophy."*
-
-**— Ross Fish, 2026**
 
 ---
 

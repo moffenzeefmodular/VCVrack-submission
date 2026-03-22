@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TheRunnerScreenshot.png" width="300"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TheRunnerScreenshot.png" height="638"></p>
 
 ---
 
 # The Runner VCV Rack User Manual
-
-*"A drone that doesn't sit still. A machine that breathes."*
-
-**— Ross Fish, 2026**
 
 ---
 

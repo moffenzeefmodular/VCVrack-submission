@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DialUpScreenshot.png" width="150"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DialUpScreenshot.png" height="638"></p>
 
 ---
 

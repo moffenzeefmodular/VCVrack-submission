@@ -16,7 +16,7 @@ While the VCV module adds a robust new feature set, I made a point to keep the c
 
 # Overview
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerScreenshot.png" width="1000"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/StargazerScreenshot.png" height="638"></p>
 
 Stargazer is a stereo dual wavetable based drone synth with two multimode filters, sample rate and bit depth reduction, and three LFOs. While a wide variety of sounds are possible with this device, it was designed with the intention of creating slow morphing timbral shifts over time. For this reason, the device is monophonic and has a restricted pitch range dedicated to low frequencies. This is also why the device does not have onboard amplitude or filter envelopes.
 

@@ -60,7 +60,7 @@ Going in depth on the music theory of Klezmer music is best left to musicologist
 
 # Overview
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerScreenshot.png" width="500"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/KleztizerScreenshot.png" height="638"></p>
 
 **Kleztizer** is a combination module consisting of two quantizers and a chord generator. Both the chord generator and the quantizers follow the "rules" of modal harmony, specifically as they pertain to modes common in Klezmer music. Setting the **Key** and **Mode** dictate the "rules" that the subsequent sections of the module follow. 
 

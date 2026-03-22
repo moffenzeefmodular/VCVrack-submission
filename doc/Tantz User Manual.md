@@ -67,7 +67,7 @@ The Zhok is a playful, dance-oriented klezmer tune, usually in 2/4 or 4/4 time. 
 ---
 # Overview
 
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzScreenshot.png" width="500"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TantzScreenshot.png" height="638"></p>
 
 **Tantz!** is a preset drum sequencer inspired by organ drum machines. There are 6 tracks, each with 8 pattern variations. Changing the **Style** shifts the global bank for all tracks to a completely new set of patterns and time signatures. Global swing is provided mainly for the patterns in 3/4, to mimic the sound of the cimbalom.  
 

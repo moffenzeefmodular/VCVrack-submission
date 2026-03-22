@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DeviantScreenshot.png" width="300"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DeviantScreenshot.png" height="638"></p>
 
 ---
 
 # Deviant VCV Rack User Manual
-
-*"It knows the limits. It just doesn't respect them."*
-
-**— Ross Fish, 2026**
 
 ---
 

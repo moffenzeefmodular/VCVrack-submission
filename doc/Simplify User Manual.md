@@ -1,12 +1,8 @@
-<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/SimplifyScreenshot.png" width="150"></p>
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/SimplifyScreenshot.png" height="638"></p>
 
 ---
 
 # Simplify VCV Rack User Manual
-
-*"137 ways to say no."*
-
-**— Ross Fish, 2026**
 
 ---
 
