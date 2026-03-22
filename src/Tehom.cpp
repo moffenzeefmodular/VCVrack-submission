@@ -884,7 +884,9 @@ void process(const ProcessArgs& args) override {
             scrubVelocity[i] = 0.f;
             // Normal spin while playing
             if (playState[i].load(rlx)) {
-                float pitchVal = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f);
+                float knobOctaves = std::log2f(std::max(params[SPEED1_PARAM + i].getValue() * 2.f, 0.05f));
+                float totalOctaves = clamp(knobOctaves + inputs[SPEED1CVIN_INPUT + i].getVoltage(), std::log2f(0.05f), 1.f);
+                float pitchVal = std::pow(2.f, totalOctaves) * 0.5f;
                 float spinSpeed = 0.02f + pitchVal * 0.8f;
                 float spinDir = playReversed[i].load(rlx) ? -1.f : 1.f;
                 float newValue = params[LEDBEZEL1_PARAM + i].getValue() + spinDir * spinSpeed * args.sampleTime;
@@ -994,7 +996,9 @@ void process(const ProcessArgs& args) override {
                         sampR *= clamp(gain, 0.f, 1.f);
                     }
 
-                    float speed = clamp(params[SPEED1_PARAM + i].getValue() + clamp(inputs[SPEED1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 10.f, 0.025f, 1.f) * 2.f;
+                    float knobOctaves = std::log2f(std::max(params[SPEED1_PARAM + i].getValue() * 2.f, 0.05f));
+                    float totalOctaves = clamp(knobOctaves + inputs[SPEED1CVIN_INPUT + i].getVoltage(), std::log2f(0.05f), 1.f);
+                    float speed = std::pow(2.f, totalOctaves);
 
                     // Wow and flutter: only compute sin when warble is non-zero.
                     // Use conditional subtract instead of fmod — far cheaper since increments
