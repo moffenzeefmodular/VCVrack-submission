@@ -1,5 +1,8 @@
 #include "plugin.hpp"
 
+// Forward declaration so BusMult::process() can check the left neighbor's model
+extern Model* modelBusMult;
+
 struct BusMult : Module {
     enum ParamId {
         PARAMS_LEN
@@ -21,6 +24,9 @@ struct BusMult : Module {
         LIGHTS_LEN
     };
 
+    // Stores the last output value so a right-neighbor BusMult can read it directly
+    float chainedVoltage = 0.f;
+
     BusMult() {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
         configInput(IN1_INPUT, "1");
@@ -33,39 +39,47 @@ struct BusMult : Module {
     }
 
     void process(const ProcessArgs& args) override {
-        // Get the signal from Input 1
-        float input1 = inputs[IN1_INPUT].getVoltage();
+        // If a BusMult is immediately to the left and IN1 is unpatched, inherit its chain value
+        float input1;
+        bool leftIsChained = leftExpander.module && leftExpander.module->model == modelBusMult;
+        if (leftIsChained && !inputs[IN1_INPUT].isConnected()) {
+            input1 = static_cast<BusMult*>(leftExpander.module)->chainedVoltage;
+        } else {
+            input1 = inputs[IN1_INPUT].getVoltage();
+        }
 
-        // Check if Input 2 is connected, if not normalize it to Input 1
+        // IN2 normals to IN1 if unpatched
         float input2 = inputs[IN2_INPUT].isConnected() ? inputs[IN2_INPUT].getVoltage() : input1;
 
-        // Set the outputs based on the inputs
-        outputs[OUT1_OUTPUT].setVoltage(input1);  // OUT1 = Input 1
-        outputs[OUT2_OUTPUT].setVoltage(input1);  // OUT2 = Input 1
-        outputs[OUT3_OUTPUT].setVoltage(input1);  // OUT3 = Input 1
-        outputs[OUT4_OUTPUT].setVoltage(input2);  // OUT4 = Input 2 (normalized to Input 1 if not connected)
-        outputs[OUT5_OUTPUT].setVoltage(input2);  // OUT5 = Input 2 (normalized to Input 1 if not connected)
+        outputs[OUT1_OUTPUT].setVoltage(input1);
+        outputs[OUT2_OUTPUT].setVoltage(input1);
+        outputs[OUT3_OUTPUT].setVoltage(input1);
+        outputs[OUT4_OUTPUT].setVoltage(input2);
+        outputs[OUT5_OUTPUT].setVoltage(input2);
+
+        // Store for right neighbor to read
+        chainedVoltage = input2;
     }
 };
 
 struct BusMultWidget : ModuleWidget {
     BusMultWidget(BusMult* module) {
         setModule(module);
-setPanel(createPanel(
-		asset::plugin(pluginInstance, "res/panels/BusMult.svg"),
-		asset::plugin(pluginInstance, "res/panels/BusMult-dark.svg")
-		));
+        setPanel(createPanel(
+            asset::plugin(pluginInstance, "res/panels/BusMult.svg"),
+            asset::plugin(pluginInstance, "res/panels/BusMult-dark.svg")
+        ));
 
         addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.141, 17.9)), module, BusMult::IN1_INPUT));
+        addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.141, 17.9)),   module, BusMult::IN1_INPUT));
         addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.125, 78.549)), module, BusMult::IN2_INPUT));
 
-        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.106, 33.007)), module, BusMult::OUT1_OUTPUT));
-        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.157, 48.234)), module, BusMult::OUT2_OUTPUT));
-        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.152, 63.351)), module, BusMult::OUT3_OUTPUT));
-        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.132, 93.763)), module, BusMult::OUT4_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.106, 33.007)),  module, BusMult::OUT1_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.157, 48.234)),  module, BusMult::OUT2_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.152, 63.351)),  module, BusMult::OUT3_OUTPUT));
+        addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.132, 93.763)),  module, BusMult::OUT4_OUTPUT));
         addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.134, 108.915)), module, BusMult::OUT5_OUTPUT));
     }
 };
