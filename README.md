@@ -141,4 +141,7 @@ By Ross Fish Feb 2025
 - Optimizations implemented for dropouts when module not in use
 
 ## Tehom Beta: v2.6.0-rc13
+- 1v/oct added to Tehom speed input 
 - Added all sample banks to 1800 from old repo 
+- Bus mult normalization added 
+- User manuals generated for all modules 
