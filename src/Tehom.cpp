@@ -219,7 +219,7 @@ struct Tehom : Module {
 		recordState[i].store(false);   playState[i].store(false);
 		playReversed[i].store(false);  eraseFlash[i].store(0.f);
 		pendingReverseFlip[i].store(false); pendingErase[i].store(false);
-		autoPlay[i].store(true);       autoPlayFull[i].store(true);
+		autoPlay[i].store(true);
 		continuousRecord[i].store(false); recordMainOutput[i].store(false);
 		playCVMode[i].store(0);
 	}
@@ -376,7 +376,6 @@ void onReset(const ResetEvent& e) override {
     for (int i = 0; i < 4; i++) {
         eraseBuffer(i);
         autoPlay[i].store(true);
-        autoPlayFull[i].store(true);
         playCVMode[i].store(0);
         playReversed[i].store(false);
         continuousRecord[i].store(false);
@@ -413,16 +412,14 @@ json_t* dataToJson() override {
     json_object_set_new(root, "wanderMode",       json_integer(wanderMode.load()));
 
     // Per-channel toggles
-    json_t* ap = json_array(), *apf = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
+    json_t* ap = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
     for (int i = 0; i < 4; i++) {
         json_array_append_new(ap,   json_boolean(autoPlay[i].load()));
-        json_array_append_new(apf,  json_boolean(autoPlayFull[i].load()));
         json_array_append_new(pcvm, json_integer(playCVMode[i].load()));
         json_array_append_new(cr,   json_boolean(continuousRecord[i].load()));
         json_array_append_new(rmo,  json_boolean(recordMainOutput[i].load()));
     }
     json_object_set_new(root, "autoPlay",           ap);
-    json_object_set_new(root, "autoPlayFull",       apf);
     json_object_set_new(root, "playCVMode",         pcvm);
     json_object_set_new(root, "continuousRecord",   cr);
     json_object_set_new(root, "recordMainOutput",   rmo);
@@ -470,8 +467,6 @@ void dataFromJson(json_t* root) override {
     // Per-channel toggles
     json_t* ap = json_object_get(root, "autoPlay");
     if (ap)   for (int i = 0; i < 4; i++) { json_t* v = json_array_get(ap,   i); if (v) autoPlay[i].store(json_boolean_value(v)); }
-    json_t* apf = json_object_get(root, "autoPlayFull");
-    if (apf)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(apf,  i); if (v) autoPlayFull[i].store(json_boolean_value(v)); }
     json_t* pcvm = json_object_get(root, "playCVMode");
     if (pcvm) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(pcvm, i); if (v) playCVMode[i].store((int)json_integer_value(v)); }
     json_t* crj = json_object_get(root, "continuousRecord");
@@ -553,7 +548,6 @@ std::atomic<bool> pendingReverseFlip[4];  // written by UI button, consumed by p
 bool pendingScrubTransition[4]   = {};    // audio-thread only
 bool pendingPlayStart[4]         = {};    // audio-thread only: defers readPos reset until playGain == 0
 std::atomic<bool> autoPlay[4];
-std::atomic<bool> autoPlayFull[4];
 std::atomic<bool> continuousRecord[4];
 std::atomic<bool> recordMainOutput[4];
 std::atomic<bool> pendingErase[4];  // UI sets true; process() performs the erase
@@ -1258,7 +1252,7 @@ void process(const ProcessArgs& args) override {
                     // Keep recording — wrap and overwrite from the start
                 } else {
                     recordState[i].store(false, rlx);
-                    if (autoPlayFull[i].load(rlx) && !playState[i].load(rlx)) {
+                    if (!playState[i].load(rlx)) {
                         if (playGain[i] <= 0.f) {
                             playState[i].store(true, rlx);
                             readPos[i] = 0.f;
@@ -2148,11 +2142,6 @@ struct TehomWidget : ModuleWidget {
                     "Auto-Play when recording complete", "",
                     [=]() { return tehom->autoPlay[i].load(); },
                     [=]() { tehom->autoPlay[i].store(!tehom->autoPlay[i].load()); }
-                ));
-                subMenu->addChild(createCheckMenuItem(
-                    "Auto-Play when buffer full", "",
-                    [=]() { return tehom->autoPlayFull[i].load(); },
-                    [=]() { tehom->autoPlayFull[i].store(!tehom->autoPlayFull[i].load()); }
                 ));
                 subMenu->addChild(new MenuSeparator);
                 subMenu->addChild(createMenuLabel("Play CV Mode"));

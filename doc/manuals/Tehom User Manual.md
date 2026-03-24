@@ -72,9 +72,7 @@ Each of the four channels has its own submenu. Settings save with the patch and 
 
 #### Auto-Play (Channels > Channel Num. > Auto-Play)
 
-* **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped. Default is on.
-
-* **Auto-Play when buffer full:** When enabled, the channel automatically begins playing back when the recording buffer fills to capacity. Default is on.
+* **Auto-Play when recording complete:** When enabled, the channel automatically begins playing back as soon as recording is manually stopped, or when the recording buffer fills to capacity — whichever comes first. Default is on.
 
 #### Play CV Mode (Channels > Channel Num. > Play CV Mode)
 
@@ -181,17 +179,14 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 ## Noise Send-Return
 
-* **SEND:** A mono output that carries the currently selected machine noise loop signal. The send can be **Pre-Fader** (the default) or **Post-Fader**, selectable from the context menu. Pre-Fader sends the raw noise loop signal before the Amount knob is applied. Post-Fader sends the noise loop after the Amount knob is applied.
+* **SEND:** A mono output that carries the currently selected machine noise loop signal at +/−5 V, pre-fader — before the Amount knob is applied.
 
-* **RETURN:** A mono input. When a cable is patched into this input, it replaces the noise loop signal for both the left and right channels before the Amount knob is applied. This means the return signal's level in the final mix is still controlled by the Amount knob, regardless of pre- or post-fader setting.
+* **RETURN:** A mono input. When a cable is patched into this input, it replaces the noise loop signal for both the left and right channels before the Amount knob is applied. The return is expected at +/−5 V and is scaled back down to the module's internal +/−2 V noise level automatically. The return signal's level in the final mix is controlled by the Amount knob.
 
 ### Context Menu Options (right click)
 
 * **Media Type (Noise > Media Type):** Selects the active machine noise loop. Options are: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film.
 
-* **Aux Send (Noise > Aux Send)**
-  * **Pre-Fader** *(default)*: The Send output carries the raw noise loop signal before the Amount knob. Changing the Amount knob does not affect the send level.
-  * **Post-Fader:** The Send output carries the noise loop after the Amount knob. The send level tracks the Amount setting.
 
 ---
 

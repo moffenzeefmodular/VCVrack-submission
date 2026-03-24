@@ -149,4 +149,4 @@ By Ross Fish Feb 2025
 ## Tehom Beta: v2.6.0-rc14
 - Noise aux send changed to permanently be pre-fader
 - Noise send rescaled to +/-5v, while return maintains it's same +/-1v volume. 
-- Auto-record changed to permanently be "when recording complete" 
+- Auto-record changed to permanently be "when recording complete", extra context menu option removed. 
