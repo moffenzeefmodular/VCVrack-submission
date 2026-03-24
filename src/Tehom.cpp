@@ -392,7 +392,6 @@ void onReset(const ResetEvent& e) override {
     wanderTimer.store(0.f);
     wanderSpeed.store(0.15f);
     wanderAngle.store(0.f);
-    noiseAuxPreFader.store(true);
     mediaTypeIndex.store(0);
     filterStateL      = 0.f;
     filterStateR      = 0.f;
@@ -408,7 +407,6 @@ json_t* dataToJson() override {
     json_object_set_new(root, "showCrosshairs",   json_boolean(showCrosshairs));
     json_object_set_new(root, "persist",          json_boolean(persist));
     json_object_set_new(root, "persistBuffers",   json_boolean(persistBuffers));
-    json_object_set_new(root, "noiseAuxPreFader", json_boolean(noiseAuxPreFader.load()));
     json_object_set_new(root, "mediaTypeIndex",   json_integer(mediaTypeIndex.load()));
     json_object_set_new(root, "xyPadPansAudio",   json_boolean(xyPadPansAudio.load()));
     json_object_set_new(root, "cursorStyle",      json_integer(cursorStyle));
@@ -466,8 +464,6 @@ void dataFromJson(json_t* root) override {
     if (cs) cursorStyle = (int)json_integer_value(cs);
     json_t* wm = json_object_get(root, "wanderMode");
     if (wm) wanderMode.store((int)json_integer_value(wm));
-    json_t* napf = json_object_get(root, "noiseAuxPreFader");
-    if (napf) noiseAuxPreFader.store(json_boolean_value(napf));
     json_t* mti = json_object_get(root, "mediaTypeIndex");
     if (mti) mediaTypeIndex.store(clamp((int)json_integer_value(mti), 0, 7));
 
@@ -634,7 +630,6 @@ struct OggLoop {
 
 float    oggPlayPos    = 0.f;
 int      currentOggIdx = -1;
-std::atomic<bool> noiseAuxPreFader{true};
 std::atomic<int>  mediaTypeIndex{0};
 
 // One-pole lowpass filter state (applied to main audio before noise mix)
@@ -1163,7 +1158,7 @@ void process(const ProcessArgs& args) override {
         + clamp(inputs[AMOUNTCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
     float amountLog = amount * amount;  // logarithmic taper
 
-    bool preFader      = noiseAuxPreFader.load(rlx);
+    bool preFader      = true;
     bool sendConnected = outputs[SEND_OUTPUT].isConnected();
     bool returnConnected = inputs[RETURN_INPUT].isConnected();
 
@@ -1171,7 +1166,7 @@ void process(const ProcessArgs& args) override {
     // post-fader paths need it when amount > 0 and no return is replacing it.
     // This avoids ~2 cache-cold array reads per sample when the module is idle.
     float mediaL = 0.f, mediaR = 0.f;
-    bool needOgg = (preFader && sendConnected) || (!returnConnected && (amountLog > 0.f || (!preFader && sendConnected)));
+    bool needOgg = sendConnected || (!returnConnected && amountLog > 0.f);
     if (needOgg) {
         OggLoop& loop = oggLoops[mediaIdx];
         if (loop.loaded && loop.numSamples > 1) {
@@ -1188,11 +1183,11 @@ void process(const ProcessArgs& args) override {
 
     // Pre-fader send: raw media before amount knob
     if (preFader)
-        outputs[SEND_OUTPUT].setVoltage((mediaL + mediaR) * 0.5f);
+        outputs[SEND_OUTPUT].setVoltage(mediaL * 2.5f);
 
     // Return replaces media (both L and R) before amount knob
     if (returnConnected) {
-        float ret = inputs[RETURN_INPUT].getVoltage();
+        float ret = inputs[RETURN_INPUT].getVoltage() * 0.4f;
         mediaL = ret;
         mediaR = ret;
     }
@@ -2129,16 +2124,6 @@ struct TehomWidget : ModuleWidget {
                 }
             }));
         }
-        menu->addChild(createSubmenuItem("Aux Send", "", [=](Menu* subMenu) {
-            subMenu->addChild(createCheckMenuItem("Pre-Fader", "",
-                [=]() { return tehom->noiseAuxPreFader.load(); },
-                [=]() { tehom->noiseAuxPreFader.store(true); }
-            ));
-            subMenu->addChild(createCheckMenuItem("Post-Fader", "",
-                [=]() { return !tehom->noiseAuxPreFader.load(); },
-                [=]() { tehom->noiseAuxPreFader.store(false); }
-            ));
-        }));
 
         // Channels section
         menu->addChild(new MenuSeparator);
