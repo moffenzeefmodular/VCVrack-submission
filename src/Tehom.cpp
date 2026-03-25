@@ -1252,7 +1252,7 @@ void process(const ProcessArgs& args) override {
                     // Keep recording — wrap and overwrite from the start
                 } else {
                     recordState[i].store(false, rlx);
-                    if (!playState[i].load(rlx)) {
+                    if (autoPlay[i].load(rlx) && !playState[i].load(rlx)) {
                         if (playGain[i] <= 0.f) {
                             playState[i].store(true, rlx);
                             readPos[i] = 0.f;
