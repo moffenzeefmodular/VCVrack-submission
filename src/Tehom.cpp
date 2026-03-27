@@ -2035,6 +2035,8 @@ struct TehomWidget : ModuleWidget {
 
         // GUI section
         menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("HINT: hold control (command on Mac) to keep menu open"));
+        menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("GUI"));
         menu->addChild(createSubmenuItem("XY Pad", "", [=](Menu* subMenu) {
             subMenu->addChild(createMenuLabel("Behavior"));

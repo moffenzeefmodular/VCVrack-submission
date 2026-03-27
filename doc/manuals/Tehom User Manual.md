@@ -68,7 +68,7 @@ Each of the four channels has its own submenu. Settings save with the patch and 
 
 * **Continuous Record:** When enabled, the record head wraps around and continues recording from the beginning of the buffer when it reaches the end, instead of stopping. The Record button light stays on indefinitely. Useful for continuously overwriting a buffer in real time. Default is off.
 
-* **Record Source: Main Output:** By default, each channel records its own input signal blended with its own playback through the source knob. The XY mixer, warble, and noise are not part of what gets written to the buffer — each buffer captures a clean, pre-mixer signal. When **Record Source: Main Output** is enabled, the channel instead records the final stereo output of the entire module: post-XY mixer, post-warble, and post-noise. This means the spatial position of the XY cursor, the warble effect, and any machine noise present at that moment are all printed directly into the buffer. The source knob is bypassed in this mode. Because warble is included in the captured signal, it will be baked into the buffer and played back as a fixed pitch artifact on subsequent passes. Default is off.
+* **Record Source: Main Output:** By default, each channel records its own input signal blended with its own playback through the source knob. The XY mixer, warble, and noise are not part of what gets written to the buffer — each buffer captures a clean, pre-mixer signal. Note that this also means any pitch or speed changes applied to the deck are not recorded by default; the deck records what it hears, not how it plays it back. When **Record Source: Main Output** is enabled, the channel instead records the final stereo output of the entire module: post-XY mixer, post-warble, and post-noise. This means the spatial position of the XY cursor, the warble effect, and any machine noise present at that moment are all printed directly into the buffer. The source knob is bypassed in this mode. Because warble is included in the captured signal, it will be baked into the buffer and played back as a fixed pitch artifact on subsequent passes. Default is off.
 
 #### Auto-Play (Channels > Channel Num. > Auto-Play)
 
@@ -165,7 +165,7 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 ## Warble
 
-* **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. Warble is a playback-only effect and is never recorded back into the buffers. A CV input is provided for bipolar modulation.
+* **WARBLE:** Applies a combined wow and flutter effect to all four playback channels. Wow is a slow, deep pitch oscillation (0.5–2 Hz); flutter is a faster, subtle pitch tremor (5–15 Hz). Both are modulated by the same knob in a non-linear curve — the effect fades in gradually from zero so the bottom portion of the knob is silence, and the upper portion becomes increasingly unstable. A CV input is provided for bipolar modulation.
 
 ## Tone
 
