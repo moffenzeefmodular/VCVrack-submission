@@ -153,3 +153,7 @@ By Ross Fish Feb 2025
 
 ## Tehom Beta: v2.6.0-rc15
 - Auto-play context menu repaired 
+
+## Tehom Beta: v2.6.0-rc16
+- Context menu "hint" added. 
+- User manual updates
