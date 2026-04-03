@@ -157,3 +157,6 @@ By Ross Fish Feb 2025
 ## Tehom Beta: v2.6.0-rc16
 - Context menu "hint" added. 
 - User manual updates
+
+## Tehom Beta: v2.6.0-rc17
+- Fixed saving button states on save/load 

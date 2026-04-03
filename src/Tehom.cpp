@@ -349,14 +349,17 @@ void onSampleRateChange(const SampleRateChangeEvent& e) override {
     // Apply any buffer data deferred from dataFromJson (runs before sample rate is known)
     for (int i = 0; i < 4; i++) {
         if (!pendingBuf[i].pending) continue;
+        // Always restore playback/record states — resizeBuffers() clears them.
+        recordState[i].store(pendingBuf[i].recordState);
+        playState[i].store(pendingBuf[i].playState);
+        playReversed[i].store(pendingBuf[i].playReversed);
+        // Restore buffer data only when it was actually persisted.
         int len = std::min(pendingBuf[i].len, bufferSize);
         if (len > 0 && (int)pendingBuf[i].L.size() >= len && (int)pendingBuf[i].R.size() >= len) {
             std::copy(pendingBuf[i].L.begin(), pendingBuf[i].L.begin() + len, bufL[i].begin());
             std::copy(pendingBuf[i].R.begin(), pendingBuf[i].R.begin() + len, bufR[i].begin());
             recordedLength[i] = len;
             hasContent[i]     = pendingBuf[i].hasContent;
-            playState[i].store(pendingBuf[i].playState);
-            playReversed[i].store(pendingBuf[i].playReversed);
             readPos[i]        = clamp(pendingBuf[i].readPos, 0.f, (float)(len - 1));
         }
         pendingBuf[i] = PendingBuf{};  // clear
@@ -413,16 +416,23 @@ json_t* dataToJson() override {
 
     // Per-channel toggles
     json_t* ap = json_array(), *pcvm = json_array(), *cr = json_array(), *rmo = json_array();
+    json_t* rs = json_array(), *pst = json_array(), *prev = json_array();
     for (int i = 0; i < 4; i++) {
         json_array_append_new(ap,   json_boolean(autoPlay[i].load()));
         json_array_append_new(pcvm, json_integer(playCVMode[i].load()));
         json_array_append_new(cr,   json_boolean(continuousRecord[i].load()));
         json_array_append_new(rmo,  json_boolean(recordMainOutput[i].load()));
+        json_array_append_new(rs,   json_boolean(recordState[i].load()));
+        json_array_append_new(pst,  json_boolean(playState[i].load()));
+        json_array_append_new(prev, json_boolean(playReversed[i].load()));
     }
     json_object_set_new(root, "autoPlay",           ap);
     json_object_set_new(root, "playCVMode",         pcvm);
     json_object_set_new(root, "continuousRecord",   cr);
     json_object_set_new(root, "recordMainOutput",   rmo);
+    json_object_set_new(root, "recordState",        rs);
+    json_object_set_new(root, "playState",          pst);
+    json_object_set_new(root, "playReversed",       prev);
 
     // Audio buffers
     json_t* bufs = json_array();
@@ -430,8 +440,6 @@ json_t* dataToJson() override {
         json_t* ch = json_object();
         json_object_set_new(ch, "hasContent",     json_boolean(hasContent[i]));
         json_object_set_new(ch, "recordedLength", json_integer(recordedLength[i]));
-        json_object_set_new(ch, "playState",      json_boolean(playState[i].load()));
-        json_object_set_new(ch, "playReversed",   json_boolean(playReversed[i].load()));
         json_object_set_new(ch, "readPos",        json_real(readPos[i]));
         if (persistBuffers && hasContent[i] && recordedLength[i] > 0) {
             int len = recordedLength[i];
@@ -473,6 +481,18 @@ void dataFromJson(json_t* root) override {
     if (crj)  for (int i = 0; i < 4; i++) { json_t* v = json_array_get(crj,  i); if (v) continuousRecord[i].store(json_boolean_value(v)); }
     json_t* rmoj = json_object_get(root, "recordMainOutput");
     if (rmoj) for (int i = 0; i < 4; i++) { json_t* v = json_array_get(rmoj, i); if (v) recordMainOutput[i].store(json_boolean_value(v)); }
+    // Read per-channel runtime states into pendingBuf so they survive the resizeBuffers()
+    // call that onSampleRateChange issues after dataFromJson. Writing directly to the atomics
+    // here would be wiped by resizeBuffers() before process() ever sees them.
+    json_t* rsj   = json_object_get(root, "recordState");
+    json_t* pstj  = json_object_get(root, "playState");
+    json_t* prevj = json_object_get(root, "playReversed");
+    for (int i = 0; i < 4; i++) {
+        if (rsj)   { json_t* v = json_array_get(rsj,   i); if (v) pendingBuf[i].recordState  = json_boolean_value(v); }
+        if (pstj)  { json_t* v = json_array_get(pstj,  i); if (v) pendingBuf[i].playState    = json_boolean_value(v); }
+        if (prevj) { json_t* v = json_array_get(prevj, i); if (v) pendingBuf[i].playReversed = json_boolean_value(v); }
+        pendingBuf[i].pending = true;  // always apply after resizeBuffers()
+    }
 
     // Audio buffers
     json_t* bufs = json_object_get(root, "buffers");
@@ -483,8 +503,6 @@ void dataFromJson(json_t* root) override {
             json_t* v;
             bool hc  = false; v = json_object_get(ch, "hasContent");     if (v) hc = json_boolean_value(v);
             int  len = 0;     v = json_object_get(ch, "recordedLength"); if (v) len = (int)json_integer_value(v);
-            bool ps2 = false; v = json_object_get(ch, "playState");      if (v) ps2 = json_boolean_value(v);
-            bool pr  = false; v = json_object_get(ch, "playReversed");   if (v) pr  = json_boolean_value(v);
             float rp = 0.f;  v = json_object_get(ch, "readPos");        if (v) rp  = (float)json_real_value(v);
 
             json_t* jbl = json_object_get(ch, "bufL");
@@ -502,15 +520,13 @@ void dataFromJson(json_t* root) override {
             memcpy(fL.data(), decL.data(), floatBytes);
             memcpy(fR.data(), decR.data(), floatBytes);
 
-            // Always defer: onSampleRateChange fires after dataFromJson and would
+            // Buffer data deferred: onSampleRateChange fires after dataFromJson and would
             // wipe a direct copy via resizeBuffers. Apply in onSampleRateChange instead.
-            pendingBuf[i].L            = std::move(fL);
-            pendingBuf[i].R            = std::move(fR);
-            pendingBuf[i].len          = len;
-            pendingBuf[i].hasContent   = hc;
-            pendingBuf[i].playState    = ps2;
-            pendingBuf[i].playReversed = pr;
-            pendingBuf[i].readPos      = rp;
+            pendingBuf[i].L          = std::move(fL);
+            pendingBuf[i].R          = std::move(fR);
+            pendingBuf[i].len        = len;
+            pendingBuf[i].hasContent = hc;
+            pendingBuf[i].readPos    = rp;
             pendingBuf[i].pending      = true;
         }
     }
@@ -608,6 +624,7 @@ struct PendingBuf {
     std::vector<float> L, R;
     int len = 0;
     bool hasContent = false;
+    bool recordState = false;
     bool playState = false;
     bool playReversed = false;
     float readPos = 0.f;
