@@ -201,7 +201,7 @@ jobs:
           TITLE=$(awk '/^## /{title=substr($0,4)} END{print title}' README.md)
           echo "title=$TITLE" >> $GITHUB_OUTPUT
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2.6.1
         with:
           name: "${{ steps.changelog.outputs.title }}"
           body_path: release-notes.md
