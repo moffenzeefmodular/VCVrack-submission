@@ -57,7 +57,7 @@ By Ross Fish Feb 2025
 
 ## v2.6.0 
 
-- Added Tehom 
+- Added Omri Cohen collaboration: Tehom 
 - Added DitDit 
 - Added all sample banks to GMO from old repo 
 - Switched out knobs for The Runner 
