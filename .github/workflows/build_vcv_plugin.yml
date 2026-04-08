@@ -188,7 +188,10 @@ jobs:
           PLUGIN_VER=$(jq -r .version plugin.json)
           TAG_VER=${GITHUB_REF_NAME#v}
           for f in artifacts/**/*.vcvplugin; do
-            mv "$f" "${f/$PLUGIN_VER/$TAG_VER}"
+            new_f="${f/$PLUGIN_VER/$TAG_VER}"
+            if [ "$f" != "$new_f" ]; then
+              mv "$f" "$new_f"
+            fi
           done
 
       - name: Extract latest changelog from README
