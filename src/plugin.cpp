@@ -33,6 +33,7 @@ void init(Plugin* p) {
 	p->addModel(modelQuadDeviant);
 	p->addModel(modelTehom);
 	p->addModel(modelDitDit);
+	p->addModel(modelParticles);
 
 	// Any other plugin initialization may go here.
 	// As an alternative, consider lazy-loading assets and lookup tables when your module is created to reduce startup times of Rack.
