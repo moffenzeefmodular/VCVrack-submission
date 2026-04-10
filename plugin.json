@@ -320,6 +320,7 @@
       "slug": "Particles",
       "name": "Particles",
       "description": "Particle animation generator",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/manuals/Particles%20User%20Manual.md",
       "tags": [
         "Utility"
       ]
