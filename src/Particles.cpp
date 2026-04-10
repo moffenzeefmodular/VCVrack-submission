@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-static const int NUM_PARTICLES = 200;
+static const int NUM_PARTICLES = 800;
 static const int NUM_TYPES     = 16;
 
 struct Particle {
@@ -92,9 +92,14 @@ static void pDrawHeart(NVGcontext* vg, float r, float) {
     nvgFillColor(vg, nvgRGBAf(1.f, .22f, .42f, .88f)); nvgFill(vg);
 }
 
-static void pDrawEmber(NVGcontext* vg, float r, float) {
-    NVGpaint g = nvgRadialGradient(vg, 0, 0, r*.08f, r,
-        nvgRGBAf(1.f, .95f, .45f, 1.f), nvgRGBAf(1.f, .28f, 0.f, 0.f));
+static void pDrawEmber(NVGcontext* vg, float r, float colorHue) {
+    // colorHue [0,1] maps: deep red → saturated red → orange → yellow
+    // HSL hue: 0.0 (red) through 0.167 (yellow); dark reds use low lightness
+    float hue   = colorHue * 0.167f;
+    float light = 0.38f + colorHue * 0.38f;   // deep red=dark, yellow=bright
+    NVGcolor hot  = nvgHSLA(hue, 1.f, light + 0.20f, 255);
+    NVGcolor cool = nvgHSLA(hue, 1.f, light,          0);
+    NVGpaint g = nvgRadialGradient(vg, 0, 0, r*.08f, r, hot, cool);
     nvgBeginPath(vg); nvgEllipse(vg, 0, 0, r, r*.48f);
     nvgFillPaint(vg, g); nvgFill(vg);
 }
@@ -151,10 +156,46 @@ static void pDrawHotDog(NVGcontext* vg, float r) {
     nvgLineCap(vg, NVG_ROUND); nvgLineJoin(vg, NVG_ROUND); nvgStroke(vg);
 }
 
-// Fast food: cheeseburger or hot dog depending on colorHue
+// French fries: red carton with golden fries sticking up
+static void pDrawFrenchFries(NVGcontext* vg, float r) {
+    float cw = r * .72f;  // half-width of carton
+    float sw = std::max(1.f, r * .06f);
+    // Carton body (red trapezoid, wider at top)
+    nvgBeginPath(vg);
+    nvgMoveTo(vg, -cw,       -r*.10f);
+    nvgLineTo(vg,  cw,       -r*.10f);
+    nvgLineTo(vg,  cw*.78f,   r*.56f);
+    nvgLineTo(vg, -cw*.78f,   r*.56f);
+    nvgClosePath(vg);
+    nvgFillColor(vg, nvgRGBAf(.88f, .12f, .12f, .95f)); nvgFill(vg);
+    nvgStrokeColor(vg, nvgRGBAf(.55f, .05f, .05f, .7f));
+    nvgStrokeWidth(vg, sw); nvgStroke(vg);
+    // Golden arches logo hint (two small yellow arcs on carton)
+    nvgBeginPath(vg);
+    nvgArc(vg, -cw*.18f, r*.22f, r*.13f, (float)M_PI, 0, NVG_CW);
+    nvgArc(vg,  cw*.18f, r*.22f, r*.13f, (float)M_PI, 0, NVG_CW);
+    nvgStrokeColor(vg, nvgRGBAf(1.f, .85f, .0f, .85f));
+    nvgStrokeWidth(vg, std::max(1.f, r*.09f));
+    nvgLineCap(vg, NVG_ROUND); nvgStroke(vg);
+    // Fries (golden rectangles sticking up above carton)
+    NVGcolor fry = nvgRGBAf(.98f, .80f, .18f, .95f);
+    NVGcolor fryDark = nvgRGBAf(.80f, .55f, .08f, .95f);
+    float fryW = r * .10f;
+    float tops[5]   = {-r*.90f, -r*.78f, -r*1.00f, -r*.72f, -r*.88f};
+    float centers[5] = {-cw*.55f, -cw*.22f, 0.f, cw*.22f, cw*.55f};
+    for (int i = 0; i < 5; i++) {
+        NVGcolor c = (i & 1) ? fryDark : fry;
+        nvgBeginPath(vg);
+        nvgRoundedRect(vg, centers[i] - fryW, tops[i], fryW*2.f, -tops[i] - r*.08f, fryW*.4f);
+        nvgFillColor(vg, c); nvgFill(vg);
+    }
+}
+
+// Fast food: cheeseburger, hot dog, or french fries depending on colorHue
 static void pDrawFastFood(NVGcontext* vg, float r, float colorHue) {
-    if (colorHue < 0.5f) pDrawCheeseburger(vg, r);
-    else                 pDrawHotDog(vg, r);
+    if      (colorHue < 0.33f) pDrawCheeseburger(vg, r);
+    else if (colorHue < 0.67f) pDrawHotDog(vg, r);
+    else                       pDrawFrenchFries(vg, r);
 }
 
 static void pDrawBubble(NVGcontext* vg, float r, float) {
@@ -242,8 +283,8 @@ static void pDrawDog(NVGcontext* vg, float r) {
 }
 
 static void pDrawCatsAndDogs(NVGcontext* vg, float r, float colorHue) {
-    if (colorHue < .5f) pDrawCat(vg, r);
-    else                pDrawDog(vg, r);
+    if (colorHue < .5f) pDrawCat(vg, r * 1.45f);
+    else                pDrawDog(vg, r * 1.70f);
 }
 
 // Confetti: brightly colored square (hue varies per particle)
@@ -311,9 +352,23 @@ static void pDrawPolkaDot(NVGcontext* vg, float r, float colorHue) {
     nvgFillColor(vg, nvgHSLA(colorHue, 1.f, .55f, 218)); nvgFill(vg);
 }
 
-static void pDrawPetal(NVGcontext* vg, float r, float) {
-    nvgBeginPath(vg); nvgEllipse(vg, 0, 0, r*.48f, r);
-    nvgFillColor(vg, nvgRGBAf(1.f, .62f, .82f, .82f)); nvgFill(vg);
+static void pDrawPetal(NVGcontext* vg, float r, float colorHue) {
+    // Pointed tip at top, rounded base at bottom — classic petal silhouette
+    float w = r * .42f;
+    nvgBeginPath(vg);
+    nvgMoveTo(vg, 0, -r);                               // pointed tip
+    nvgBezierTo(vg,  w, -r*.55f,  w*.9f,  r*.30f, 0,  r*.58f); // right curve, round base
+    nvgBezierTo(vg, -w*.9f, r*.30f, -w, -r*.55f, 0, -r);        // left curve, back to tip
+    nvgClosePath(vg);
+    // Vary hue gently from pink to lavender using colorHue
+    NVGcolor fill = nvgHSLA(0.88f + colorHue * 0.08f, .85f, .72f, 210);
+    nvgFillColor(vg, fill); nvgFill(vg);
+    // Centre vein
+    nvgBeginPath(vg);
+    nvgMoveTo(vg, 0, -r*.82f); nvgLineTo(vg, 0, r*.42f);
+    nvgStrokeColor(vg, nvgRGBAf(1.f, .80f, .90f, .40f));
+    nvgStrokeWidth(vg, std::max(.5f, r*.06f));
+    nvgLineCap(vg, NVG_ROUND); nvgStroke(vg);
 }
 
 // Meteor: head at origin, tail trailing upward.
@@ -334,7 +389,7 @@ static void pDrawAsh(NVGcontext* vg, float r, float colorHue) {
     float gray  = .30f + colorHue * .52f;           // dark ash → lighter ash
     float alpha = .45f + colorHue * .40f;
 
-    int nsides = 4 + (int)(colorHue * 3.99f);       // 4–7 sides
+    int nsides = 4 + (int)(colorHue * 3.99f);       // 4-7 sides
 
     nvgBeginPath(vg);
     for (int i = 0; i < nsides; i++) {
@@ -342,7 +397,7 @@ static void pDrawAsh(NVGcontext* vg, float r, float colorHue) {
         float t1 = fmodf(colorHue * (i * 11.37f + 3.71f), 1.f);
         float t2 = fmodf(colorHue * (i *  7.29f + 1.93f), 1.f);
         float angle  = (float)i / nsides * 2.f * M_PI + (t1 - .5f) * M_PI / nsides;
-        float radius = r * (.42f + t2 * .58f);
+        float radius = r * (.55f + t2 * .45f);
         if (i == 0) nvgMoveTo(vg, radius * cosf(angle), radius * sinf(angle));
         else        nvgLineTo(vg, radius * cosf(angle), radius * sinf(angle));
     }
@@ -352,42 +407,56 @@ static void pDrawAsh(NVGcontext* vg, float r, float colorHue) {
 
 using DrawFn = void (*)(NVGcontext*, float, float);
 static const DrawFn DRAW_TABLE[NUM_TYPES] = {
-    pDrawSnowflake,   // 0
-    pDrawStar,        // 1
-    pDrawRaindrop,    // 2
-    pDrawLeaf,        // 3
-    pDrawHeart,       // 4
-    pDrawEmber,       // 5
-    pDrawPigWithWings,// 6
-    pDrawBubble,      // 7
-    pDrawCatsAndDogs, // 8 (was Triangle)
-    pDrawConfetti,    // 9
-    pDrawMan,         // 10
-    pDrawAcidRain,    // 11
-    pDrawPolkaDot,    // 12
-    pDrawPetal,       // 13
-    pDrawMeteor,      // 14
-    pDrawAsh,         // 15 (was Sparkle)
+    pDrawSnowflake,   // 0  Snowflake
+    pDrawRaindrop,    // 1  Raindrop
+    pDrawAcidRain,    // 2  Acid Rain
+    pDrawLeaf,        // 3  Leaf
+    pDrawPetal,       // 4  Petal
+    pDrawAsh,         // 5  Ash
+    pDrawEmber,       // 6  Ember
+    pDrawStar,        // 7  Star
+    pDrawMeteor,      // 8  Meteor
+    pDrawBubble,      // 9  Bubble
+    pDrawConfetti,    // 10 Confetti
+    pDrawPolkaDot,    // 11 Polka Dots
+    pDrawHeart,       // 12 Heart
+    pDrawMan,         // 13 Men
+    pDrawCatsAndDogs, // 14 Cats and Dogs
+    pDrawFastFood,    // 15 Fast Food
 };
 
 // Types that should be direction-locked to velocity angle instead of random spin
 static bool isDirectionLocked(int type) {
-    return type == 2  // Raindrop
-        || type == 14; // Meteor
+    return type == 1  // Raindrop
+        || type == 2  // Acid Rain
+        || type == 8; // Meteor
 }
 
 // ── overlay widget ─────────────────────────────────────────────────────────
 
 struct ParticleOverlay : Widget {
+    // Back-pointer: if the scene deletes us before ParticlesWidget does,
+    // we null this out so the widget destructor knows not to double-free.
+    ParticleOverlay** ownerPtr = nullptr;
+
+    ~ParticleOverlay() override {
+        if (ownerPtr) *ownerPtr = nullptr;
+    }
+
     std::vector<Particle> particles;
-    bool  active     = false;
-    float alpha      = 0.f;   // current fade opacity
-    float size       = 8.f;   // base radius px
-    float speed      = 120.f; // downward px/s (Y only)
-    float drift      = 0.f;   // horizontal px/s (X only)
-    int   ptype      = 0;
-    bool  needsReset = true;
-    double prevTime  = 0.0;
+    bool  active           = false;
+    bool  showMouseTracker = true;
+    float particleOpacity  = 1.f;
+    Vec   mousePos         = {};
+    float alpha         = 0.f;
+    float size          = 8.f;
+    float speed         = 120.f;
+    float drift         = 0.f;
+    int   ptype         = 0;
+    int   numActive     = NUM_PARTICLES / 2;
+    int   prevNumActive = 0;
+    bool  needsReset    = true;
+    double prevTime     = 0.0;
 
     ParticleOverlay() {
         box.pos = Vec(0, 0);
@@ -418,6 +487,14 @@ struct ParticleOverlay : Widget {
         Widget::step();
         if (APP && APP->scene) box.size = APP->scene->box.size;
 
+        // Track cursor in overlay-local (scene) coordinates
+        if (APP && APP->window && APP->window->win) {
+            double xpos, ypos;
+            glfwGetCursorPos(APP->window->win, &xpos, &ypos);
+            float scale = APP->window->pixelRatio;
+            mousePos = Vec((float)xpos / scale, (float)ypos / scale);
+        }
+
         double t  = glfwGetTime();
         float  dt = (prevTime > 0.0) ? clamp((float)(t - prevTime), 0.f, 0.05f) : 0.f;
         prevTime  = t;
@@ -432,17 +509,27 @@ struct ParticleOverlay : Widget {
         float w = box.size.x, h = box.size.y;
         if (needsReset) { resetParticles(w, h); return; }
 
+        // Reinit particles newly brought into the active range
+        if (numActive > prevNumActive) {
+            for (int i = prevNumActive; i < numActive; i++)
+                initParticle(particles[i], w, h, false);
+        }
+        prevNumActive = numActive;
+
         float pad = size * 4.f;
-        // Wobble: two incommensurate frequencies per particle produce irregular,
-        // non-repeating lateral drift.  Amplitude scales mildly with gravity.
-        float wobbleScale = 0.15f + (speed / 500.f) * 0.35f; // gentler range
+        // Wobble: three mutually irrational frequencies per particle with mixed
+        // sin/cos and independent phase offsets → organic, non-repeating lateral drift.
+        float wobbleScale = 0.15f + (speed / 500.f) * 0.35f;
         float tf = (float)t;
-        for (auto& p : particles) {
+        for (int i = 0; i < numActive; i++) {
+            Particle& p = particles[i];
             float f1 = p.wobbleFreq;
-            float f2 = p.wobbleFreq * 1.618f; // golden-ratio offset → aperiodic
+            float f2 = p.wobbleFreq * 1.618f;  // golden ratio
+            float f3 = p.wobbleFreq * 2.732f;  // 1 + sqrt(3)
             float wv = p.wobbleAmp * wobbleScale * (
-                0.65f * f1 * 2.f * M_PI * cosf(2.f * M_PI * f1 * tf + p.wobblePhase) +
-                0.35f * f2 * 2.f * M_PI * cosf(2.f * M_PI * f2 * tf + p.wobblePhase * 2.09f)
+                0.45f * f1 * 2.f * M_PI * cosf(2.f * M_PI * f1 * tf + p.wobblePhase) +
+                0.35f * f2 * 2.f * M_PI * sinf(2.f * M_PI * f2 * tf + p.wobblePhase * 2.09f) +
+                0.20f * f3 * 2.f * M_PI * cosf(2.f * M_PI * f3 * tf + p.wobblePhase * 4.33f)
             );
             p.x   += (drift + wv) * dt;
             p.y   += speed * p.speedMult * dt;
@@ -463,8 +550,9 @@ struct ParticleOverlay : Widget {
         bool locked = isDirectionLocked(ptype);
 
         nvgSave(vg);
-        nvgGlobalAlpha(vg, alpha);
-        for (auto& p : particles) {
+        nvgGlobalAlpha(vg, alpha * particleOpacity);
+        for (int i = 0; i < numActive; i++) {
+            const Particle& p = particles[i];
             float r   = size * p.sizeMult;
             // Rotation formula for direction-locked types:
             //   atan2f(-drift, speed*mult) orients the shape so its "forward"
@@ -479,6 +567,23 @@ struct ParticleOverlay : Widget {
             nvgRestore(vg);
         }
         nvgRestore(vg);
+
+        // Mouse tracker ring — drawn at full opacity regardless of particle fade
+        if (showMouseTracker) {
+            nvgSave(vg);
+            // Outer ring
+            nvgBeginPath(vg);
+            nvgCircle(vg, mousePos.x, mousePos.y, 24.f);
+            nvgStrokeColor(vg, nvgRGBAf(0.f, 1.f, 0.f, .90f));
+            nvgStrokeWidth(vg, 3.5f);
+            nvgStroke(vg);
+            // Inner dot
+            nvgBeginPath(vg);
+            nvgCircle(vg, mousePos.x, mousePos.y, 3.f);
+            nvgFillColor(vg, nvgRGBAf(0.f, 1.f, 0.f, .90f));
+            nvgFill(vg);
+            nvgRestore(vg);
+        }
     }
 };
 
@@ -489,6 +594,7 @@ struct Particles : Module {
         TYPE_PARAM,
         SIZE_PARAM,
         SPEED_PARAM,
+        DENSITY_PARAM,
         ANGLE_PARAM,
         ONOFF_PARAM,
         PARAMS_LEN
@@ -497,6 +603,7 @@ struct Particles : Module {
         TYPECV_INPUT,
         SIZECV_INPUT,
         SPEEDCV_INPUT,
+        DENSITYCV_INPUT,
         ANGLECV_INPUT,
         ONOFFCV_INPUT,
         INPUTS_LEN
@@ -504,28 +611,46 @@ struct Particles : Module {
     enum OutputId { OUTPUTS_LEN };
     enum LightId  { ONOFFLED_LIGHT, LIGHTS_LEN };
 
-    std::atomic<bool> ledOn{true};
+    bool  showMouseTracker = true;
+    float particleOpacity  = 1.f;   // 0.1–1.0
+
+    json_t* dataToJson() override {
+        json_t* rootJ = json_object();
+        json_object_set_new(rootJ, "showMouseTracker", json_boolean(showMouseTracker));
+        json_object_set_new(rootJ, "particleOpacity",  json_real(particleOpacity));
+        return rootJ;
+    }
+
+    void dataFromJson(json_t* rootJ) override {
+        json_t* v = json_object_get(rootJ, "showMouseTracker");
+        if (v) showMouseTracker = json_boolean_value(v);
+        json_t* o = json_object_get(rootJ, "particleOpacity");
+        if (o) particleOpacity = clamp((float)json_real_value(o), 0.1f, 1.f);
+    }
 
     Particles() {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
         configSwitch(TYPE_PARAM, 0.f, 15.f, 0.f, "Type",
-            {"Snowflake","Star","Raindrop","Leaf","Heart","Ember",
-             "Pigs with Wings","Bubble","Cats and Dogs","Confetti","Men",
-             "Acid Rain","Polka Dots","Petal","Meteor","Ash"});
-        configParam(SIZE_PARAM,   0.f, 1.f, 0.5f, "Size",      "%", 0.f, 100.f);
-        configParam(SPEED_PARAM,  0.f, 1.f, 0.5f, "Gravity",   "%", 0.f, 100.f);
-        configParam(ANGLE_PARAM,  0.f, 1.f, 0.5f, "Direction", "%", 0.f, 100.f);
-        configSwitch(ONOFF_PARAM, 0.f, 1.f, 1.f, "On/Off", {"Off", "On"});
-        configInput(TYPECV_INPUT,  "Type CV");
-        configInput(SIZECV_INPUT,  "Size CV");
-        configInput(SPEEDCV_INPUT, "Gravity CV");
-        configInput(ANGLECV_INPUT, "Direction CV");
-        configInput(ONOFFCV_INPUT, "On/Off CV");
+            {"Snowflake","Raindrop","Acid Rain","Leaf","Petal","Ash","Ember",
+             "Star","Meteor","Bubble","Confetti","Polka Dots",
+             "Heart","Men","Cats and Dogs","Fast Food"});
+        configParam(SIZE_PARAM,    0.f, 1.f, 0.25f, "Size",      "%", 0.f, 100.f);
+        configParam(SPEED_PARAM,   0.f, 1.f, 0.15f, "Gravity",   "%", 0.f, 100.f);
+        configParam(DENSITY_PARAM, 0.f, 1.f, 0.50f, "Density",   "%", 0.f, 100.f);
+        configParam(ANGLE_PARAM,   0.f, 1.f, 0.60f, "Direction", "%", 0.f, 100.f);
+        configSwitch(ONOFF_PARAM,  0.f, 1.f, 0.f,  "On/Off", {"Off", "On"});
+        getParamQuantity(ONOFF_PARAM)->randomizeEnabled = false;
+        configInput(TYPECV_INPUT,    "Type CV");
+        configInput(SIZECV_INPUT,    "Size CV");
+        configInput(SPEEDCV_INPUT,   "Gravity CV");
+        configInput(DENSITYCV_INPUT, "Density CV");
+        configInput(ANGLECV_INPUT,   "Direction CV");
+        configInput(ONOFFCV_INPUT,   "On/Off CV");
     }
 
     void process(const ProcessArgs& args) override {
-        lights[ONOFFLED_LIGHT].setBrightnessSmooth(
-            ledOn.load() ? 1.f : 0.f, args.sampleTime, 3.f);
+        bool on = params[ONOFF_PARAM].getValue() > 0.5f;
+        lights[ONOFFLED_LIGHT].setBrightnessSmooth(on ? 1.f : 0.f, args.sampleTime, 3.f);
     }
 };
 
@@ -542,7 +667,10 @@ struct ParticlesWidget : ModuleWidget {
 
     ParticlesWidget(Particles* module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Particles.svg")));
+        setPanel(createPanel(
+            asset::plugin(pluginInstance, "res/panels/Particles.svg"),
+            asset::plugin(pluginInstance, "res/panels/Particles-dark.svg")
+        ));
 
         addChild(createWidget<ThemedScrew>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -550,23 +678,26 @@ struct ParticlesWidget : ModuleWidget {
         addChild(createWidget<ThemedScrew>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
         // On/Off: physical LED push button (latch) + LED light overlay
-        Vec btnPos = mm2px(Vec(20.32, 94.574));
+        Vec btnPos = mm2px(Vec(29.616, 95.619));
         addParam(createParamCentered<LEDBezelToggle>(btnPos, module, Particles::ONOFF_PARAM));
         addChild(createLightCentered<LEDBezelLight<WhiteLight>>(btnPos, module, Particles::ONOFFLED_LIGHT));
 
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(11.024, 25.937)), module, Particles::TYPE_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(29.616, 25.937)), module, Particles::SIZE_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(11.024, 62.375)), module, Particles::SPEED_PARAM));
-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(29.616, 62.375)), module, Particles::ANGLE_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(11.024, 20.645)), module, Particles::TYPE_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(29.616, 20.645)), module, Particles::SIZE_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(11.024, 58.132)), module, Particles::SPEED_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(11.024, 95.619)), module, Particles::DENSITY_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(29.616, 58.142)), module, Particles::ANGLE_PARAM));
 
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(11.024, 44.146)), module, Particles::TYPECV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.616, 44.146)), module, Particles::SIZECV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(11.024, 80.584)), module, Particles::SPEEDCV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.616, 80.584)), module, Particles::ANGLECV_INPUT));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(20.32, 110.138)), module, Particles::ONOFFCV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(11.024, 38.854)), module, Particles::TYPECV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.616, 38.854)), module, Particles::SIZECV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(11.024, 76.341)), module, Particles::SPEEDCV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(11.024, 113.828)), module, Particles::DENSITYCV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.616, 76.351)), module, Particles::ANGLECV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(29.616, 113.828)), module, Particles::ONOFFCV_INPUT));
 
         // Insert before menuBar so particles render above rack but behind browser/menu
         overlay = new ParticleOverlay;
+        overlay->ownerPtr = &overlay;
         if (APP && APP->scene) {
             if (APP->scene->menuBar) {
                 APP->scene->addChildBelow(overlay, APP->scene->menuBar);
@@ -578,6 +709,7 @@ struct ParticlesWidget : ModuleWidget {
 
     ~ParticlesWidget() {
         if (overlay) {
+            overlay->ownerPtr = nullptr;  // we're taking over, disable the back-pointer
             if (APP && APP->scene) APP->scene->removeChild(overlay);
             delete overlay;
             overlay = nullptr;
@@ -603,8 +735,6 @@ struct ParticlesWidget : ModuleWidget {
         } else {
             prevOnOffCV = false;
         }
-        p->ledOn.store(on);
-
         if (on && overlay->alpha <= 0.f) overlay->needsReset = true;
         overlay->active = on;
 
@@ -634,6 +764,51 @@ struct ParticlesWidget : ModuleWidget {
         float angleCV   = p->inputs[Particles::ANGLECV_INPUT].isConnected()
             ? p->inputs[Particles::ANGLECV_INPUT].getVoltage() / 10.f : 0.f;
         overlay->drift = (clamp(angleKnob + angleCV, 0.f, 1.f) - .5f) * 1200.f;
+
+        // Density: 10–400 particles (knob centre ≈ 200, the original count)
+        float densityKnob = p->params[Particles::DENSITY_PARAM].getValue();
+        float densityCV   = p->inputs[Particles::DENSITYCV_INPUT].isConnected()
+            ? p->inputs[Particles::DENSITYCV_INPUT].getVoltage() / 10.f : 0.f;
+        float densityCtrl = clamp(densityKnob + densityCV, 0.f, 1.f);
+        overlay->numActive = clamp((int)(10 + densityCtrl * 790.f), 1, NUM_PARTICLES);
+        overlay->showMouseTracker = p->showMouseTracker;
+        overlay->particleOpacity  = p->particleOpacity;
+    }
+
+    void appendContextMenu(Menu* menu) override {
+        ModuleWidget::appendContextMenu(menu);
+        Particles* p = dynamic_cast<Particles*>(module);
+        if (!p) return;
+
+        menu->addChild(new MenuSeparator);
+
+        // Opacity slider
+        struct OpacityQuantity : Quantity {
+            Particles* module;
+            OpacityQuantity(Particles* m) : module(m) {}
+            void setValue(float v) override { module->particleOpacity = clamp(v, 0.1f, 1.f); }
+            float getValue() override { return module->particleOpacity; }
+            float getDefaultValue() override { return 1.f; }
+            float getMinValue() override { return 0.1f; }
+            float getMaxValue() override { return 1.f; }
+            float getDisplayValue() override { return getValue() * 100.f; }
+            void setDisplayValue(float v) override { setValue(v / 100.f); }
+            std::string getLabel() override { return "Particle Opacity"; }
+            std::string getUnit() override { return "%"; }
+        };
+        struct OpacitySlider : ui::Slider {
+            OpacitySlider(Particles* m) {
+                quantity = new OpacityQuantity(m);
+                box.size.x = 200.f;
+            }
+            ~OpacitySlider() { delete quantity; }
+        };
+        menu->addChild(new OpacitySlider(p));
+
+        menu->addChild(createBoolMenuItem("Mouse Tracker", "",
+            [=]() { return p->showMouseTracker; },
+            [=](bool v) { p->showMouseTracker = v; }
+        ));
     }
 };
 
