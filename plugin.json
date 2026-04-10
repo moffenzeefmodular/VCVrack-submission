@@ -1,7 +1,7 @@
 {
   "slug": "Moffenzeef",
   "name": "Moffenzeef",
-  "version": "2.7.0",
+  "version": "2.6.0",
   "license": "GPL-3.0+",
   "brand": "Moffenzeef",
   "author": "Ross Fish",
@@ -320,6 +320,7 @@
       "slug": "Particles",
       "name": "Particles",
       "description": "Particle animation generator",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/manuals/Particles%20User%20Manual.md",
       "tags": [
         "Utility"
       ]
