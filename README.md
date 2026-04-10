@@ -64,3 +64,6 @@ By Ross Fish Feb 2025
 - Added all sample banks to 1800 from old repo 
 - Added bus mult normalization: place bus mults beside one another to continue normalization chain 
 - User manuals added for all modules
+
+## v2.7.0 
+- Added particles
