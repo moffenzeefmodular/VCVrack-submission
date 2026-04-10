@@ -27,22 +27,22 @@ Selects the particle shape. The knob sweeps through all 16 types in the followin
 
 | Position | Type |
 |---|---|
-| 0 | Snowflake |
-| 1 | Raindrop |
-| 2 | Acid Rain |
-| 3 | Leaf |
-| 4 | Petal |
-| 5 | Ash |
-| 6 | Ember |
-| 7 | Star |
-| 8 | Meteor |
-| 9 | Bubble |
-| 10 | Confetti |
-| 11 | Polka Dots |
-| 12 | Heart |
-| 13 | Men |
-| 14 | Cats and Dogs |
-| 15 | Fast Food |
+| 1 | Snowflake |
+| 2 | Raindrop |
+| 3 | Acid Rain |
+| 4 | Leaf |
+| 5 | Petal |
+| 6 | Ash |
+| 7 | Ember |
+| 8 | Star |
+| 9 | Meteor |
+| 10 | Bubble |
+| 11 | Confetti |
+| 12 | Polka Dots |
+| 13 | Heart |
+| 14 | Men |
+| 15 | Cats and Dogs |
+| 16 | Fast Food |
 
 Raindrop, Acid Rain, and Meteor are direction-locked — they always face the direction they are travelling. All other types rotate freely as they fall.
 
