@@ -487,12 +487,13 @@ struct ParticleOverlay : Widget {
         Widget::step();
         if (APP && APP->scene) box.size = APP->scene->box.size;
 
-        // Track cursor in overlay-local (scene) coordinates
+        // Track cursor in overlay-local (scene) coordinates.
+        // glfwGetCursorPos returns logical (window) pixels, which matches the
+        // NVG coordinate space — do NOT divide by pixelRatio here.
         if (APP && APP->window && APP->window->win) {
             double xpos, ypos;
             glfwGetCursorPos(APP->window->win, &xpos, &ypos);
-            float scale = APP->window->pixelRatio;
-            mousePos = Vec((float)xpos / scale, (float)ypos / scale);
+            mousePos = Vec((float)xpos, (float)ypos);
         }
 
         double t  = glfwGetTime();
