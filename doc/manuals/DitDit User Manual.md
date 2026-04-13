@@ -1,4 +1,4 @@
-<a href="https://youtu.be/uGix8SNy7Tk" target="_blank"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DitDitYoutubeThumb2.jpg" alt="Video Tutorial"></a>
+<p align="center"><a href="https://youtu.be/uGix8SNy7Tk" target="_blank"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DitDitYoutubeThumb2.jpg" alt="Video Tutorial"></a></p>
 
 <a href="https://youtu.be/rMIwqCQthho" target="_blank"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/DitDitYoutubeThumb.jpg" alt="Video Tutorial"></a>
 
