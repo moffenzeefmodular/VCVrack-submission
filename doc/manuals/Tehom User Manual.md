@@ -1,3 +1,5 @@
+<p align="center"><a href="https://youtu.be/blJWD6SOY2U" target="_blank"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomYoutubeThumb.jpg" alt="Video Tutorial"></a></p>
+
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomScreenshot.png" height="638"></p>
 
 ---
