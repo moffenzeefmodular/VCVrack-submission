@@ -1,4 +1,4 @@
-
+<p align="center"><a href="https://youtu.be/pJTek4Q-5dA" target="_blank"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/ParticlesYoutubeThumb.jpg" alt="Video Tutorial"></a></p>
 
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/ParticlesScreenshot.png" height="638"></p>
 
