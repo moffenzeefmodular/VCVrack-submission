@@ -582,6 +582,11 @@ std::atomic<float> xyFinalX{0.5f};
 std::atomic<float> xyFinalY{0.5f};
 std::atomic<bool> xyResetPending{false};
 
+// Deferred buffer resize — UI thread sets these; process() performs the actual resize
+// to avoid a use-after-free race between bufL/R reallocation and audio thread access.
+std::atomic<bool>  resizePending{false};
+std::atomic<float> pendingNewDuration{2.f};
+
 // Wander animation — written by both process() and UI menu; must be atomic
 std::atomic<int>   wanderMode{0};      // 0=Off, 1=Slow, 2=Medium, 3=Fast
 std::atomic<float> wanderTargetX{0.5f};
@@ -710,6 +715,14 @@ void process(const ProcessArgs& args) override {
     const float scrubDecay = cachedScrubDecay;
     const float scrubSlew  = cachedScrubSlew;
     const float rampRate   = cachedRampRate;
+
+    // Deferred buffer resize requested from the UI thread (Buffer Size menu).
+    // Performed here on the audio thread to avoid a use-after-free race: calling
+    // resizeBuffers() from the UI thread frees bufL/R while this thread reads them.
+    if (resizePending.exchange(false, rlx)) {
+        bufferDuration = pendingNewDuration.load(rlx);
+        resizeBuffers(currentSampleRate);
+    }
 
     // Deferred buffer erases requested from the UI thread (right-click on record button).
     // Performed here on the audio thread to avoid races with the audio buffers.
@@ -2119,7 +2132,7 @@ struct TehomWidget : ModuleWidget {
                 subMenu->addChild(createCheckMenuItem(
                     labels[j], "",
                     [=]() { return tehom->bufferDuration == dur; },
-                    [=]() { tehom->bufferDuration = dur; tehom->resizeBuffers(tehom->currentSampleRate); }
+                    [=]() { tehom->pendingNewDuration.store(dur, std::memory_order_relaxed); tehom->resizePending.store(true, std::memory_order_release); }
                 ));
             }
         }));

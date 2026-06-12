@@ -66,3 +66,6 @@ By Ross Fish Feb 2025
 - Added bus mult normalization: place bus mults beside one another to continue normalization chain 
 - User manuals added for all modules
 
+## v2.6.1 
+
+- Tehom crash fix: 96khz with 20 second or longer buffer length
