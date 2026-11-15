@@ -1,7 +1,7 @@
 {
   "slug": "Moffenzeef",
   "name": "Moffenzeef",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "license": "GPL-3.0+",
   "brand": "Moffenzeef",
   "author": "Ross Fish",
@@ -307,7 +307,7 @@
     {
       "slug": "TehomOut",
       "name": "DIR. OUT",
-      "description": "Direct outputs expander for Tehom: stereo outputs for each deck. Each deck has a PRE-POST switch choosing pre- or post-mixer. Links to the nearest Tehom anywhere in the patch, or pick one from the right-click menu.",
+      "description": "Direct outputs expander for Tehom: stereo outputs for each deck",
       "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/manuals/Tehom%20User%20Manual.md",
       "tags": [
         "expander",
@@ -318,7 +318,7 @@
     {
       "slug": "TehomIn",
       "name": "DIR. IN",
-      "description": "Direct inputs expander for Tehom: stereo inputs for each deck. Each patched jack replaces Tehom's main left or right input for that deck. Links to the nearest Tehom anywhere in the patch, or pick one from the right-click menu.",
+      "description": "Direct inputs expander for Tehom: stereo inputs for each deck",
       "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/manuals/Tehom%20User%20Manual.md",
       "tags": [
         "expander",
