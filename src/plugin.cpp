@@ -33,6 +33,7 @@ void init(Plugin* p) {
 	p->addModel(modelQuadDeviant);
 	p->addModel(modelTehom);
 	p->addModel(modelTehomOut);
+	p->addModel(modelTehomIn);
 	p->addModel(modelDitDit);
 	p->addModel(modelParticles);
 

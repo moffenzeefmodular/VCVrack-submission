@@ -60,7 +60,7 @@ struct ToneParamQuantity : ParamQuantity {
     }
 };
 
-struct Tehom : MoffModule {
+struct Tehom : MoffModule, TehomBusHost {
     enum ParamId {
         WARBLE_PARAM,
         FILTER_PARAM,
@@ -688,32 +688,33 @@ void loadOggFiles() {
     }
 }
 
-// Send per-deck pre/post-mixer signals to a Tehom Out expander on either side.
-void sendToOutExpanders(const float* preL, const float* preR, const float* postL, const float* postR) {
-    Module* sides[2] = {rightExpander.module, leftExpander.module};
-    for (int s = 0; s < 2; s++) {
-        Module* m = sides[s];
-        if (!m || m->model != modelTehomOut)
-            continue;
-        // Tehom on the expander's left -> write to its leftExpander, and vice versa
-        Module::Expander& exp = (s == 0) ? m->leftExpander : m->rightExpander;
-        TehomOutMessage* msg = static_cast<TehomOutMessage*>(exp.producerMessage);
-        if (!msg)
-            continue;
-        for (int i = 0; i < 4; i++) {
-            msg->preL[i]  = preL[i];
-            msg->preR[i]  = preR[i];
-            msg->postL[i] = postL[i];
-            msg->postR[i] = postR[i];
-        }
-        exp.requestMessageFlip();
+// Per-deck input override from a linked DIR. IN (anywhere in the patch).
+// Left and right are independent: each patched DIR. IN jack replaces only that side.
+void applyDirIn(int64_t frame, float* deckInL, float* deckInR) {
+    const TehomInMessage* msg = tehomBus.readIn(frame);
+    if (!msg)
+        return;
+    for (int i = 0; i < 4; i++) {
+        if (msg->connectedL[i]) deckInL[i] = msg->inL[i];
+        if (msg->connectedR[i]) deckInR[i] = msg->inR[i];
+    }
+}
+
+// Publish per-deck pre/post-mixer signals for linked DIR. OUT modules.
+void sendDirOut(int64_t frame, const float* preL, const float* preR, const float* postL, const float* postR) {
+    TehomOutMessage& msg = tehomBus.writeOut(frame);
+    for (int i = 0; i < 4; i++) {
+        msg.preL[i]  = preL[i];
+        msg.preR[i]  = preR[i];
+        msg.postL[i] = postL[i];
+        msg.postR[i] = postR[i];
     }
 }
 
 void processBypass(const ProcessArgs& args) override {
-    // Bypassed: silence the expander's deck outputs (otherwise the last message would hold as DC)
+    // Bypassed: silence linked DIR. OUT deck outputs
     static const float zeros[4] = {};
-    sendToOutExpanders(zeros, zeros, zeros, zeros);
+    sendDirOut(args.frame, zeros, zeros, zeros, zeros);
     float inL = inputs[AUDIOLEFTIN_INPUT].getVoltage();
     float inR = inputs[AUDIORIGHTIN_INPUT].isConnected() ? inputs[AUDIORIGHTIN_INPUT].getVoltage() : inL;
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(inL);
@@ -980,6 +981,14 @@ void process(const ProcessArgs& args) override {
     float posParam   = clamp(params[POSITION_PARAM].getValue() + clamp(inputs[POSITIONCVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f);
     float xfadeParam = std::max(0.01f, clamp(params[XFADE_PARAM].getValue() + clamp(inputs[XFADECVIN_INPUT].getVoltage(), -5.f, 5.f) / 10.f, 0.f, 1.f));
 
+    // Per-deck inputs: main stereo inputs, overridden per deck and per side by a linked DIR. IN
+    float deckInL[4], deckInR[4];
+    for (int i = 0; i < 4; i++) {
+        deckInL[i] = inL;
+        deckInR[i] = inR;
+    }
+    applyDirIn(args.frame, deckInL, deckInR);
+
     for (int i = 0; i < 4; i++) {
         float sampL = 0.f, sampR = 0.f;
         bool isDraggingNow = bezelDragging[i].load();
@@ -1126,8 +1135,8 @@ void process(const ProcessArgs& args) override {
 
         float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 5.f, -1.f, 1.f);
         float t = (srcParam + 1.f) * 0.5f; // 0 = input, 1 = loop
-        chanMixL[i] = inL * (1.f - t) + sampL * t;
-        chanMixR[i] = inR * (1.f - t) + sampR * t;
+        chanMixL[i] = deckInL[i] * (1.f - t) + sampL * t;
+        chanMixR[i] = deckInR[i] * (1.f - t) + sampR * t;
 
         // Recording mix: blend input with raw buffer at 1:1 so pitch doesn't compound on re-record.
         // Using writePos % recordedLength maps the write head into the existing loop without pitch shift.
@@ -1138,8 +1147,8 @@ void process(const ProcessArgs& args) override {
                 rawBufL = bufL[i][readIdx];
                 rawBufR = bufR[i][readIdx];
             }
-            recMixL[i] = inL * (1.f - t) + rawBufL * t;
-            recMixR[i] = inR * (1.f - t) + rawBufR * t;
+            recMixL[i] = deckInL[i] * (1.f - t) + rawBufL * t;
+            recMixR[i] = deckInR[i] * (1.f - t) + rawBufR * t;
         }
 
         if (xyPadPansAudio.load(rlx)) {
@@ -1260,7 +1269,7 @@ void process(const ProcessArgs& args) override {
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(outL);
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
 
-    sendToOutExpanders(chanMixL, chanMixR, postMixL, postMixR);
+    sendDirOut(args.frame, chanMixL, chanMixR, postMixL, postMixR);
 
     for (int i = 0; i < 4; i++) {
         if (bufferSize == 0) continue;

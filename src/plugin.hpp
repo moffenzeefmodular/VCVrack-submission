@@ -34,6 +34,7 @@ extern Model* modelTehom;
 extern Model* modelDitDit;
 extern Model* modelParticles;
 extern Model* modelTehomOut;
+extern Model* modelTehomIn;
 
 // ---------------------------------------------------------------------------
 // Per-module panel theme override

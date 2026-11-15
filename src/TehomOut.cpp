@@ -2,10 +2,11 @@
 #include "TehomExpander.hpp"
 
 // DIR. OUT (slug "TehomOut"): 4hp direct-outputs expander for Tehom, stereo per deck.
-// Place directly next to Tehom (either side). Each deck's PRE-POST switch picks
+// Links to a Tehom anywhere in the patch (nearest by default, or chosen from the
+// context menu); it doesn't need to touch Tehom. Each deck's PRE-POST switch picks
 // whether its outputs carry the deck before the XY mixer (pre) or the deck's
 // contribution to the main mix (post).
-struct TehomOut : MoffModule {
+struct TehomOut : TehomLinkedModule {
 	enum ParamId {
 		PREPOST1_PARAM,
 		PREPOST2_PARAM,
@@ -31,10 +32,6 @@ struct TehomOut : MoffModule {
 		LIGHTS_LEN
 	};
 
-	// Double buffers for messages from Tehom (Rack flips producer/consumer each frame)
-	TehomOutMessage leftMessages[2];
-	TehomOutMessage rightMessages[2];
-
 	TehomOut() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		for (int i = 0; i < 4; i++) {
@@ -43,18 +40,11 @@ struct TehomOut : MoffModule {
 			configOutput(DECK1L_OUTPUT + 2 * i, deck + " left");
 			configOutput(DECK1R_OUTPUT + 2 * i, deck + " right");
 		}
-		leftExpander.producerMessage = &leftMessages[0];
-		leftExpander.consumerMessage = &leftMessages[1];
-		rightExpander.producerMessage = &rightMessages[0];
-		rightExpander.consumerMessage = &rightMessages[1];
 	}
 
 	void process(const ProcessArgs& args) override {
-		const TehomOutMessage* msg = nullptr;
-		if (leftExpander.module && leftExpander.module->model == modelTehom)
-			msg = static_cast<const TehomOutMessage*>(leftExpander.consumerMessage);
-		else if (rightExpander.module && rightExpander.module->model == modelTehom)
-			msg = static_cast<const TehomOutMessage*>(rightExpander.consumerMessage);
+		TehomBus* bus = getBus();
+		const TehomOutMessage* msg = bus ? bus->readOut(args.frame) : nullptr;
 
 		for (int i = 0; i < 4; i++) {
 			float l = 0.f, r = 0.f;
@@ -69,7 +59,7 @@ struct TehomOut : MoffModule {
 	}
 };
 
-struct TehomOutWidget : MoffModuleWidget {
+struct TehomOutWidget : TehomLinkedWidget {
 	TehomOutWidget(TehomOut* module) {
 		setModule(module);
 		setPanel(createPanel(
