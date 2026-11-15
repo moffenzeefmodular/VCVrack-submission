@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct Moffenmix : Module {
+struct Moffenmix : MoffModule {
 	enum ParamId {
 		GAIN_1_PARAM,
 		GAIN_2_PARAM,
@@ -184,7 +184,7 @@ struct Moffenmix : Module {
 
 };
 
-struct MoffenmixWidget : ModuleWidget {
+struct MoffenmixWidget : MoffModuleWidget {
 	MoffenmixWidget(Moffenmix* module) {
 		setModule(module);
 	setPanel(createPanel(

@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct INTENSIFIES : Module {
+struct INTENSIFIES : MoffModule {
 	enum ParamId {
 		CARRIERRANGE_PARAM,
 		FXBYPASS_PARAM,
@@ -247,7 +247,7 @@ struct INTENSIFIES : Module {
 }
 };
 
-struct INTENSIFIESWidget : ModuleWidget {
+struct INTENSIFIESWidget : MoffModuleWidget {
 	INTENSIFIESWidget(INTENSIFIES* module) {
 		setModule(module);
 	setPanel(createPanel(

@@ -7,7 +7,7 @@
 
 #define GMO_MAX_WAVETABLES 32
 
-struct GMO : Module {
+struct GMO : MoffModule {
 	enum ParamId {
 		SPECIMEN_PARAM,
 		SPEED_PARAM,
@@ -261,7 +261,7 @@ struct GMO : Module {
 	}
 };
 
-struct GMOWidget : ModuleWidget {
+struct GMOWidget : MoffModuleWidget {
 	GMOWidget(GMO* module) {
 		setModule(module);
 		setPanel(createPanel(
@@ -294,6 +294,7 @@ struct GMOWidget : ModuleWidget {
 	}
 
 	void appendContextMenu(Menu* menu) override {
+		MoffModuleWidget::appendContextMenu(menu);
 		GMO* module = dynamic_cast<GMO*>(this->module);
 		if (!module) return;
 

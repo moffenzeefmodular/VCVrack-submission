@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct Kleztizer : Module {
+struct Kleztizer : MoffModule {
 	enum ParamId {
 		KEY_PARAM,
 		MODE_PARAM,
@@ -382,7 +382,7 @@ if (chordSelect > 0 && chordTable) {
 	}
 };
 
-struct KleztizerWidget : ModuleWidget {
+struct KleztizerWidget : MoffModuleWidget {
 	KleztizerWidget(Kleztizer* module) {
 		setModule(module);
 	setPanel(createPanel(

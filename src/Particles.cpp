@@ -590,7 +590,7 @@ struct ParticleOverlay : Widget {
 
 // ── module ─────────────────────────────────────────────────────────────────
 
-struct Particles : Module {
+struct Particles : MoffModule {
     enum ParamId {
         TYPE_PARAM,
         SIZE_PARAM,
@@ -662,7 +662,7 @@ struct LEDBezelToggle : LEDBezel {
     LEDBezelToggle() { momentary = false; }
 };
 
-struct ParticlesWidget : ModuleWidget {
+struct ParticlesWidget : MoffModuleWidget {
     ParticleOverlay* overlay  = nullptr;
     bool prevOnOffCV = false;  // tracks last gate state for rising-edge detection
 
@@ -718,7 +718,7 @@ struct ParticlesWidget : ModuleWidget {
     }
 
     void step() override {
-        ModuleWidget::step();
+        MoffModuleWidget::step();
         if (!overlay) return;
 
         Particles* p = dynamic_cast<Particles*>(module);
@@ -777,7 +777,7 @@ struct ParticlesWidget : ModuleWidget {
     }
 
     void appendContextMenu(Menu* menu) override {
-        ModuleWidget::appendContextMenu(menu);
+        MoffModuleWidget::appendContextMenu(menu);
         Particles* p = dynamic_cast<Particles*>(module);
         if (!p) return;
 

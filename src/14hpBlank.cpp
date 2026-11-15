@@ -1,7 +1,7 @@
 #include "plugin.hpp"
 
 
-struct _14hpBlank : Module {
+struct _14hpBlank : MoffModule {
 	enum ParamId {
 		PARAMS_LEN
 	};
@@ -24,7 +24,7 @@ struct _14hpBlank : Module {
 };
 
 
-struct _14hpBlankWidget : ModuleWidget {
+struct _14hpBlankWidget : MoffModuleWidget {
 	_14hpBlankWidget(_14hpBlank* module) {
 		setModule(module);
 setPanel(createPanel(

@@ -7,7 +7,7 @@
 
 #define TWO_PI (2.0f * M_PI)
 
-struct BadIdea1800 : Module {
+struct BadIdea1800 : MoffModule {
     enum ParamId { PARAMS_LEN };
     enum InputId {
         NUM_1_INPUT, NUM_2_INPUT, NUM_3_INPUT,
@@ -228,7 +228,7 @@ constexpr int BadIdea1800::VOICE_TO_LED[12];
 constexpr int BadIdea1800::VOICE_TO_SLOT[12];
 constexpr float BadIdea1800::DTMF_FREQ[12][2];
 
-struct BadIdea1800Widget : ModuleWidget {
+struct BadIdea1800Widget : MoffModuleWidget {
     BadIdea1800Widget(BadIdea1800* module) {
         setModule(module);
         setPanel(createPanel(
@@ -271,6 +271,7 @@ struct BadIdea1800Widget : ModuleWidget {
     }
 
     void appendContextMenu(Menu* menu) override {
+        MoffModuleWidget::appendContextMenu(menu);
         BadIdea1800* module = dynamic_cast<BadIdea1800*>(this->module);
         if (!module) return;
 

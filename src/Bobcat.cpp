@@ -5,7 +5,7 @@
 // Biquad filter parameters (fixed resonance)
 #define RESONANCE 0.4f
 
-struct Bobcat : Module {
+struct Bobcat : MoffModule {
 	enum ParamId {
 		TAIL_1__PARAM,
 		HISS_1__PARAM,
@@ -295,7 +295,7 @@ struct Bobcat : Module {
     }
 };
 
-struct BobcatWidget : ModuleWidget {
+struct BobcatWidget : MoffModuleWidget {
 	BobcatWidget(Bobcat* module) {
 		setModule(module);
 	setPanel(createPanel(

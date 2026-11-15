@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct Mongrel : Module {
+struct Mongrel : MoffModule {
 	enum ParamId {
 		TAIL_PARAM,
 		YIP_PARAM,
@@ -159,7 +159,7 @@ void process(const ProcessArgs& args) override {
 };
 
 
-struct MongrelWidget : ModuleWidget {
+struct MongrelWidget : MoffModuleWidget {
 	MongrelWidget(Mongrel* module) {
 		setModule(module);
 	setPanel(createPanel(

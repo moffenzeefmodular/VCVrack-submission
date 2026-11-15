@@ -1,7 +1,7 @@
 #include "plugin.hpp"
 #include "../res/sequences/TantzSequences.hpp"
 
-struct Tantz : Module {
+struct Tantz : MoffModule {
 	enum ParamId {
 		RUN_PARAM,
 		STYLE_PARAM,
@@ -284,7 +284,7 @@ void process(const ProcessArgs& args) override {
 };
 
 
-struct TantzWidget : ModuleWidget {
+struct TantzWidget : MoffModuleWidget {
 	TantzWidget(Tantz* module) {
 		setModule(module);
 setPanel(createPanel(

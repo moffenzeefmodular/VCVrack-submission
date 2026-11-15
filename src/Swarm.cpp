@@ -44,7 +44,7 @@ struct Chirp {
     }
 };
 
-struct Swarm : Module {
+struct Swarm : MoffModule {
     enum ParamIds {
         TIMECOARSE_PARAM,
         RANGESWITCH_PARAM,
@@ -165,7 +165,7 @@ struct Swarm : Module {
     }
 };
 
-struct SwarmWidget : ModuleWidget {
+struct SwarmWidget : MoffModuleWidget {
     SwarmWidget(Swarm* module) {
         setModule(module);
         setPanel(createPanel(

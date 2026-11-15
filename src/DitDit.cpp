@@ -69,7 +69,7 @@ static const double MIN_PULSE_WIDTH  = 0.010; // 10ms minimum
 // ============================================================
 // DitDit Module
 // ============================================================
-struct DitDit : Module {
+struct DitDit : MoffModule {
     enum ParamId {
         SWITCH_PARAM,
         PARAMS_LEN
@@ -933,7 +933,7 @@ struct DitDitDisplay : LedDisplay {
 // ============================================================
 // Widget
 // ============================================================
-struct DitDitWidget : ModuleWidget {
+struct DitDitWidget : MoffModuleWidget {
     DitDitDisplay* displayWidget = nullptr;
 
     DitDitWidget(DitDit* module) {
@@ -995,6 +995,7 @@ struct DitDitWidget : ModuleWidget {
     }
 
     void appendContextMenu(Menu* menu) override {
+        MoffModuleWidget::appendContextMenu(menu);
         DitDit* module = dynamic_cast<DitDit*>(this->module);
         if (!module) return;
 

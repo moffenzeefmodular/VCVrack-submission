@@ -1,7 +1,7 @@
 #include "plugin.hpp"
 
 
-struct Mito : Module {
+struct Mito : MoffModule {
 	enum ParamId {
 		KNOB1_PARAM,
 		KNOB2_PARAM,
@@ -439,7 +439,7 @@ struct Mito : Module {
 };
 	
 	
-struct MitoWidget : ModuleWidget {
+struct MitoWidget : MoffModuleWidget {
 	MitoWidget(Mito* module) {
 		setModule(module);
 	setPanel(createPanel(

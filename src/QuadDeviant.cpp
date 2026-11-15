@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct QuadDeviant : Module {
+struct QuadDeviant : MoffModule {
     enum ParamId {
         // Bus switches
         BUS1_PARAM,
@@ -346,7 +346,7 @@ lights[SLEWLEDGREEN_LIGHT].setBrightnessSmooth(std::max(slewVoltage / 10.f, 0.f)
 };
 
 
-struct QuadDeviantWidget : ModuleWidget {
+struct QuadDeviantWidget : MoffModuleWidget {
 
     // Store pointers to ParamQuantities for dynamic labels
     ParamQuantity* bus1Q = nullptr;
@@ -489,7 +489,7 @@ struct QuadDeviantWidget : ModuleWidget {
     }
 
    void step() override {
-        ModuleWidget::step();
+        MoffModuleWidget::step();
 
         if (!module) return;
         auto* m = dynamic_cast<QuadDeviant*>(module);

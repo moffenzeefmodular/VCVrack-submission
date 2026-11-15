@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct DialUp : Module {
+struct DialUp : MoffModule {
     // Parameters
     enum ParamId {
         TAIL_PARAM,       // Tail knob for decay time control
@@ -235,7 +235,7 @@ struct DialUp : Module {
     }
 };
 
-struct DialUpWidget : ModuleWidget {
+struct DialUpWidget : MoffModuleWidget {
     DialUpWidget(DialUp* module) {
         setModule(module);
 	setPanel(createPanel(

@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct Deviant : Module {
+struct Deviant : MoffModule {
     enum ParamId {
         TOP_1__PARAM,
         TOP_2_PARAM,
@@ -157,7 +157,7 @@ struct Deviant : Module {
     }
 };
 
-struct DeviantWidget : ModuleWidget {
+struct DeviantWidget : MoffModuleWidget {
 	DeviantWidget(Deviant* module) {
 		setModule(module);
 setPanel(createPanel(

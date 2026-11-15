@@ -7,7 +7,7 @@
 
 using namespace rack;
 
-struct Muskrat : Module {
+struct Muskrat : MoffModule {
     enum ParamId {
         TAIL_PARAM,
         RANGE_PARAM,
@@ -307,7 +307,7 @@ lights[LED_LIGHT].setBrightnessSmooth(ledBrightness, args.sampleTime);  // Set L
 
 };
 
-struct MuskratWidget : ModuleWidget {
+struct MuskratWidget : MoffModuleWidget {
 	MuskratWidget(Muskrat* module) {
 		setModule(module);
 	  setPanel(createPanel(

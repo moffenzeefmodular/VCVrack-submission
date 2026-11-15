@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct TheRunner : Module {
+struct TheRunner : MoffModule {
 	enum ParamId {
 		GAIN_PARAM,
 		VOLUME_PARAM,
@@ -200,7 +200,7 @@ struct TheRunner : Module {
 	}
 };
 
-struct TheRunnerWidget : ModuleWidget {
+struct TheRunnerWidget : MoffModuleWidget {
 	TheRunnerWidget(TheRunner* module) {
 		setModule(module);
 	setPanel(createPanel(

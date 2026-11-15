@@ -59,7 +59,7 @@ struct ToneParamQuantity : ParamQuantity {
     }
 };
 
-struct Tehom : Module {
+struct Tehom : MoffModule {
     enum ParamId {
         WARBLE_PARAM,
         FILTER_PARAM,
@@ -1914,7 +1914,7 @@ struct ChanLight0 : GrayModuleLightWidget { ChanLight0() { addBaseColor(SCHEME_C
 struct ChanLight1 : GrayModuleLightWidget { ChanLight1() { addBaseColor(SCHEME_PURPLE); } };
 struct ChanLight2 : GrayModuleLightWidget { ChanLight2() { addBaseColor(SCHEME_ORANGE); } };
 struct ChanLight3 : GrayModuleLightWidget { ChanLight3() { addBaseColor(SCHEME_RED); } };
-struct TehomWidget : ModuleWidget {
+struct TehomWidget : MoffModuleWidget {
 	TehomWidget(Tehom* module) {
 		setModule(module);
 		setPanel(createPanel(
@@ -2059,7 +2059,7 @@ struct TehomWidget : ModuleWidget {
 		addChild(createLightCentered<LargeLight<ChanLight3>>(mm2px(Vec(125.315, 71.937)), module, Tehom::BUFFER4LED_LIGHT));
 	}
     void appendContextMenu(Menu* menu) override {
-        ModuleWidget::appendContextMenu(menu);
+        MoffModuleWidget::appendContextMenu(menu);
         auto* tehom = dynamic_cast<Tehom*>(module);
         if (!tehom) return;
 

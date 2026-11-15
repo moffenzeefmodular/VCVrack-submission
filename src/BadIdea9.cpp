@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct BadIdea9 : Module {
+struct BadIdea9 : MoffModule {
 	enum ParamId {
 		RUH_PARAM,
 		ROH_PARAM,
@@ -115,7 +115,7 @@ struct BadIdea9 : Module {
 	};
 		
 
-struct BadIdea9Widget : ModuleWidget {
+struct BadIdea9Widget : MoffModuleWidget {
 	BadIdea9Widget(BadIdea9* module) {
 		setModule(module);
 		setPanel(createPanel(

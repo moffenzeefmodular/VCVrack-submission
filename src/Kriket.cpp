@@ -32,7 +32,7 @@ struct VoltageControlledOscillator {
     }
 };
 
-struct Kriket : Module {
+struct Kriket : MoffModule {
     enum ParamId {
         PITCH1_PARAM,
         PITCH2_PARAM,
@@ -198,7 +198,7 @@ struct Kriket : Module {
     }
 };
 
-struct KriketWidget : ModuleWidget {
+struct KriketWidget : MoffModuleWidget {
     KriketWidget(Kriket* module) {
         setModule(module);
 	setPanel(createPanel(

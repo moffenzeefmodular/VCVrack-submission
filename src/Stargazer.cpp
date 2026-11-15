@@ -161,7 +161,7 @@ static bool loadWavetableFile(const std::string& path, std::vector<float>& outSa
 	return true;
 }
 
-struct Stargazer : Module {
+struct Stargazer : MoffModule {
 	enum ParamId {
         WIDTH_PARAM,
 		PITCH_PARAM,
@@ -857,7 +857,7 @@ outputs[OUTR_OUTPUT].setVoltage(rightOut);
 };
 
 
-struct StargazerWidget : ModuleWidget {
+struct StargazerWidget : MoffModuleWidget {
 	StargazerWidget(Stargazer* module) {
 		setModule(module);
 	setPanel(createPanel(

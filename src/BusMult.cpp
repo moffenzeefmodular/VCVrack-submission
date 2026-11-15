@@ -3,7 +3,7 @@
 // Forward declaration so BusMult::process() can check the left neighbor's model
 extern Model* modelBusMult;
 
-struct BusMult : Module {
+struct BusMult : MoffModule {
     enum ParamId {
         PARAMS_LEN
     };
@@ -62,7 +62,7 @@ struct BusMult : Module {
     }
 };
 
-struct BusMultWidget : ModuleWidget {
+struct BusMultWidget : MoffModuleWidget {
     BusMultWidget(BusMult* module) {
         setModule(module);
         setPanel(createPanel(

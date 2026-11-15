@@ -1,7 +1,7 @@
 #include "plugin.hpp"
 #include "../res/sequences/SimplifySequences.hpp"
 
-struct Simplify : Module {
+struct Simplify : MoffModule {
 	enum ParamId {
 		SELECT_PARAM,
 		PARAMS_LEN
@@ -101,7 +101,7 @@ bool trig1 = false;
 };
 
 
-struct SimplifyWidget : ModuleWidget {
+struct SimplifyWidget : MoffModuleWidget {
 	SimplifyWidget(Simplify* module) {
 		setModule(module);
 	setPanel(createPanel(

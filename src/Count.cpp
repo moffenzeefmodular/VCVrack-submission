@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-struct ClockModule : Module {
+struct ClockModule : MoffModule {
     // Parameters from the provided Count module
     enum ParamIds {
         TOP_BOTTOM_PARAM,
@@ -288,7 +288,7 @@ void process(const ProcessArgs& args) override {
 };
 
 // The UI widget (module panel) code, integrated with the interface controls
-struct ClockModuleWidget : ModuleWidget {
+struct ClockModuleWidget : MoffModuleWidget {
     ClockModuleWidget(ClockModule* module) {
         setModule(module);
 setPanel(createPanel(

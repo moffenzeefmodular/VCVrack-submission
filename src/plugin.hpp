@@ -34,6 +34,81 @@ extern Model* modelTehom;
 extern Model* modelDitDit;
 extern Model* modelParticles;
 
+// ---------------------------------------------------------------------------
+// Per-module panel theme override
+//
+// Rack's themed widgets (ThemedSvgPanel, ThemedScrew, ThemedPJ301MPort, and our
+// own LEDBezelSilver / Tehom display) pick light or dark by reading the global
+// settings::preferDarkPanels. MoffModuleWidget temporarily sets that global to
+// the module's chosen theme while its own subtree steps and draws, then restores
+// it, so every themed child follows the per-module choice with no new panels.
+// ---------------------------------------------------------------------------
+enum PanelTheme {
+	PANEL_THEME_AUTO = 0,   // follow Rack's "Use dark panels if available"
+	PANEL_THEME_LIGHT = 1,
+	PANEL_THEME_DARK = 2,
+};
+
+struct MoffModule : Module {
+	int panelTheme = PANEL_THEME_AUTO;
+
+	// Stored at the top level of the module JSON (outside "data") so it doesn't
+	// interfere with any module's own dataToJson()/dataFromJson().
+	json_t* toJson() override {
+		json_t* rootJ = Module::toJson();
+		json_object_set_new(rootJ, "moffPanelTheme", json_integer(panelTheme));
+		return rootJ;
+	}
+	void fromJson(json_t* rootJ) override {
+		Module::fromJson(rootJ);
+		json_t* themeJ = json_object_get(rootJ, "moffPanelTheme");
+		if (themeJ)
+			panelTheme = clamp((int)json_integer_value(themeJ), 0, 2);
+	}
+};
+
+struct MoffModuleWidget : ModuleWidget {
+	// RAII guard: applies the module's theme to the global, restores on exit
+	struct ThemeScope {
+		bool active = false;
+		bool saved = false;
+		explicit ThemeScope(Module* module) {
+			MoffModule* m = dynamic_cast<MoffModule*>(module);
+			if (!m || m->panelTheme == PANEL_THEME_AUTO)
+				return;
+			saved = settings::preferDarkPanels;
+			settings::preferDarkPanels = (m->panelTheme == PANEL_THEME_DARK);
+			active = true;
+		}
+		~ThemeScope() {
+			if (active)
+				settings::preferDarkPanels = saved;
+		}
+	};
+
+	void step() override {
+		ThemeScope scope(module);
+		ModuleWidget::step();
+	}
+	void draw(const DrawArgs& args) override {
+		ThemeScope scope(module);
+		ModuleWidget::draw(args);
+	}
+	void drawLayer(const DrawArgs& args, int layer) override {
+		ThemeScope scope(module);
+		ModuleWidget::drawLayer(args, layer);
+	}
+
+	void appendContextMenu(Menu* menu) override {
+		MoffModule* m = dynamic_cast<MoffModule*>(module);
+		if (!m)
+			return;
+		menu->addChild(new MenuSeparator);
+		menu->addChild(createIndexPtrSubmenuItem("Panel theme",
+			{"Rack default", "Light", "Dark"}, &m->panelTheme));
+	}
+};
+
 struct CKSSHorizontal : app::SvgSwitch {
 	CKSSHorizontal() {
 		shadow->opacity = 0.0;
