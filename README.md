@@ -72,8 +72,8 @@ By Ross Fish Feb 2025
 
 ## v2.7.0 
 
--Added Tehom Direct Output expander module
--Added Tehom Direct Input expander module 
--Added panel theme selection on a per module basis so that users can select light or dark modules seperately from rack default. 
--Dial Up: code overhaul to match the original hardware 1:1. Pitch range no longer changes when sample rate changes. Bug fix for "sound stopping after a few minutes" repaired. 
+- Added Tehom Direct Output expander module
+- Added Tehom Direct Input expander module 
+- Added panel theme selection on a per module basis so that users can select light or dark modules seperately from rack default. 
+- Dial Up: code overhaul to match the original hardware 1:1. Pitch range no longer changes when sample rate changes. Bug fix for "sound stopping after a few minutes" repaired. 
 
