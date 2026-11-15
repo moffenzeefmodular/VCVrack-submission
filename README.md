@@ -68,4 +68,8 @@ By Ross Fish Feb 2025
 
 ## v2.6.1 
 
-- Tehom crash fix: 96khz with 20 second or longer buffer length
+- Tehom crash fix: 96khz with 20 second or longer buffer length'
+
+## v2.7.0 
+
+-Dial Up: code overhaul to match the original hardware 1:1. Pitch range no longer changes when sample rate changes. Bug fix for "sound stopping after a few minutes" repaired. 

@@ -28,16 +28,93 @@ struct DialUp : Module {
         LIGHTS_LEN
     };
 
-    // Internal variables for bytebeat
-    float t = 0.0f; // Time variable for bytebeat (accumulator)
-    int note = 1; // Default note value (range 1-32)
+    // ---- ATtiny85 @ 8MHz emulation (hardware firmware MOF-DIA-CODE-v0_3) ----
+    // Timer0: 8MHz / 8 prescale = 1MHz tick, fast PWM with TOP = OCR0A, so the
+    // sample ISR fires every (OCR0A + 1) microseconds. OCR0A is set by the pot
+    // (80..20), giving an ISR rate of ~12.3kHz..47.6kHz. Timer1 PWM outputs the
+    // 8-bit OCR1A value. Everything below runs on emulated microseconds, so the
+    // sound is independent of Rack's sample rate.
+    static constexpr float ADC_PERIOD_US = 104.f; // ~13 ADC clocks @ 125kHz: loop() pot read rate
 
-    // Jitter control variables
-    float jitterValue = 0.0f;  // Current jitter value
-    int jitterCounter = 0;     // Counter to control jitter update speed
-    const int jitterSpeed = 500; // Fixed jitter speed, number of samples before updating jitter (higher = slower)
-    float noiseLevel = 0.001f; // Level of noise added to the control value
-    
+    uint16_t acc[3] = {0, 0, 0};  // 16-bit 'unsigned int' accumulators (AVR)
+    uint16_t noteVal = 1;         // Note/Note1/Note2 (all identical in firmware)
+    int ocr0a = 50;               // Timer0 TOP -> ISR period
+    uint8_t ocr1a = 0;            // Current 8-bit PWM output value
+    float isrPhaseUs = 0.f;       // Microseconds since last ISR
+    float adcPhaseUs = 0.f;       // Microseconds since last pot read
+    float adcNoise = 0.f;         // Slowly varying ADC noise (in LSBs)
+
+    // Emulates loop(): read pot on A3, update Note and OCR0A
+    void readPot(float control) {
+        // Small ADC noise, as on the real chip (±~1 LSB)
+        adcNoise += 0.1f * (random::normal() * 0.7f - adcNoise);
+        long potRaw = std::max(0L, std::min(1023L, (long)std::lround(control * 1023.f + adcNoise)));
+        // Arduino map() uses long math with truncation
+        noteVal = (uint16_t)(potRaw * (32 - 1) / 1023 + 1);
+        ocr0a = (int)(80 + potRaw * (20 - 80) / 1015);
+    }
+
+    // Runs the emulated chip for durUs microseconds; returns the PWM duty
+    // (0..255) averaged over that time (Timer1 PWM is 64MHz/256 = 250kHz, far
+    // above audio, so its output is the time-average of OCR1A).
+    float emulate(float durUs, float control) {
+        float remaining = durUs;
+        float integral = 0.f;
+        while (remaining > 0.f) {
+            float isrPeriodUs = (float)(ocr0a + 1);
+            if (isrPhaseUs >= isrPeriodUs) {
+                isrPhaseUs -= isrPeriodUs;
+                if (isrPhaseUs >= isrPeriodUs)
+                    isrPhaseUs = 0.f;
+                sampleIsr();
+                continue;
+            }
+            float step = std::min(remaining, isrPeriodUs - isrPhaseUs);
+            if (!(step > 0.f))  // guard against float edge cases (never spin)
+                break;
+            integral += ocr1a * step;
+            isrPhaseUs += step;
+            remaining -= step;
+            adcPhaseUs += step;
+            if (adcPhaseUs >= ADC_PERIOD_US) {
+                adcPhaseUs -= ADC_PERIOD_US;
+                readPot(control);  // OCR0A change takes effect on next period
+            }
+        }
+        return integral / durUs;
+    }
+
+    // Anti-aliasing: oversample to ~384kHz and run an 8th-order Butterworth
+    // low-pass at a fixed 16kHz before decimating to Rack's rate.
+    dsp::BiquadFilter antiAlias[4];
+    int osFactor = 1;
+    float configuredSampleRate = 0.f;
+    float lowPassAlpha = 1.f;
+
+    void configureOversampling(float sr) {
+        osFactor = clamp((int)std::ceil(384000.f / sr), 1, 16);
+        const float antiAliasHz = 16000.f;
+        float fc = std::min(antiAliasHz, 0.45f * sr) / (sr * osFactor);
+        static const float q[4] = {0.5098f, 0.6013f, 0.9000f, 2.5629f};
+        for (int k = 0; k < 4; k++) {
+            antiAlias[k].reset();
+            antiAlias[k].setParameters(dsp::BiquadFilter::LOWPASS, fc, q[k], 1.f);
+        }
+        lowPassAlpha = 1.f - std::exp(-2.f * (float)M_PI * 10000.f / (sr * osFactor));
+        configuredSampleRate = sr;
+    }
+
+    // Emulates ISR(TIMER0_COMPA_vect)
+    void sampleIsr() {
+        acc[0] += noteVal;
+        acc[1] += noteVal;
+        acc[2] += noteVal;
+        // OCR1A = (Acc[0] * Acc[1]) ^ Acc[2] >> 8 & 0x80;
+        // precedence: (A0*A1) ^ ((A2 >> 8) & 0x80); 16-bit product, 8-bit register
+        uint16_t prod = (uint16_t)((uint32_t)acc[0] * (uint32_t)acc[1]);
+        ocr1a = (uint8_t)(prod ^ ((acc[2] >> 8) & 0x80));
+    }
+
     // Low-pass/high-pass filter variables
     float previousLowPassOutput = 0.0f; 
     float previousHighPassOutput = 0.0f;
@@ -67,41 +144,30 @@ struct DialUp : Module {
     void process(const ProcessArgs &args) override {
         float cvInput = inputs[MODEM_CV_INPUT].getVoltage();  // Read CV input
         float normalizedCV = (cvInput + 5.0f) / 10.0f; // Map -5V -> 0.0 and 5V -> 1.0
-        float knob1Param = params[MODEM_PARAM].getValue() + 0.05;  // Original knob value
-        float knob1Value = knob1Param + (normalizedCV - 0.5f);  // Apply the CV input as an offset
+        float knob1Value = params[MODEM_PARAM].getValue() + (normalizedCV - 0.5f);  // Apply the CV input as an offset
         float controlValue = clamp(knob1Value, 0.0f, 1.0f);
-        
-        jitterCounter++;
-        if (jitterCounter >= jitterSpeed) {
-            jitterCounter = 0; // Reset counter
-            jitterValue += (random::uniform() * 2.0f - 1.0f) * noiseLevel; // Add random jitter
-            jitterValue = clamp(jitterValue, -1.0f, 1.0f); // Clamp jitter to stay within range
+
+        // Run the emulated ATtiny in oversampled sub-steps, band-limit the PWM
+        // signal with a fixed 16kHz 8th-order low-pass at the oversampled rate,
+        // then decimate. Because the emulation runs on emulated microseconds and
+        // the anti-alias filter has the same cutoff at every rate, pitch and
+        // timbre are the same at every Rack sample rate.
+        if (args.sampleRate != configuredSampleRate)
+            configureOversampling(args.sampleRate);
+        const float subUs = 1e6f / (args.sampleRate * osFactor);
+        float pwmAverage = 0.f;
+        for (int i = 0; i < osFactor; i++) {
+            float y = emulate(subUs, controlValue);
+            // One-pole low-pass at 10 kHz (run at the oversampled rate)
+            previousLowPassOutput += lowPassAlpha * (y - previousLowPassOutput);
+            y = previousLowPassOutput;
+            for (int k = 0; k < 4; k++)
+                y = antiAlias[k].process(y);
+            pwmAverage = y;  // keep last sub-sample (decimation)
         }
 
-        // Apply the jittered control value to the original parameter value
-        controlValue += jitterValue;
-
-        // Clamp the noisy control value to stay between 0 and 1
-        controlValue = clamp(controlValue, 0.0f, 1.0f);
-
-        float scaleFactor = args.sampleRate / 8000.0f; // Fix the output to 8kHz
-
-        t += controlValue * scaleFactor;  // Increment time for the next sample
-
-        // Map the control value from the modem knob to the note range (1-32)
-        note = (int)((1.0f - controlValue) * 255.0f + 1.0f); // Reverse the range and map it to 1-32
-
-        // Bytebeat algorithm
-        int result = (int(t)*(note)) * (int(t)*(note)) ^ (int(t)*(note)) >> 8;
-
-        // Map the result to a range of -5V to +5V
-        float mappedResult = ((result & 1) * 10.0f) - 5.0f;
-        
-        // Apply low-pass filter for anti-aliasing at 10 kHz
-        float lowPassCutoffFreq = 10000.0f;  // 10 kHz cutoff
-        float lowPassAlpha = args.sampleRate / (args.sampleRate + 2.0f * M_PI * lowPassCutoffFreq);  // Low-pass filter coefficient
-
-        float lowPassFilteredOutput = lowPassAlpha * mappedResult + (1.0f - lowPassAlpha) * previousLowPassOutput; // Low-pass filter
+        // Map the 8-bit PWM value to -5V..+5V
+        float lowPassFilteredOutput = pwmAverage * (10.0f / 255.0f) - 5.0f;
 
         // Apply high-pass filter for 100 Hz cutoff
         float highPassCutoffFreq = 100.0f;  // 100 Hz cutoff
@@ -113,7 +179,6 @@ struct DialUp : Module {
         // Store the filtered output and input for the next sample
         previousInput = lowPassFilteredOutput;
         previousHighPassOutput = highPassFilteredOutput;
-        previousLowPassOutput = lowPassFilteredOutput;
 
         // Adjust decay time based on RANGE_PARAM
         int range = (int)params[RANGE_PARAM].getValue(); // Read the RANGE_PARAM value
