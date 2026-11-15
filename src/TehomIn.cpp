@@ -82,8 +82,8 @@ struct TehomInWidget : TehomLinkedWidget {
 		const float deckY[4] = {0.f, 27.6f, 55.2f, 82.8f};
 		for (int i = 0; i < 4; i++) {
 			float dy = deckY[i];
-			addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.1f, 31.4f + dy)), module, TehomIn::DECK1L_INPUT + 2 * i));
-			addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(14.3f, 31.4f + dy)), module, TehomIn::DECK1R_INPUT + 2 * i));
+			addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(5.56f, 31.4f + dy)), module, TehomIn::DECK1L_INPUT + 2 * i));
+			addInput(createInputCentered<ThemedPJ301MPort>(mm2px(Vec(14.76f, 31.4f + dy)), module, TehomIn::DECK1R_INPUT + 2 * i));
 		}
 	}
 };

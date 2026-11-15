@@ -74,9 +74,9 @@ struct TehomOutWidget : TehomLinkedWidget {
 		const float deckY[4] = {0.f, 27.6f, 55.2f, 82.8f};
 		for (int i = 0; i < 4; i++) {
 			float dy = deckY[i];
-			addParam(createParamCentered<CKSSHorizontal>(mm2px(Vec(12.7f, 18.6f + dy)), module, TehomOut::PREPOST1_PARAM + i));
-			addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.1f, 31.4f + dy)), module, TehomOut::DECK1L_OUTPUT + 2 * i));
-			addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.3f, 31.4f + dy)), module, TehomOut::DECK1R_OUTPUT + 2 * i));
+			addParam(createParamCentered<CKSSHorizontal>(mm2px(Vec(13.16f, 18.6f + dy)), module, TehomOut::PREPOST1_PARAM + i));
+			addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(5.56f, 31.4f + dy)), module, TehomOut::DECK1L_OUTPUT + 2 * i));
+			addOutput(createOutputCentered<ThemedPJ301MPort>(mm2px(Vec(14.76f, 31.4f + dy)), module, TehomOut::DECK1R_OUTPUT + 2 * i));
 		}
 	}
 };
