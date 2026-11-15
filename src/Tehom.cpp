@@ -1,4 +1,5 @@
 #include "plugin.hpp"
+#include "TehomExpander.hpp"
 #include <cstring>
 
 // stb_vorbis OGG decoder (compiled as C in stb_vorbis.c)
@@ -687,7 +688,32 @@ void loadOggFiles() {
     }
 }
 
+// Send per-deck pre/post-mixer signals to a Tehom Out expander on either side.
+void sendToOutExpanders(const float* preL, const float* preR, const float* postL, const float* postR) {
+    Module* sides[2] = {rightExpander.module, leftExpander.module};
+    for (int s = 0; s < 2; s++) {
+        Module* m = sides[s];
+        if (!m || m->model != modelTehomOut)
+            continue;
+        // Tehom on the expander's left -> write to its leftExpander, and vice versa
+        Module::Expander& exp = (s == 0) ? m->leftExpander : m->rightExpander;
+        TehomOutMessage* msg = static_cast<TehomOutMessage*>(exp.producerMessage);
+        if (!msg)
+            continue;
+        for (int i = 0; i < 4; i++) {
+            msg->preL[i]  = preL[i];
+            msg->preR[i]  = preR[i];
+            msg->postL[i] = postL[i];
+            msg->postR[i] = postR[i];
+        }
+        exp.requestMessageFlip();
+    }
+}
+
 void processBypass(const ProcessArgs& args) override {
+    // Bypassed: silence the expander's deck outputs (otherwise the last message would hold as DC)
+    static const float zeros[4] = {};
+    sendToOutExpanders(zeros, zeros, zeros, zeros);
     float inL = inputs[AUDIOLEFTIN_INPUT].getVoltage();
     float inR = inputs[AUDIORIGHTIN_INPUT].isConnected() ? inputs[AUDIORIGHTIN_INPUT].getVoltage() : inL;
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(inL);
@@ -946,6 +972,7 @@ void process(const ProcessArgs& args) override {
     float outL = 0.f, outR = 0.f;
     float loopOutL = 0.f, loopOutR = 0.f;  // loop-only portion (filtered separately)
     float chanMixL[4] = {}, chanMixR[4] = {};
+    float postMixL[4] = {}, postMixR[4] = {}; // per-deck contribution to the mix (for Tehom Out expander)
     float recMixL[4]  = {}, recMixR[4]  = {}; // recording mix: loop component read at 1:1 (no pitch shift)
 
     // Global loop window params
@@ -1119,13 +1146,17 @@ void process(const ProcessArgs& args) override {
             // X=0 → 100% left, X=1 → 100% right, X=0.5 → center (constant-power pan law)
             float panL = std::cos(xyX * float(M_PI) * 0.5f);
             float panR = std::sin(xyX * float(M_PI) * 0.5f);
-            outL += chanMixL[i] * vol[i] * panL;
-            outR += chanMixR[i] * vol[i] * panR;
+            postMixL[i] = chanMixL[i] * vol[i] * panL;
+            postMixR[i] = chanMixR[i] * vol[i] * panR;
+            outL += postMixL[i];
+            outR += postMixR[i];
             loopOutL += sampL * t * vol[i] * panL;
             loopOutR += sampR * t * vol[i] * panR;
         } else {
-            outL += chanMixL[i] * vol[i];
-            outR += chanMixR[i] * vol[i];
+            postMixL[i] = chanMixL[i] * vol[i];
+            postMixR[i] = chanMixR[i] * vol[i];
+            outL += postMixL[i];
+            outR += postMixR[i];
             loopOutL += sampL * t * vol[i];
             loopOutR += sampR * t * vol[i];
         }
@@ -1228,6 +1259,8 @@ void process(const ProcessArgs& args) override {
 
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(outL);
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
+
+    sendToOutExpanders(chanMixL, chanMixR, postMixL, postMixR);
 
     for (int i = 0; i < 4; i++) {
         if (bufferSize == 0) continue;

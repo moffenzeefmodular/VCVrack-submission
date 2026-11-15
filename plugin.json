@@ -305,6 +305,17 @@
       ]
     },
     {
+      "slug": "TehomOut",
+      "name": "DIR. OUT",
+      "description": "Direct outputs expander for Tehom: stereo outputs for each deck. Each deck has a PRE-POST switch choosing pre- or post-mixer. Place directly next to Tehom.",
+      "manualUrl": "https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/manuals/Tehom%20User%20Manual.md",
+      "tags": [
+        "expander",
+        "mixer",
+        "utility"
+      ]
+    },
+    {
       "slug": "DitDit",
       "name": "DitDit",
       "description": "Morse code gate sequencer",

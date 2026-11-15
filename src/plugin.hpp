@@ -33,6 +33,7 @@ extern Model* modelQuadDeviant;
 extern Model* modelTehom;
 extern Model* modelDitDit;
 extern Model* modelParticles;
+extern Model* modelTehomOut;
 
 // ---------------------------------------------------------------------------
 // Per-module panel theme override

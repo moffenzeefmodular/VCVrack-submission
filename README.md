@@ -74,3 +74,5 @@ By Ross Fish Feb 2025
 
 -Dial Up: code overhaul to match the original hardware 1:1. Pitch range no longer changes when sample rate changes. Bug fix for "sound stopping after a few minutes" repaired. 
 -Added panel theme selection on a per module basis so that users can select light or dark modules seperately from rack default. 
+-Added Tehom Direct Output module
+-Added Tehom Direct Input module 
