@@ -4,8 +4,8 @@
 // DIR. OUT (slug "TehomOut"): 4hp direct-outputs expander for Tehom, stereo per deck.
 // Links to a Tehom anywhere in the patch (nearest by default, or chosen from the
 // context menu); it doesn't need to touch Tehom. Each deck's PRE-POST switch picks
-// whether its outputs carry the deck before the XY mixer (pre) or the deck's
-// contribution to the main mix (post).
+// pre (pre-mixer, pre-effects: no warble, Tone, or noise) or post (the deck through
+// warble, the XY mixer, Tone/saturation, and its share of the noise).
 struct TehomOut : TehomLinkedModule {
 	enum ParamId {
 		PREPOST1_PARAM,

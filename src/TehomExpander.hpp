@@ -19,10 +19,11 @@
 // ---------------------------------------------------------------------------
 
 // Tehom -> DIR. OUT
-//   pre  = each deck's signal after its Source crossfade, before the XY mixer
-//   post = each deck's contribution to the main mix (XY mixer level, and pan
-//          when "XY pad pans audio" is on), before the global Tone/saturation
-//          and noise stages, which act on the summed mix
+//   pre  = pre-mixer, pre-effects: each deck after its Source crossfade, read at
+//          the un-warbled playhead, with no Tone/saturation and no noise/return
+//   post = the deck through everything: warble, XY mixer level (and pan when
+//          "XY pad pans audio" is on), Tone filter/saturation (run per deck), and
+//          the deck's XY share of the noise/return
 struct TehomOutMessage {
 	float preL[4] = {};
 	float preR[4] = {};
@@ -43,6 +44,8 @@ struct TehomInMessage {
 struct TehomBus {
 	TehomOutMessage out[2];
 	int64_t outFrame[2] = {-1, -1};
+	// Last frame a DIR. OUT read this bus; Tehom skips the extra per-deck work when nobody listens
+	std::atomic<int64_t> outReaderFrame{-1};
 
 	TehomInMessage in[2];
 	int64_t inFrame[2] = {-1, -1};
@@ -51,7 +54,8 @@ struct TehomBus {
 	std::atomic<int64_t> inWriterFrame{-1};
 
 	// Previous frame's slot, if it was written in the previous frame
-	const TehomOutMessage* readOut(int64_t frame) const {
+	const TehomOutMessage* readOut(int64_t frame) {
+		outReaderFrame.store(frame, std::memory_order_relaxed);
 		int s = (int)((frame + 1) & 1);
 		return (outFrame[s] == frame - 1) ? &out[s] : nullptr;
 	}

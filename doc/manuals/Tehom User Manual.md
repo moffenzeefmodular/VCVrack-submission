@@ -34,9 +34,9 @@
 
 <p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomAudioIOScreenshot.png" height="638"></p>
 
-* **AUDIO L IN / AUDIO R IN:** Stereo audio inputs. If only the left input is patched, the signal is summed to mono and used for both channels internally.
+* **AUDIO L IN / AUDIO R IN:** Stereo audio inputs. If only the left input is patched, the signal is summed to mono and used for both channels internally. Individual channels can be given their own inputs with the **DIR. IN** expander (see [Expanders](#expanders)).
 
-* **AUDIO L OUT / AUDIO R OUT:** Stereo audio outputs. The output is the sum of the four XY-mixed loop channels plus the machine noise mix.
+* **AUDIO L OUT / AUDIO R OUT:** Stereo audio outputs. The output is the sum of the four XY-mixed loop channels plus the machine noise mix. Individual channel outputs are available with the **DIR. OUT** expander (see [Expanders](#expanders)).
 
 ---
 
@@ -188,6 +188,49 @@ This section controls Tehom's degradation and noise features — warble for dest
 ### Context Menu Options (right click)
 
 * **Media Type (Noise > Media Type):** Selects the active machine noise loop. Options are: Mic Preamp, Reel To Reel, Cassette, VHS, Vinyl Clean, Vinyl Dirty, 8mm Film, 16mm Film.
+
+---
+
+# Expanders
+
+Tehom has two 4 HP expanders: **DIR. IN** gives each channel its own stereo input, and **DIR. OUT** gives each channel its own stereo output. They can be used separately or together, and neither one needs to be placed next to Tehom — they can sit anywhere in the patch.
+
+## Linking
+
+* **Nearest Tehom (default):** Each expander automatically links to the nearest Tehom in the rack. If Tehom is moved, added, or deleted, the link updates on its own.
+
+* **Link to Tehom (right click > Link to Tehom):** Choose a specific Tehom to link to. Every Tehom in the patch is listed by its row and HP position, along with **Nearest (automatic)**. The choice is saved with the patch. If the chosen Tehom is deleted, the expander falls back to the nearest one.
+
+* **Link status:** The top of the expander's context menu shows which Tehom it is currently linked to.
+
+* **Multiple Tehoms:** Each Tehom can have its own expanders. Any number of DIR. OUT modules can follow the same Tehom, but only **one DIR. IN** can drive a Tehom at a time. A second DIR. IN linked to the same Tehom is ignored (its context menu says so) until the first one is removed or relinked.
+
+Signals between Tehom and its expanders are delayed by one sample, the same as a standard VCV Rack expander.
+
+## DIR. IN
+
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomDirInScreenshot.png" height="638"></p>
+
+* **CHANNEL 1–4 L IN / R IN:** Per-channel audio inputs. When a jack is patched, it replaces Tehom's main audio input for that side of that channel only — left and right work independently. The replaced signal is what the channel hears and records, and it goes through the Source knob exactly like the main inputs do.
+
+  An unpatched side keeps Tehom's main input for that side. For example, with a cable in Tehom's main **AUDIO R IN** and a cable in DIR. IN's channel 1 **L IN**, channel 1 records the DIR. IN signal on its left side and the main right input on its right side, while channels 2–4 keep using the main inputs on both sides. DIR. IN's right input is not normalled to its left input.
+
+* **Bypass:** When DIR. IN is bypassed, all four channels go back to Tehom's main inputs.
+
+## DIR. OUT
+
+<p align="center"><img src="https://github.com/moffenzeefmodular/VCVrack-submission/blob/main/doc/images/TehomDirOutScreenshot.png" height="638"></p>
+
+* **CHANNEL 1–4 L OUT / R OUT:** Per-channel stereo audio outputs.
+
+* **PRE - POST:** A switch for each channel that chooses what its outputs carry.
+
+  * **PRE** *(left, default)*: Pre-mixer and pre-effects. The channel's signal after its Source knob, with no warble, no Tone filter or saturation, and no machine noise or noise return. The level is not affected by the XY pad position. Speed, direction, the loop window, and Xfade still apply, since they are part of how the channel plays its loop.
+  * **POST** *(right)*: The channel through everything: warble, its XY mixer level (and pan when **XY Pad Pans Audio** is enabled), the Tone filter and saturation, and its share of the machine noise or noise return. Each channel receives the noise in proportion to its XY mixer level, so the four POST outputs add up to approximately the main output. The saturation is applied to each channel separately here rather than to the summed mix, so with the Tone knob pushed into saturation and several loud channels the sum can differ slightly.
+
+  Effects that were recorded into the buffer, for example with **Record Source: Main Output** enabled, are part of the loop itself and are heard in both PRE and POST.
+
+* **Bypass:** When Tehom is bypassed, DIR. OUT's outputs are silent.
 
 
 ---

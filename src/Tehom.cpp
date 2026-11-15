@@ -622,6 +622,12 @@ std::vector<float> bufL[4];
 std::vector<float> bufR[4];
 int writePos[4] = {};
 double readPos[4] = {};
+// DIR. OUT "pre": playhead displacement caused by warble, so a dry (un-warbled)
+// read position can be derived as readPos - warbleOffset. Reset on any jump.
+double warbleOffset[4] = {};
+double lastReadPos[4] = {};
+// DIR. OUT "post": per-deck copy of the Tone filter state (main mix filters the sum)
+float postFilterStateL[4] = {}, postFilterStateR[4] = {};
 int recordedLength[4] = {};
 bool hasContent[4] = {};
 
@@ -973,7 +979,12 @@ void process(const ProcessArgs& args) override {
     float outL = 0.f, outR = 0.f;
     float loopOutL = 0.f, loopOutR = 0.f;  // loop-only portion (filtered separately)
     float chanMixL[4] = {}, chanMixR[4] = {};
-    float postMixL[4] = {}, postMixR[4] = {}; // per-deck contribution to the mix (for Tehom Out expander)
+    float postMixL[4] = {}, postMixR[4] = {}; // per-deck contribution to the main mix
+    // DIR. OUT: pre = dry deck (no warble/tone/noise), post = deck through all effects
+    const bool dirOutActive = tehomBus.outReaderFrame.load(rlx) >= args.frame - 2;
+    float dryMixL[4] = {}, dryMixR[4] = {};
+    float inPartL[4] = {}, inPartR[4] = {}, loopPartL[4] = {}, loopPartR[4] = {};
+    float wetOutL[4] = {}, wetOutR[4] = {};
     float recMixL[4]  = {}, recMixR[4]  = {}; // recording mix: loop component read at 1:1 (no pitch shift)
 
     // Global loop window params
@@ -991,6 +1002,8 @@ void process(const ProcessArgs& args) override {
 
     for (int i = 0; i < 4; i++) {
         float sampL = 0.f, sampR = 0.f;
+        float drySampL = 0.f, drySampR = 0.f;  // un-warbled read for DIR. OUT pre
+        bool dryDiffers = false;
         bool isDraggingNow = bezelDragging[i].load();
 
         if (hasContent[i] && bufferSize > 0 && (playState[i].load(rlx) || isDraggingNow || playGain[i] > 0.f)) {
@@ -998,6 +1011,7 @@ void process(const ProcessArgs& args) override {
             if (len >= 2) {
                 if (isDraggingNow) {
                     // Scrub read: use full buffer at current readPos (already updated by scrub code above)
+                    warbleOffset[i] = 0.0;  // manual scrub has no warble; dry == wet
                     int rp0 = clamp((int)readPos[i], 0, len - 1);
                     int rp1 = clamp(rp0 + 1, 0, len - 1);
                     float frac = readPos[i] - (float)rp0;
@@ -1031,6 +1045,10 @@ void process(const ProcessArgs& args) override {
                     if (readPos[i] < (float)loopStart) readPos[i] = (float)loopStart;
                     if (readPos[i] >= (float)loopEnd)  readPos[i] = (float)(loopEnd - 1);
 
+                    // Playhead jumped since last sample (play start, scrub, window clamp): dry re-syncs to wet
+                    if (readPos[i] != lastReadPos[i])
+                        warbleOffset[i] = 0.0;
+
                     int rp0 = clamp((int)readPos[i], loopStart, loopEnd - 1);
                     int rp1 = clamp(rp0 + 1, loopStart, loopEnd - 1);
                     float frac = readPos[i] - (float)rp0;
@@ -1051,9 +1069,34 @@ void process(const ProcessArgs& args) override {
                         sampR *= clamp(gain, 0.f, 1.f);
                     }
 
+                    // DIR. OUT pre: read again at the un-warbled playhead position
+                    if (dirOutActive && warbleOffset[i] != 0.0) {
+                        double dp = std::fmod(readPos[i] - warbleOffset[i] - (double)loopStart, (double)loopSize);
+                        if (dp < 0.0) dp += (double)loopSize;
+                        dp += (double)loopStart;
+                        int d0 = clamp((int)dp, loopStart, loopEnd - 1);
+                        int d1 = clamp(d0 + 1, loopStart, loopEnd - 1);
+                        float df = (float)(dp - (double)d0);
+                        drySampL = bufL[i][d0] + (bufL[i][d1] - bufL[i][d0]) * df;
+                        drySampR = bufR[i][d0] + (bufR[i][d1] - bufR[i][d0]) * df;
+                        if (xfadeParam > 0.f) {
+                            float posInLoop = (float)(dp - (double)loopStart);
+                            float fadeLen   = xfadeParam * (float)(loopSize / 2);
+                            float gain = 1.f;
+                            if (posInLoop < fadeLen)
+                                gain = posInLoop / fadeLen;
+                            else if (posInLoop > (float)loopSize - fadeLen)
+                                gain = ((float)loopSize - posInLoop) / fadeLen;
+                            drySampL *= clamp(gain, 0.f, 1.f);
+                            drySampR *= clamp(gain, 0.f, 1.f);
+                        }
+                        dryDiffers = true;
+                    }
+
                     float knobOctaves = std::log2f(std::max(params[SPEED1_PARAM + i].getValue() * 2.f, 0.05f));
                     float totalOctaves = clamp(knobOctaves + inputs[SPEED1CVIN_INPUT + i].getVoltage(), std::log2f(0.05f), 1.f);
                     float speed = std::pow(2.f, totalOctaves);
+                    const float baseSpeed = speed;  // speed without warble
 
                     // Wow and flutter: only compute sin when warble is non-zero.
                     // Use conditional subtract instead of fmod — far cheaper since increments
@@ -1070,6 +1113,7 @@ void process(const ProcessArgs& args) override {
 
                     float dir = playReversed[i].load(rlx) ? -1.f : 1.f;
                     readPos[i] += dir * speed;
+                    warbleOffset[i] += (double)(dir * (speed - baseSpeed));
 
                     bool looping = params[LOOP1_PARAM + i].getValue() > 0.5f;
                     if (looping) {
@@ -1083,6 +1127,7 @@ void process(const ProcessArgs& args) override {
                             // reads from the loop edge rather than jumping to a discontinuous position.
                         }
                     }
+                    lastReadPos[i] = readPos[i];
                 }
             }
         }
@@ -1115,6 +1160,8 @@ void process(const ProcessArgs& args) override {
         }
         sampL *= playGain[i];
         sampR *= playGain[i];
+        drySampL *= playGain[i];
+        drySampR *= playGain[i];
 
         // Write-head proximity fade: in continuous record, the write head advances forward while
         // reversed playback retreats backward — they cross periodically. At the crossing, the
@@ -1130,13 +1177,21 @@ void process(const ProcessArgs& args) override {
                 float blend = dist / fadeLen;
                 sampL *= blend;
                 sampR *= blend;
+                drySampL *= blend;
+                drySampR *= blend;
             }
+        }
+        if (!dryDiffers) {
+            drySampL = sampL;
+            drySampR = sampR;
         }
 
         float srcParam = clamp(params[SOURCE1_PARAM + i].getValue() + clamp(inputs[SOURCE1CVIN_INPUT + i].getVoltage(), -5.f, 5.f) / 5.f, -1.f, 1.f);
         float t = (srcParam + 1.f) * 0.5f; // 0 = input, 1 = loop
         chanMixL[i] = deckInL[i] * (1.f - t) + sampL * t;
         chanMixR[i] = deckInR[i] * (1.f - t) + sampR * t;
+        dryMixL[i]  = deckInL[i] * (1.f - t) + drySampL * t;
+        dryMixR[i]  = deckInR[i] * (1.f - t) + drySampR * t;
 
         // Recording mix: blend input with raw buffer at 1:1 so pitch doesn't compound on re-record.
         // Using writePos % recordedLength maps the write head into the existing loop without pitch shift.
@@ -1161,6 +1216,10 @@ void process(const ProcessArgs& args) override {
             outR += postMixR[i];
             loopOutL += sampL * t * vol[i] * panL;
             loopOutR += sampR * t * vol[i] * panR;
+            inPartL[i]   = deckInL[i] * (1.f - t) * vol[i] * panL;
+            inPartR[i]   = deckInR[i] * (1.f - t) * vol[i] * panR;
+            loopPartL[i] = sampL * t * vol[i] * panL;
+            loopPartR[i] = sampR * t * vol[i] * panR;
         } else {
             postMixL[i] = chanMixL[i] * vol[i];
             postMixR[i] = chanMixR[i] * vol[i];
@@ -1168,6 +1227,10 @@ void process(const ProcessArgs& args) override {
             outR += postMixR[i];
             loopOutL += sampL * t * vol[i];
             loopOutR += sampR * t * vol[i];
+            inPartL[i]   = deckInL[i] * (1.f - t) * vol[i];
+            inPartR[i]   = deckInR[i] * (1.f - t) * vol[i];
+            loopPartL[i] = sampL * t * vol[i];
+            loopPartR[i] = sampR * t * vol[i];
         }
 
         float level = (std::abs(chanMixL[i]) + std::abs(chanMixR[i])) * 0.5f * vol[i];
@@ -1207,6 +1270,16 @@ void process(const ProcessArgs& args) override {
         // Substitute: remove original loop from combined, add filtered+soft-clipped loop
         outL = outL - loopOutL + processedL;
         outR = outR - loopOutR + processedR;
+
+        // DIR. OUT post: the same Tone filter + saturation, run on each deck's loop share
+        if (dirOutActive) {
+            for (int i = 0; i < 4; i++) {
+                postFilterStateL[i] += filterAlpha * (loopPartL[i] - postFilterStateL[i]);
+                postFilterStateR[i] += filterAlpha * (loopPartR[i] - postFilterStateR[i]);
+                wetOutL[i] = inPartL[i] + std::tanh(postFilterStateL[i] / cachedFilterSc) * cachedFilterSc * cachedFilterGain;
+                wetOutR[i] = inPartR[i] + std::tanh(postFilterStateR[i] / cachedFilterSc) * cachedFilterSc * cachedFilterGain;
+            }
+        }
     }
 
     // === MEDIA (OGG LOOPS) — mixed in after XY mixer ===
@@ -1269,7 +1342,12 @@ void process(const ProcessArgs& args) override {
     outputs[AUDIOLEFTOUT_OUTPUT].setVoltage(outL);
     outputs[AUDIORIGHTOUT_OUTPUT].setVoltage(outR);
 
-    sendDirOut(args.frame, chanMixL, chanMixR, postMixL, postMixR);
+    // DIR. OUT post: add each deck's XY share of the noise/return (shares sum to the main noise)
+    for (int i = 0; i < 4; i++) {
+        wetOutL[i] = clamp(wetOutL[i] + noiseMixL * vol[i], -5.f, 5.f);
+        wetOutR[i] = clamp(wetOutR[i] + noiseMixR * vol[i], -5.f, 5.f);
+    }
+    sendDirOut(args.frame, dryMixL, dryMixR, wetOutL, wetOutR);
 
     for (int i = 0; i < 4; i++) {
         if (bufferSize == 0) continue;
