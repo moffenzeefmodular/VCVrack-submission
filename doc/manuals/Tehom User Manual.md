@@ -195,6 +195,14 @@ This section controls Tehom's degradation and noise features — warble for dest
 
 Tehom has two 4 HP expanders: **DIR. IN** gives each channel its own stereo input, and **DIR. OUT** gives each channel its own stereo output. They can be used separately or together, and neither one needs to be placed next to Tehom — they can sit anywhere in the patch.
 
+## Adding Expanders from Tehom (right click > Expanders)
+
+* **Add Direct Output Expander:** Adds a DIR. OUT to the patch, placed in the nearest open space to the right of Tehom.
+
+* **Add Direct Input Expander:** Adds a DIR. IN to the patch, placed in the nearest open space to the left of Tehom.
+
+Expanders added this way are linked directly to the Tehom they were added from (instead of **Nearest (automatic)**), so they stay with that Tehom even in patches with several Tehoms. Other modules in the rack are never pushed aside to make room. Adding an expander can be undone with **Edit > Undo**. Only one DIR. IN can drive a Tehom at a time, so a second DIR. IN added to the same Tehom is ignored until the first one is removed (see **Multiple Tehoms** below).
+
 ## Linking
 
 * **Nearest Tehom (default):** Each expander automatically links to the nearest Tehom in the rack. If Tehom is moved, added, or deleted, the link updates on its own.

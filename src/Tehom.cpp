@@ -2178,10 +2178,40 @@ struct TehomWidget : MoffModuleWidget {
 		addChild(createLightCentered<LargeLight<ChanLight2>>(mm2px(Vec(26.9, 71.937)), module, Tehom::BUFFER3LED_LIGHT));
 		addChild(createLightCentered<LargeLight<ChanLight3>>(mm2px(Vec(125.315, 71.937)), module, Tehom::BUFFER4LED_LIGHT));
 	}
+    // Create a DIR. IN / DIR. OUT expander next to this Tehom, explicitly linked to it.
+    // DIR. IN goes to the left, DIR. OUT to the right (nearest free slot). Undoable.
+    void addExpander(Model* model, bool toRight) {
+        if (!module || !APP->scene || !APP->scene->rack)
+            return;
+        Module* m = model->createModule();
+        APP->engine->addModule(m);  // assigns m->id
+        if (auto* linked = dynamic_cast<TehomLinkedModule*>(m))
+            linked->linkedId.store(module->id);
+
+        ModuleWidget* mw = model->createModuleWidget(m);
+        APP->scene->rack->addModule(mw);
+        Vec pos = toRight ? box.pos.plus(Vec(box.size.x, 0.f))
+                          : box.pos.minus(Vec(mw->box.size.x, 0.f));
+        APP->scene->rack->setModulePosNearest(mw, pos);  // never displaces other modules
+
+        history::ModuleAdd* h = new history::ModuleAdd;
+        h->name = toRight ? "add Tehom DIR. OUT" : "add Tehom DIR. IN";
+        h->setModule(mw);  // snapshot includes tehomLinkId, so redo keeps the link
+        APP->history->push(h);
+    }
+
     void appendContextMenu(Menu* menu) override {
         MoffModuleWidget::appendContextMenu(menu);
         auto* tehom = dynamic_cast<Tehom*>(module);
         if (!tehom) return;
+
+        // Expanders
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Expanders"));
+        menu->addChild(createMenuItem("Add Direct Output Expander", "",
+            [=]() { addExpander(modelTehomOut, true); }));
+        menu->addChild(createMenuItem("Add Direct Input Expander", "",
+            [=]() { addExpander(modelTehomIn, false); }));
 
         // GUI section
         menu->addChild(new MenuSeparator);
